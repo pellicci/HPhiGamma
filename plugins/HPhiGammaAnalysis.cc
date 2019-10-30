@@ -241,6 +241,7 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
   K1_energy = 0.;
   K1_dxy    = 0.;
   K1_dz     = 0.;
+  K1_charge = 0.;
   LorentzVector K1_p4;
   K1_sum_pT_03    = 0.;
   K1_sum_pT_05    = 0.;
@@ -253,6 +254,7 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
   K2_energy = 0.;
   K2_dxy    = 0.;
   K2_dz     = 0.;
+  K2_charge = 0.;
   LorentzVector K2_p4;
   K2_sum_pT_03    = 0.;
   K2_sum_pT_05    = 0.;
@@ -322,7 +324,7 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
 
   for(auto el = slimmedElectrons->begin(); el != slimmedElectrons->end(); ++el){
     //Calculate electron p4, correct it with the Scale&Smearing correction and extract the pT
-    LorentzVector el_p4 = el->p4() * el->userFloat("ecalTrkEnergyPostCorr")/el->energy();
+    LorentzVector el_p4 = el->p4(); // * el->userFloat("ecalTrkEnergyPostCorr")/el->energy();
     corr_pt = el_p4.pt();
 
     if(corr_pt < 10. || fabs(el->eta()) > 2.5 || fabs(el->gsfTrack()->dxy((&slimmedPV->at(0))->position())) >= 0.2 || fabs(el->gsfTrack()->dz((&slimmedPV->at(0))->position())) >= 0.5) continue;
@@ -336,6 +338,8 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
     if(el->electronID("mvaEleID-Fall17-iso-V1-wp80") == 0) continue;
     nElectrons++;
   }
+
+  //std::cout << "Nelectrons " << nElectrons << " Nmuons " << nMuons << std::endl;
 
   //*************************************************************//
   //                                                             //
@@ -383,6 +387,7 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
       K2_p4     = K1_p4;
       K2_dxy    = K1_dxy;
       K2_dz     = K1_dz;
+      K2_charge = K1_charge;
 
       K1_pTMax  = cand->pt();
       K1_pT     = cand->pt();
@@ -392,6 +397,7 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
       K1_p4     = cand->p4();
       K1_dxy    = cand->dxy();
       K1_dz     = cand->dz();
+      K1_charge = cand->charge();
     }
     else{
       K2_pTMax  = cand->pt();
@@ -402,6 +408,7 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
       K2_p4     = cand->p4();
       K2_dxy    = cand->dxy();
       K2_dz     = cand->dz();
+      K2_charge = cand->charge();
     }
 
   }
@@ -409,6 +416,8 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
   //Do NOT continue if you didn't find a pion
   if(K1_pTMax < 0. || K2_pTMax < 0.) return;
   _Nevents_isTwoKaons++;
+
+  //std::cout << "Two kaons " << _Nevents_isTwoKaons << std::endl;
 
   //*************************************************************//
   //                                                             //
@@ -442,12 +451,16 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
 
   for(auto photon = slimmedPhotons->begin(); photon != slimmedPhotons->end(); ++photon){
 
-    corr_et = photon->et() * photon->userFloat("ecalEnergyPostCorr")/photon->energy();
+    corr_et = photon->et(); // * photon->userFloat("ecalEnergyPostCorr")/photon->energy();
+
+    //std::cout << "photon et " << corr_et << std::endl;
 
     if(corr_et < 20. || fabs(photon->eta()) > 2.5 || corr_et < eTphMax) continue;
     if(photon->hasPixelSeed()) continue;   //electron veto
 
-    if(photon->photonID("mvaPhoID-RunIIFall17-v2-wp90") == 0) continue;
+    //std::cout << "photon" << photon->photonID("mvaPhoID-RunIIFall17-v1-wp90") << " " << photon->photonID("mvaPhoID-RunIIFall17-v1p1-wp90") << std::endl;
+
+    if(photon->photonID("mvaPhoID-RunIIFall17-v1p1-wp90") == 0) continue;
 
     float abseta = fabs(photon->superCluster()->eta());
     float eA = effectiveAreas_ph_.getEffectiveArea(abseta);
@@ -466,8 +479,8 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
     ph_phi    = photon->phi();
 
     // Apply energy scale corrections to MC
-    ph_energy = photon->userFloat("ecalEnergyPostCorr");
-    ph_p4     = photon->p4() * photon->userFloat("ecalEnergyPostCorr")/photon->energy();
+    ph_energy = photon->energy(); //userFloat("ecalEnergyPostCorr");
+    ph_p4     = photon->p4();  //* photon->userFloat("ecalEnergyPostCorr")/photon->energy();
     
     cand_photon_found = true;
 
@@ -502,13 +515,17 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
   if(!cand_photon_found) return;
   _Nevents_isPhoton++;
 
+  //std::cout << "Nphotons " << _Nevents_isPhoton << std::endl;
+
   //Only save events in a certain range
   _Phimass = (K1_p4 + K2_p4).M();
+  //std::cout << "PhiMass " << _Phimass << std::endl;
   if(_Phimass < 0.1 || _Phimass > 5.) return;
   _Nevents_isPhimass++;
 
   _Hmass = (K1_p4 + K2_p4 + ph_p4).M();
-  if(_Phimass < 100. || _Phimass > 140.) return;
+  //std::cout << "HMass " << _Hmass << std::endl;
+  if(_Hmass < 100. || _Hmass > 140.) return;
   _Nevents_isHmass++;
 
   //*************************************************************//
@@ -559,6 +576,7 @@ void HPhiGammaAnalysis::create_trees()
   mytree->Branch("K1_energy",&K1_energy);
   mytree->Branch("K1_dxy",&K1_dxy);
   mytree->Branch("K1_dz",&K1_dz);
+  mytree->Branch("K1_charge",&K1_charge);
   mytree->Branch("K1_sum_pT_03",&K1_sum_pT_03);
   mytree->Branch("K1_sum_pT_05",&K1_sum_pT_05);
   mytree->Branch("K1_sum_pT_05_ch",&K1_sum_pT_05_ch);
@@ -569,6 +587,7 @@ void HPhiGammaAnalysis::create_trees()
   mytree->Branch("K2_energy",&K2_energy);
   mytree->Branch("K2_dxy",&K2_dxy);
   mytree->Branch("K2_dz",&K2_dz);
+  mytree->Branch("K2_charge",&K2_charge);
   mytree->Branch("K2_sum_pT_03",&K2_sum_pT_03);
   mytree->Branch("K2_sum_pT_05",&K2_sum_pT_05);
   mytree->Branch("K2_sum_pT_05_ch",&K2_sum_pT_05_ch);
@@ -612,7 +631,7 @@ void HPhiGammaAnalysis::beginJob()
 {
   //Flag for PileUp reweighting
   if (!runningOnData_){ // PU reweighting for 2017
-   Lumiweights_ = edm::LumiReWeighting("MCpileUp_2017_25ns_WinterMC_PUScenarioV1_PoissonOOTPU.root", "MyDataPileupHistogram_2017.root", "pileup", "pileup");
+   Lumiweights_ = edm::LumiReWeighting("MCpileUp_2018_25ns_JuneProjectionFull18_PoissonOOTPU.root", "MyDataPileupHistogram.root", "pileup", "pileup");
   }
 }
 

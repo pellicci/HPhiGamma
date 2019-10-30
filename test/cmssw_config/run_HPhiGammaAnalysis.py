@@ -9,7 +9,7 @@ process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_condD
 from Configuration.AlCa.GlobalTag import GlobalTag
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(100)
+    input = cms.untracked.int32(1000)
 )
 
 import FWCore.ParameterSet.VarParsing as VarParsing
@@ -22,10 +22,10 @@ options.register('runningOnData',
 options.parseArguments()
 
 ################################################################################################################
-from RecoEgamma.EgammaTools.EgammaPostRecoTools import setupEgammaPostRecoSeq
-setupEgammaPostRecoSeq(process,
-                       runEnergyCorrections=False, #as energy corrections are not yet availible for 2018
-                       era='2018-Prompt')  
+#from RecoEgamma.EgammaTools.EgammaPostRecoTools import setupEgammaPostRecoSeq
+#setupEgammaPostRecoSeq(process,
+#                       runEnergyCorrections=False, #as energy corrections are not yet availible for 2018
+#                       era='2018-Prompt')  
 ################################################################################################################
 
 #Input source
@@ -35,7 +35,8 @@ if options.runningOnData:
 
 else:
    process.GlobalTag = GlobalTag(process.GlobalTag, '102X_upgrade2018_realistic_v18')
-   inputFiles = {"root://cms-xrd-global.cern.ch//store/mc/RunIIAutumn18MiniAOD/TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8/MINIAODSIM/102X_upgrade2018_realistic_v15-v1/00000/87939B6A-E668-BF48-8648-582C440C5A78.root"}
+   #inputFiles = {"/store/mc/RunIIAutumn18MiniAOD/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/MINIAODSIM/102X_upgrade2018_realistic_v15-v1/80000/F9947F2D-F185-4E43-9A4B-EA7FAF2CE4C2.root"}
+   inputFiles = {"/store/user/pellicci/HPhiGamma_GENSIM_1026/HPhiGamma_MINIAOD_10213V1/190507_131615/0004/HPhiGamma_signal_MINIAOD_4769.root"}
 
 process.source = cms.Source ("PoolSource",
                              fileNames = cms.untracked.vstring (inputFiles)
@@ -43,7 +44,7 @@ process.source = cms.Source ("PoolSource",
 
 # Output file
 process.TFileService = cms.Service("TFileService",
-   fileName = cms.string("WPiGammaAnalysis_output.root")
+   fileName = cms.string("HPhiGammaAnalysis_output.root")
 )
 
 
@@ -102,6 +103,6 @@ process.trigger_filter.throw = cms.bool( False )
 #                                             #
 ###############################################
 
-process.seq = cms.Path(process.trigger_filter * process.egammaPostRecoSeq * process.patJetCorrFactorsUpdatedJEC * process.updatedPatJetsUpdatedJEC * process.HPhiGammaAnalysis)
+process.seq = cms.Path(process.trigger_filter * process.patJetCorrFactorsUpdatedJEC * process.updatedPatJetsUpdatedJEC * process.HPhiGammaAnalysis)
 
 process.schedule = cms.Schedule(process.seq)

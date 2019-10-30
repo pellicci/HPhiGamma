@@ -62,6 +62,7 @@ private:
   float K1_energy;
   float K1_dxy;
   float K1_dz;
+  float K1_charge;
   float K1_sum_pT_03;
   float K1_sum_pT_05;
   float K1_sum_pT_05_ch;
@@ -73,6 +74,7 @@ private:
   float K2_energy;
   float K2_dxy;
   float K2_dz;
+  float K2_charge;
   float K2_sum_pT_03;
   float K2_sum_pT_05;
   float K2_sum_pT_05_ch;
