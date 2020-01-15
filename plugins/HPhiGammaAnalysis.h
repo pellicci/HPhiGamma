@@ -44,6 +44,10 @@ private:
   int nPhotons;
   int nJets;
   int nJets_25;
+  int nHiggsFound; //by giulio
+  int notMatched; //by giulio
+  int matchedMass; //by giulio
+  int notMatchedMass; //by giulio
 
   int _Nevents_processed;
   int _Nevents_isTwoKaons;
@@ -99,6 +103,14 @@ private:
   float metpuppi_pT;
   
   bool isTwoProngTrigger;
+
+  //by giulio
+  float phiJet_pT;
+  float phiJet_eta;
+  float phiJet_phi;
+  int phiJet_nTracks;
+  float phiJet_pTMax;
+  float massaInv;
 
   //MC truth
   float PU_Weight;

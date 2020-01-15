@@ -9,7 +9,7 @@ process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_condD
 from Configuration.AlCa.GlobalTag import GlobalTag
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(1000)
+    input = cms.untracked.int32(10000)
 )
 
 import FWCore.ParameterSet.VarParsing as VarParsing
@@ -36,7 +36,7 @@ if options.runningOnData:
 else:
    process.GlobalTag = GlobalTag(process.GlobalTag, '102X_upgrade2018_realistic_v18')
    #inputFiles = {"/store/mc/RunIIAutumn18MiniAOD/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/MINIAODSIM/102X_upgrade2018_realistic_v15-v1/80000/F9947F2D-F185-4E43-9A4B-EA7FAF2CE4C2.root"}
-   inputFiles = {"/store/user/pellicci/HPhiGamma_GENSIM_1026/HPhiGamma_MINIAOD_10213V1/190507_131615/0004/HPhiGamma_signal_MINIAOD_4769.root"}
+   inputFiles = {"file:HPhiGamma_signal_MINIAOD_4769.root","file:HPhiGamma_signal_MINIAOD_1040.root","file:HPhiGamma_signal_MINIAOD_886.root","file:HPhiGamma_signal_MINIAOD_887.root","file:HPhiGamma_signal_MINIAOD_888.root","file:HPhiGamma_signal_MINIAOD_889.root","file:HPhiGamma_signal_MINIAOD_890.root","file:HPhiGamma_signal_MINIAOD_892.root","file:HPhiGamma_signal_MINIAOD_893.root","file:HPhiGamma_signal_MINIAOD_894.root","file:HPhiGamma_signal_MINIAOD_89.root"}
 
 process.source = cms.Source ("PoolSource",
                              fileNames = cms.untracked.vstring (inputFiles)
