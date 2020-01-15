@@ -684,7 +684,7 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
 
 
 
-  //--------------------jet costituents forloop----------------------------------
+  //--------------------jet constituents forloop----------------------------------
 
   vector<int> positiveCand;
   vector<int> negativeCand;
