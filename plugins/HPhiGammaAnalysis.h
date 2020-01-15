@@ -111,6 +111,7 @@ private:
   int phiJet_nTracks;
   float phiJet_pTMax;
   float massaInv;
+  float massaInvPhi;
 
   //MC truth
   float PU_Weight;
