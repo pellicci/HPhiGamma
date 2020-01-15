@@ -617,7 +617,7 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
       	  signalPosition=jetIndex; //note the position of the chosen jet inside the vector
 	  massInvSignal=massaInv;
 	  nDaughtersSignal=nDaughters;
-	  cout<<endl<<"carica: "<<jet->daughter(0)->charge()<<endl;
+	  //	  cout<<endl<<"carica: "<<jet->daughter(0)->charge()<<endl;
 	}
 
 
@@ -669,7 +669,7 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
 
   if(MCtruthIndex == signalPosition) 
     {
-      cout<<"THAT'S A PHI FROM A HIGGS!!! DeltaR= "<<deltaR<<endl;
+      cout<<endl<<"*****THAT'S A PHI FROM A HIGGS!!!****** DeltaR= "<<deltaR<<endl;
       nHiggsFound++; //datamember da header file
       if(massInvSignal > 100. && massInvSignal < 150.) matchedMass++;
       else notMatchedMass++;
@@ -677,7 +677,8 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
   else notMatched++;
   
   cout<<endl<<"nHiggsFound= "<<nHiggsFound<<endl<<"Not matched= "<<notMatched<<endl;
-  cout<<endl<<"Massa invariante= "<<massInvSignal<<endl<<"matchedMass= "<<matchedMass<<endl<<"notMatchedMass= "<<notMatchedMass<<endl<<endl;      
+  cout<<endl<<"Massa invariante del jet= "<<massInvSignal<<endl<<"matchedMass= "<<matchedMass<<endl<<"notMatchedMass= "<<notMatchedMass<<endl;
+  cout<<endl<<"--------Spacchetto il jet--------";     
   cout<<endl<<"n° of daughters: "<<nDaughtersSignal<<endl;
   
   //  cout<<endl<<slimmedJets->at(signalPosition).daughter(0)->charge()<<endl;
@@ -696,30 +697,36 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
   LorentzVector second_p4;
   LorentzVector couple_p4;
   float couplePt = 0.;
+  //  float massInv_KKPh=0.;
   
   for(int firstCandIndex=0; firstCandIndex < nDaughtersSignal; firstCandIndex++) //1st loop starts
     {
       firstPt= slimmedJets->at(signalPosition).daughter(firstCandIndex)->pt(); //extrapolate first pt
       
       if(firstPt < 1.) continue; //first filter: if pt < 1GeV, 'YOU SHALL NOT PASS!!!'
-      
+
       for(int secondCandIndex=0; secondCandIndex < nDaughtersSignal; secondCandIndex++) //2nd loop starts
 	{
+	  if(secondCandIndex==firstCandIndex)continue; //in order to not associate a particle with itself
+
 	  secondPt= slimmedJets->at(signalPosition).daughter(secondCandIndex)->pt(); //extrapolate second pt
 
 	  //second filter: if pt < 10GeV, 'YOU SHALL NOT PASS!!!'
 	  if(secondPt < 10.) continue; 
+	       
+	  firstCharge = slimmedJets->at(signalPosition).daughter(firstCandIndex)->charge(); //extrapolate first charge
+	  secondCharge = slimmedJets->at(signalPosition).daughter(secondCandIndex)->charge(); //extrapolate second charge
+	  //------------------------------------DEBUG----------------------------------------------------
+	  //cout<<"Particle n°"<<firstCandIndex+1<<" pt= "<<firstPt<<" Q= "<<firstCharge<<endl; //debug       
+	  //cout<<"Particle n°"<<secondCandIndex+1<<" pt= "<<secondPt<<" Q= "<<secondCharge<<endl; //debug       
+	  //--------------------------------------------------------------------------------------------
 	  
-	  firstCharge = slimmedJets->at(signalPosition).daughter(firstCandIndex)->charge();
-	  secondCharge = slimmedJets->at(signalPosition).daughter(secondCandIndex)->charge(); 
-	  
-	  if(firstCharge*secondCharge == -1)
+if(firstCharge*secondCharge == -1) //filter on opposite charges
 	    {
-	      //elemIndex++;
 	      if(firstCharge == 1)
 		{
-		  positiveCand.push_back(firstCandIndex);
-		  negativeCand.push_back(secondCandIndex);
+		  positiveCand.push_back(firstCandIndex); //riempio dei vector con la posizione delle coppie di candidati
+		  negativeCand.push_back(secondCandIndex); //per ora non li uso ma possono servire
 		}
 	      else
 		{
@@ -727,16 +734,21 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
 		  negativeCand.push_back(firstCandIndex);
 		}
 
-	      first_p4 = slimmedJets->at(signalPosition).daughter(firstCandIndex)->p4();
+	      first_p4 = slimmedJets->at(signalPosition).daughter(firstCandIndex)->p4(); //calcolo quadrimpulsi
 	      second_p4 = slimmedJets->at(signalPosition).daughter(secondCandIndex)->p4();
 	      couple_p4 = first_p4 + second_p4;
-	      couplePt = couple_p4.pt();
+	      //	      cout<<"couple pt= "<<couple_p4.pt()<<endl;	      
 
+	      if(couple_p4.pt() > couplePt) //scelgo la coppia di candidati con impulso trasverso totale maggiore
+		{
+		  couplePt = couple_p4.pt();
+		  massaInv=(couple_p4+ph_p4).M(); //calcolo massa invariante
+		}
 	    }
 	} //2nd lopp ends
     } //1st loop ends
   
-  
+  cout<<endl<<"massa inv dopo aver spacchettato il jet="<<massaInv<<endl<<endl;
   
   mytree->Fill();
 }
