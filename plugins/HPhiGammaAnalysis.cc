@@ -52,6 +52,12 @@ typedef math::XYZTLorentzVector LorentzVector;
 using namespace std;  
  
 #include "HPhiGammaAnalysis.h"
+
+  //------verbose initialization-------  
+  bool jetVerbose=false;
+  bool chargesDebug=false;  
+  //--------------------------------
+
  
 // constructors and destructor
 HPhiGammaAnalysis::HPhiGammaAnalysis(const edm::ParameterSet& iConfig) :
@@ -79,12 +85,11 @@ HPhiGammaAnalysis::HPhiGammaAnalysis(const edm::ParameterSet& iConfig) :
   _Nevents_processed  = 0;
   _Nevents_isTwoKaons   = 0;
   _Nevents_isPhoton   = 0;
-  _Nevents_isPhimass  = 0;
-  _Nevents_isHmass  = 0;
-  nHiggsFound=0; //by giulio
-  notMatched=0; //by giulio
-  matchedMass=0; //by giulio
-  notMatchedMass=0; //by giulio
+  _Nevents_HiggsFound = 0;
+  _Nevents_HiggsNotMatched = 0;
+  _Nevents_HiggsMassMatched = 0;
+  _Nevents_HiggsMassNotMatched = 0;
+  _Nevents_JetIsBetterForMass = 0;
 
   h_pileup   = fs->make<TH1F>("pileup", "pileup", 75,0,75);
 
@@ -235,6 +240,7 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
   //                                                             //
   //*************************************************************//
 
+
   nMuons     = 0;
   nElectrons = 0;
   nPhotons   = 0;
@@ -250,14 +256,7 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
   K1_dz     = 0.;
   K1_charge = 0.;
 
-  //by giulio
-  phiJet_pT=0.;
-  phiJet_eta=0.;
-  phiJet_phi=0.;
-  phiJet_nTracks=0.;
-  phiJet_pTMax=-1.;
-  massaInv=-1.;
-
+  
   LorentzVector K1_p4;
   K1_sum_pT_03    = 0.;
   K1_sum_pT_05    = 0.;
@@ -294,11 +293,20 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
 
   eTphMax  = -1000.;
 
+  _Jet_Photon_invMass = 0.;
   _Phimass = 0.;
   _Hmass = 0.;
+  _Hmass_HybridMethod = 0.;
 
   met_pT = 0.;
   metpuppi_pT = 0.;
+
+  jet_pT=0.;
+  jet_eta=0.;
+  jet_phi=0.;
+  jet_nTracks=0;
+  jet_pTMax=-1.;
+  
 
   //*************************************************************//
   //                                                             //
@@ -520,8 +528,8 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
       }
             
       if(gen_ID == 22) is_photon_a_photon = true;
-      //if(gen_ID != 22) std::cout << "ph gen ID = " << gen_ID << std::endl;
-      //if(gen_ID != 22 && fabs(gen_mother) == 24) std::cout << "ph gen ID when matched = " << gen_ID << std::endl;
+      if(gen_ID != 22) std::cout << "ph gen ID = " << gen_ID << std::endl;
+      if(gen_ID != 22 && fabs(gen_mother) == 24) std::cout << "ph gen ID when matched = " << gen_ID << std::endl;
       if(fabs(gen_mother) == 25) is_photon_matched = true;
     }
 
@@ -531,19 +539,9 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
   if(!cand_photon_found) return;
   _Nevents_isPhoton++;
 
-  //std::cout << "Nphotons " << _Nevents_isPhoton << std::endl;
+  std::cout << "Nphotons " << _Nevents_isPhoton << std::endl;
 
-  //Only save events in a certain range
-  _Phimass = (K1_p4 + K2_p4).M();
-  //std::cout << "PhiMass " << _Phimass << std::endl;
-  //if(_Phimass < 0.1 || _Phimass > 5.) return;
-  _Nevents_isPhimass++;
-
-  _Hmass = (K1_p4 + K2_p4 + ph_p4).M();
-  //std::cout << "HMass " << _Hmass << std::endl;
-  //if(_Hmass < 100. || _Hmass > 140.) return;
-  _Nevents_isHmass++;
-
+  
   //*************************************************************//
   //                                                             //
   //--------------------------- N-jets --------------------------//
@@ -551,19 +549,16 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
   //*************************************************************//
   
 
-  //by Giulio
-
-  bool verbose=false;
+  
   //int nJet=1;
-  float enJetTot;
-  float jetPt=-1.;
+  float jetPtMax=-1.;
   int jetIndex=-1;
-  int signalPosition=-1;
+  int bestJet_Index=-1;
   int MCtruthIndex = -1;
   float deltaR = -1;   
-  float massInvSignal=0.;
+  float bestJet_InvMass=0.;
   int nDaughters=0;
-  int nDaughtersSignal=0;
+  int bestJet_nDaughters=0;
   
 
   //cout<<endl<<"sto per entrare nel  loop sui jet"<<endl;
@@ -572,61 +567,50 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
       jetIndex++;
       
       //-------------------------------access to MC truth-------------------------------------------
-      for(auto gen = genParticles->begin(); gen != genParticles->end(); ++gen) //gen particles loop start
-	{ 
-	  float R = sqrt((jet->eta()-gen->eta())*(jet->eta()-gen->eta())+(jet->phi()-gen->phi())*(jet->phi()-gen->phi())); 
-	  if( gen->pdgId() == 333  && gen->mother()->pdgId() == 25 && R < 0.4)
-	    {
-	      MCtruthIndex=jetIndex;
-	      deltaR=R; 
- 	    }
+      if(MCtruthIndex == -1)
+	{      
+	  for(auto gen = genParticles->begin(); gen != genParticles->end(); ++gen) //gen particles loop start
+	    { 
+	      float R = sqrt((jet->eta()-gen->eta())*(jet->eta()-gen->eta())+(jet->phi()-gen->phi())*(jet->phi()-gen->phi())); 
+	      if( gen->pdgId() == 333  && gen->mother()->pdgId() == 25 && R < 0.4)
+		{
+		  MCtruthIndex=jetIndex;
+		  deltaR=R; 
+		}
+	    }
 	} //gen particle loop end
       //------------------------------MC truth logout-----------------------------------------------
       
-      massaInv=(jet->p4()+ph_p4).M(); //calcolo massa invariante
+      _Jet_Photon_invMass=(jet->p4()+ph_p4).M(); //calcolo massa invariante
       nDaughters= jet->numberOfDaughters(); //calcolo il numero di particelle figlie
 
       //-----------------------------Pre-Filters--------------------------------------------------------
 
       if(jet->pt() < 20. || abs(jet->eta()) > 2.5) continue;
-      if(massaInv < 100.) continue; //reject jets with inv mass lower then 100 GeV
+      if(_Jet_Photon_invMass < 100.) continue; //reject jets with inv mass lower then 100 GeV
       if(jet->neutralHadronEnergyFraction() > 0.9) continue; //reject if neutralhadron-energy fraction is >0.9
-      if(jet->neutralEmEnergyFraction() > 0.9) continue; //reject if neutralEm-energy fraction is >0.9                              
+      if(jet->neutralEmEnergyFraction() > 0.9) continue; //reject if neutralEm-energy fraction is >0.9, alias NO-PHOTON FILTER                              
       if(nDaughters < 2) continue; //reject if number of constituens is less then 1
       if(jet->muonEnergyFraction() > 0.8) continue; //reject if muon-energy fraction is >0.8                                             
       if(jet->chargedHadronEnergyFraction() <= 0.) continue; //reject if chargedHadron-energy fraction is 0                              
       if(jet->chargedHadronMultiplicity() == 0) continue; //reject if there are NOT charged hadrons                              
       if(jet->chargedEmEnergyFraction() > 0.8) continue; //reject if chargedEm-energy fraction is >0.8                              
-      //---------------------------------------------------------------------------------------------
-
-
-      //---------------------------NO photon filter--------------------------------------------------
-      //scarto i jet con energia quasi completamente em
-      enJetTot=jet->chargedEmEnergy()+jet->neutralEmEnergy()+jet->chargedHadronEnergy()+jet->neutralHadronEnergy();
-      if(jet->neutralEmEnergy()/enJetTot>0.5) { //jet energy 
-	continue;
-      }
-      //------------------------------------------------------------------------------------------------
-      
+      //---------------------------------------------------------------------------------------------      
       
       //scelgo il jet con pT maggiore
-      if(jet->pt()<jetPt) continue;
+      if(jet->pt()<jetPtMax) continue;
       else 
 	{
-	  jetPt=jet->pt();
-      	  signalPosition=jetIndex; //note the position of the chosen jet inside the vector
-	  massInvSignal=massaInv;
-	  nDaughtersSignal=nDaughters;
-	  //	  cout<<endl<<"carica: "<<jet->daughter(0)->charge()<<endl;
+	  jetPtMax=jet->pt();
+      	  bestJet_Index=jetIndex; //note the position of the chosen jet inside the vector
+	  bestJet_InvMass=_Jet_Photon_invMass;
+	  bestJet_nDaughters=nDaughters;
 	}
 
-
-
-      if(verbose)
+      if(jetVerbose)
 	{
 	  cout<<"number of daughters= "<<jet->numberOfDaughters()<<endl;
 	  cout<<"charged multiplicity= "<<jet->chargedMultiplicity()<<endl;
-	  //cout<<"PF constituents= "<<jet->getPFConstituents().size()<<endl;
 	  cout<<"pT= "<<jet->pt()<<endl;
 	  cout<<"eta= "<<jet->eta()<<endl;
 	  cout<<"phi= "<<jet->phi()<<endl;
@@ -637,29 +621,10 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
 	  cout<<"charged HAD energy= "<<jet->chargedHadronEnergy()<<endl;
 	  cout<<"neutral HAD energy= "<<jet->neutralHadronEnergy()<<endl;
 	  cout<<"charged hadron multiplicity= "<<jet->chargedHadronMultiplicity()<<endl;      
-	  cout<<"massa invariante="<<endl<<massaInv<<endl;
+	  cout<<"massa invariante="<<endl<<_Jet_Photon_invMass<<endl;
 	  cout<<"mass= "<<jet->mass()<<endl<<"==========================================="<<endl;
 	}
-      
-      /*    if(jet->getPFConstituents().size()>0 && jet->getPFConstituents().size()<=5){
-	    cout<<endl<<"Trovato jet con meno di 5 costituenti:"<<endl;
-	    
-	    if(jet->pt()>phiJet_pTMax){	
-	    phiJet_pTMax=jet->pt();
-	    phiJet_eta=jet->eta();
-	    phiJet_phi=jet->phi();
-	    phiJet_nTracks=jet->getPFConstituents().size();
-	    cout<<"pt= "<<phiJet_pTMax<<"   eta= "<<phiJet_eta<< "    phi= "<<phiJet_phi<<"    nTracks= "<<phiJet_nTracks<<endl;
-	    
-	    for(int kCand=0;kCand=jet->getPFConstituents().size()-1;kCand++){
-	    if(jet->getPFConstituents()[kCand]->pdgId()==211){
-	    cout<<endl<<"Kaon found!"<<endl; //pion ID
-	    }
-	    }
-	    }
-	    }*/
-      //else cout<<endl<<"Trovato un jet con "<<jet->getPFConstituents().size()<<" costituenti."<<endl;
-      
+            
       if(jet->pt() < 25.) continue;
       nJets_25++;
       if(jet->pt() < 30.) continue;
@@ -667,145 +632,142 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
     } //jet loop end
 
 
-  if(MCtruthIndex == signalPosition) 
+  if(MCtruthIndex == bestJet_Index) 
     {
       cout<<endl<<"*****THAT'S A PHI FROM A HIGGS!!!****** DeltaR= "<<deltaR<<endl;
-      nHiggsFound++; //datamember da header file
-      if(massInvSignal > 100. && massInvSignal < 150.) matchedMass++;
-      else notMatchedMass++;
+      _Nevents_HiggsFound++; //datamember da header file
+      if(bestJet_InvMass > 100. && bestJet_InvMass < 150.) _Nevents_HiggsMassMatched++;
+      else _Nevents_HiggsMassNotMatched++;
     }  
-  else notMatched++;
+  else _Nevents_HiggsNotMatched++;
   
-  cout<<endl<<"nHiggsFound= "<<nHiggsFound<<endl<<"Not matched= "<<notMatched<<endl;
-  cout<<endl<<"Massa invariante del jet= "<<massInvSignal<<endl<<"matchedMass= "<<matchedMass<<endl<<"notMatchedMass= "<<notMatchedMass<<endl;
+  cout<<endl<<"n° Higgs found= "<<_Nevents_HiggsFound<<endl<<"n° Higgs not matched= "<<_Nevents_HiggsNotMatched<<endl;
+  cout<<endl<<"Invariant mass of the jet= "<<bestJet_InvMass<<endl<<"n° of H-Mass matched= "<<_Nevents_HiggsMassMatched<<endl<<"n° of H-Mass NOT matched= "<<_Nevents_HiggsMassNotMatched<<endl;
   cout<<endl<<"--------Spacchetto il jet--------";     
-  cout<<endl<<"n° of daughters: "<<nDaughtersSignal<<endl;
+  cout<<endl<<"n° of daughters: "<<bestJet_nDaughters<<endl;
   
-  //  cout<<endl<<slimmedJets->at(signalPosition).daughter(0)->charge()<<endl;
+  //  cout<<endl<<slimmedJets->at(bestJet_Index).daughter(0)->charge()<<endl;
 
 
 
   //--------------------jet constituents forloop----------------------------------
 
-  vector<int> positiveCand;
-  vector<int> negativeCand;
-  int firstCharge;
-  int secondCharge;
-  float firstPt;
-  float secondPt;
-  LorentzVector first_p4;
-  LorentzVector second_p4;
+  
+  int firstCandCharge;
+  int secondCandCharge;
+  float firstCandPt;
+  float secondCandPt;
+  LorentzVector firstCand_p4;
+  LorentzVector secondCand_p4;
   LorentzVector couple_p4;
-  float couplePt = 0.;
-  float firstKEnergy = 0.;
-  float secondKEnergy = 0.;
-  float firstPx=0.;
-  float firstPy=0.;
-  float firstPz=0.;
-  float secondPx=0.;
-  float secondPy=0.;
-  float secondPz=0.;
-  float kMass=0.4937;
-  float firstEta=0.;
-  float firstPhi=0.;
-  float secondEta=0.;
-  float secondPhi=0.;
-  float deltaEta=0.;
-  float deltaPhi=0.;
-  float deltaR_K=0.;
+  float couplePtMax = 0.;
+  float deltaR_KChosen = 0.;
+  float deltaR_K = 0.;
+  firstCandEnergy = 0.;
+  secondCandEnergy = 0.;
+  firstCandPx=0.;
+  firstCandPy=0.;
+  firstCandPz=0.;
+  secondCandPx=0.;
+  secondCandPy=0.;
+  secondCandPz=0.;
+  float firstCandEta=0.;
+  float firstCandPhi=0.;
+  float secondCandEta=0.;
+  float secondCandPhi=0.;
 
-  //-----------------------ALL CHARGES and PT DEBUG--------------------------------------
-  bool chargesDebug=false;  
+  //constants
+  float kMass = 0.4937;
+  float candPtMin = 1;
+ 
+ //-----------------------ALL CHARGES and PT DEBUG--------------------------------------
+  
   if(chargesDebug){ 
     cout<<"--------------CHARGES and PT DEBUG----------------------"<<endl;  
-    for(int firstCandIndex=0; firstCandIndex < nDaughtersSignal; firstCandIndex++) //DEBUG FORLOOP
+    for(int firstCand_Index=0; firstCand_Index < bestJet_nDaughters; firstCand_Index++) //DEBUG FORLOOP
       {
-	cout<<"Particle n°"<<firstCandIndex+1;
-	cout<<" pt= "<<slimmedJets->at(signalPosition).daughter(firstCandIndex)->pt();
-	cout<<" Q= "<<slimmedJets->at(signalPosition).daughter(firstCandIndex)->charge()<<endl;       }	  
+	cout<<"Particle n°"<<firstCand_Index+1;
+	cout<<" pt= "<<slimmedJets->at(bestJet_Index).daughter(firstCand_Index)->pt();
+	cout<<" Q= "<<slimmedJets->at(bestJet_Index).daughter(firstCand_Index)->charge()<<endl; 
+      }	  
     cout<<"----------------------END DEBUG--------------------------"<<endl;
   }
   //-------------------------------------------------------------------------------------
   
   
-  for(int firstCandIndex=0; firstCandIndex < nDaughtersSignal; firstCandIndex++) //1st loop starts
+  for(int firstCand_Index=0; firstCand_Index < bestJet_nDaughters; firstCand_Index++) //1st loop starts
     {
-      firstPt= slimmedJets->at(signalPosition).daughter(firstCandIndex)->pt(); //extrapolate first pt
-      firstEta= slimmedJets->at(signalPosition).daughter(firstCandIndex)->eta(); //estrapolate first eta
-      firstPhi= slimmedJets->at(signalPosition).daughter(firstCandIndex)->phi(); //estrapolate first phi
+      firstCandPt= slimmedJets->at(bestJet_Index).daughter(firstCand_Index)->pt(); //extrapolate firstCand pt
+      firstCandEta= slimmedJets->at(bestJet_Index).daughter(firstCand_Index)->eta(); //estrapolate firstCand eta
+      firstCandPhi= slimmedJets->at(bestJet_Index).daughter(firstCand_Index)->phi(); //estrapolate firstCand phi
 
-      if(firstPt < 1.) continue; //first filter: if pt < 1GeV, 'YOU SHALL NOT PASS!!!'
+      if(firstCandPt < candPtMin) continue; //firstCand filter: if pt < candPtMin, 'YOU SHALL NOT PASS!!!'
 
-      for(int secondCandIndex=0; secondCandIndex < nDaughtersSignal; secondCandIndex++) //2nd loop starts
+      for(int secondCand_Index=firstCand_Index+1; secondCand_Index < bestJet_nDaughters; secondCand_Index++) //2nd loop starts
 	{	  
-	  if(secondCandIndex==firstCandIndex)continue; //in order to not associate a particle with itself
 	  
-	  secondPt= slimmedJets->at(signalPosition).daughter(secondCandIndex)->pt(); //extrapolate second pt
-	  secondEta= slimmedJets->at(signalPosition).daughter(secondCandIndex)->eta(); //estrapolate second eta
-	  secondPhi= slimmedJets->at(signalPosition).daughter(secondCandIndex)->phi(); //estrapolate second phi
+	  secondCandPt= slimmedJets->at(bestJet_Index).daughter(secondCand_Index)->pt(); //extrapolate secondCand pt
+	  secondCandEta= slimmedJets->at(bestJet_Index).daughter(secondCand_Index)->eta(); //extrapolate secondCand eta
+	  secondCandPhi= slimmedJets->at(bestJet_Index).daughter(secondCand_Index)->phi(); //extrapolate secondCand phi
 
-	  //second filter: if pt < 10GeV, 'YOU SHALL NOT PASS!!!'
-	  if(secondPt < 10.) continue; 
+	  //secondCand filter: if both pt are < 10GeV, 'YOU SHALL NOT PASS!!!'
+	  if(secondCandPt < candPtMin) continue;
+	  if(firstCandPt < 10. && secondCandPt < 10.) continue; 
 	  
 	  //third filter on deltaR
-	  deltaEta= firstEta - secondEta;
-	  deltaPhi= firstPhi - secondPhi; 	  
-	  deltaR_K=sqrt(deltaEta*deltaEta + deltaPhi*deltaPhi);
+	  float deltaEta= firstCandEta - secondCandEta;
+	  float deltaPhi= firstCandPhi - secondCandPhi; 	  
+	  deltaR_K= sqrt(deltaEta*deltaEta + deltaPhi*deltaPhi);
 	  if(deltaR_K > 0.2) continue;
-	  
-	  firstCharge = slimmedJets->at(signalPosition).daughter(firstCandIndex)->charge(); //extrapolate first charge
-	  secondCharge = slimmedJets->at(signalPosition).daughter(secondCandIndex)->charge(); //extrapolate second charge
+	 	  
+	  firstCandCharge = slimmedJets->at(bestJet_Index).daughter(firstCand_Index)->charge(); //extrapolate firstCand charge
+	  secondCandCharge = slimmedJets->at(bestJet_Index).daughter(secondCand_Index)->charge(); //extrapolate secondCand charge
 	  //------------------------------------DEBUG----------------------------------------------------
-	  //cout<<"Particle n°"<<firstCandIndex+1<<" pt= "<<firstPt<<" Q= "<<firstCharge<<endl; //debug       
-	  //cout<<"Particle n°"<<secondCandIndex+1<<" pt= "<<secondPt<<" Q= "<<secondCharge<<endl; //debug       
+	  //cout<<"Particle n°"<<firstCand_Index+1<<" pt= "<<firstCandPt<<" Q= "<<firstCandCharge<<endl; //debug       
+	  //cout<<"Particle n°"<<secondCand_Index+1<<" pt= "<<secondCandPt<<" Q= "<<secondCandCharge<<endl; //debug       
 	  //--------------------------------------------------------------------------------------------
 	  
-	  if(firstCharge*secondCharge == -1) //filter on opposite charges
-	    {
-	      if(firstCharge == 1)
-		{
-		  positiveCand.push_back(firstCandIndex); //riempio dei vector con la posizione delle coppie di candidati
-		  negativeCand.push_back(secondCandIndex); //per ora non li uso ma possono servire
-		}
-	      else
-		{
-		  positiveCand.push_back(secondCandIndex);
-		  negativeCand.push_back(firstCandIndex);
-		}
-
-	      first_p4 = slimmedJets->at(signalPosition).daughter(firstCandIndex)->p4(); //calcolo quadrimpulsi
-	      first_p4=first_p4.SetE(1.02);
-	      second_p4 = slimmedJets->at(signalPosition).daughter(secondCandIndex)->p4();
-	      second_p4=second_p4.SetE(1.02);	     
-	      couple_p4 = first_p4 + second_p4;
+	  if(firstCandCharge*secondCandCharge >= 0) continue; //filter on opposite charges
+	    
+	      firstCand_p4 = slimmedJets->at(bestJet_Index).daughter(firstCand_Index)->p4(); //calcolo quadrimpulsi
+	      secondCand_p4 = slimmedJets->at(bestJet_Index).daughter(secondCand_Index)->p4();
+	      couple_p4 = firstCand_p4 + secondCand_p4;
 	      //cout<<"couple pt= "<<couple_p4.pt()<<endl; //debug	      
 
-	      if(couple_p4.pt() > couplePt) //scelgo la coppia di candidati con impulso trasverso totale maggiore
+	      if(couple_p4.pt() > couplePtMax) //scelgo la coppia di candidati con impulso trasverso totale maggiore
 		{
-		  couplePt = couple_p4.pt();
-
+		  couplePtMax = couple_p4.pt();
+		  deltaR_KChosen=deltaR_K;
 		  //-------------pions into kaons correction---------------------------------------------		  		  
-		  firstPx = first_p4.px(); //estraggo le componenti dei quadrimpulsi del primo candidato
-		  firstPy = first_p4.py();
-		  firstPz = first_p4.pz();
-		  secondPx = second_p4.px(); //estraggo le componenti dei quadrimpulsi del secondo candidato
-		  secondPy = second_p4.py();
-		  secondPz = second_p4.pz();
-		  firstKEnergy= sqrt(firstPx*firstPx + firstPy*firstPy + firstPz*firstPz + kMass*kMass); //energy recalculation
-		  secondKEnergy= sqrt(secondPx*secondPx + secondPy*secondPy + secondPz*secondPz + kMass*kMass); //energy recalculation
-		  first_p4= first_p4.SetE(firstKEnergy); //quadrimomentum correction
-		  second_p4= second_p4.SetE(secondKEnergy); //quadrimomentum correction
+		  firstCandPx = firstCand_p4.px(); //estraggo le componenti dei quadrimpulsi del primo candidato
+		  firstCandPy = firstCand_p4.py();
+		  firstCandPz = firstCand_p4.pz();
+		  secondCandPx = secondCand_p4.px(); //estraggo le componenti dei quadrimpulsi del secondCando candidato
+		  secondCandPy = secondCand_p4.py();
+		  secondCandPz = secondCand_p4.pz();
+		  firstCandEnergy= sqrt(firstCandPx*firstCandPx + firstCandPy*firstCandPy + firstCandPz*firstCandPz + kMass*kMass); //energy recalculation
+		  secondCandEnergy= sqrt(secondCandPx*secondCandPx + secondCandPy*secondCandPy + secondCandPz*secondCandPz + kMass*kMass); //energy recalculation
+		  firstCand_p4.SetE(firstCandEnergy); //quadrimomentum correction
+		  secondCand_p4.SetE(secondCandEnergy); //quadrimomentum correction
 		  //--------------end correction---------------------------------------------------------
 		  
-		  massaInv = (first_p4 + second_p4 + ph_p4).M(); //calcolo massa invariante del candidato Higgs
-		  massaInvPhi=(first_p4 + second_p4).M(); //calcolo massa invariante del candidato Phi
+		  _Hmass = (firstCand_p4 + secondCand_p4 + ph_p4).M(); //calcolo massa invariante del candidato Higgs
+		  if(abs(125.18 - _Hmass) > abs(125.18 - bestJet_InvMass)) 
+		    {
+		      _Hmass_HybridMethod = bestJet_InvMass;
+		    }
+		  else _Hmass_HybridMethod = _Hmass;
+		  
+		  _Phimass=(firstCand_p4 + secondCand_p4).M(); //calcolo massa invariante del candidato Phi
 		}
-	    }
+	    
 	} //2nd lopp ends
     } //1st loop ends
-  cout<<"couple CHOSEN pt = "<<couplePt<<endl; //debug
-  cout<<"massa inv H dopo aver spacchettato il jet = "<<massaInv<<endl;
-  cout<<"massa inv phi candidate = "<<massaInvPhi<<endl<<endl;
+  cout<<"couple CHOSEN pt = "<<couplePtMax<<"  and deltaR_K= "<<deltaR_KChosen<<endl; //debug
+  cout<<"massa inv H dopo aver spacchettato il jet = "<<_Hmass<<endl;
+  if(abs(125.18 - _Hmass) > abs(125.18 - bestJet_InvMass)) _Nevents_JetIsBetterForMass++;  
+  cout<<"Jet is better for mass = "<<_Nevents_JetIsBetterForMass<<endl;
+  cout<<"massa inv phi candidate = "<<_Phimass<<endl<<endl;
   
   mytree->Fill();
 }
@@ -867,15 +829,26 @@ void HPhiGammaAnalysis::create_trees()
   mytree->Branch("photon_iso_NeutralHadron",&ph_iso_NeutralHadron);
   mytree->Branch("photon_iso_Photon",&ph_iso_Photon);
   mytree->Branch("photon_iso_eArho",&ph_iso_eArho);
-  //by giulio
-  mytree->Branch("jet_pT",&phiJet_pTMax);
-  mytree->Branch("jet_eta",&phiJet_eta);
-  mytree->Branch("jet_phi",&phiJet_phi);
-  mytree->Branch("jet_nTracks",&phiJet_nTracks);
-  mytree->Branch("inv_mass",&massaInv);
-  mytree->Branch("inv_mass_phi",&massaInvPhi);
+
+  mytree->Branch("jet_pT",&jet_pTMax);
+  mytree->Branch("jet_eta",&jet_eta);
+  mytree->Branch("jet_phi",&jet_phi);
+  mytree->Branch("jet_nTracks",&jet_nTracks);
+
+  mytree->Branch("firstCandPx",&firstCandPx);
+  mytree->Branch("firstCandPy",&firstCandPy);
+  mytree->Branch("firstCandPz",&firstCandPz);
+  mytree->Branch("secondCandPx",&secondCandPx);
+  mytree->Branch("secondCandPy",&secondCandPy);
+  mytree->Branch("secondCandPz",&secondCandPz);
+  mytree->Branch("firstCandEnergy",&firstCandEnergy);
+  mytree->Branch("secondCandEnergy",&secondCandEnergy);
+
+
+  mytree->Branch("JetPhoton_mass",&_Jet_Photon_invMass);
   mytree->Branch("Phimass",&_Phimass);
   mytree->Branch("Hmass",&_Hmass);
+  mytree->Branch("Hmass_HybridMethod",&_Hmass_HybridMethod);
 
   //Save MC info
   if(!runningOnData_){
@@ -919,14 +892,18 @@ void HPhiGammaAnalysis::endJob()
   h_Events->Fill(0.5,_Nevents_processed);
   h_Events->Fill(1.5,_Nevents_isTwoKaons);
   h_Events->Fill(2.5,_Nevents_isPhoton);
-  h_Events->Fill(3.5,_Nevents_isPhimass);
-  h_Events->Fill(4.5,_Nevents_isHmass);
+  h_Events->Fill(3.5,_Nevents_HiggsFound);
+  h_Events->Fill(4.5,_Nevents_HiggsNotMatched);
+  h_Events->Fill(5.5,_Nevents_HiggsMassMatched);
+  h_Events->Fill(6.5,_Nevents_HiggsMassNotMatched);
 
   h_Events->GetXaxis()->SetBinLabel(1,"Events triggered");
   h_Events->GetXaxis()->SetBinLabel(2,"Two kaons requested");
   h_Events->GetXaxis()->SetBinLabel(3,"Photon requested");
-  h_Events->GetXaxis()->SetBinLabel(4,"Phi mass cut");
-  h_Events->GetXaxis()->SetBinLabel(5,"Higgs mass cut");
+  h_Events->GetXaxis()->SetBinLabel(4,"True Higgs found");
+  h_Events->GetXaxis()->SetBinLabel(5,"Not Higgs");
+  h_Events->GetXaxis()->SetBinLabel(6,"Higgs mass cut");
+  h_Events->GetXaxis()->SetBinLabel(7,"Higgs mass not matched");
 }
 
 //define this as a plug-in

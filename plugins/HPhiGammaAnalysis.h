@@ -44,16 +44,15 @@ private:
   int nPhotons;
   int nJets;
   int nJets_25;
-  int nHiggsFound; //by giulio
-  int notMatched; //by giulio
-  int matchedMass; //by giulio
-  int notMatchedMass; //by giulio
 
   int _Nevents_processed;
   int _Nevents_isTwoKaons;
   int _Nevents_isPhoton;
-  int _Nevents_isPhimass;
-  int _Nevents_isHmass;
+  int _Nevents_HiggsFound; 
+  int _Nevents_HiggsNotMatched; 
+  int _Nevents_HiggsMassMatched; 
+  int _Nevents_HiggsMassNotMatched; 
+  int _Nevents_JetIsBetterForMass;
 
   //TTree and TTree variables
   TTree *mytree;
@@ -96,23 +95,30 @@ private:
 
   float eTphMax;
 
+  float firstCandPx;
+  float firstCandPy;
+  float firstCandPz;
+  float secondCandPx;
+  float secondCandPy;
+  float secondCandPz;
+  float firstCandEnergy;
+  float secondCandEnergy;
+  float _Jet_Photon_invMass;
   float _Phimass;
   float _Hmass;
-
+  float _Hmass_HybridMethod;
+  
   float met_pT;
   float metpuppi_pT;
   
   bool isTwoProngTrigger;
 
-  //by giulio
-  float phiJet_pT;
-  float phiJet_eta;
-  float phiJet_phi;
-  int phiJet_nTracks;
-  float phiJet_pTMax;
-  float massaInv;
-  float massaInvPhi;
-
+  float jet_pT;
+  float jet_eta;
+  float jet_phi;
+  int jet_nTracks;
+  float jet_pTMax;
+  
   //MC truth
   float PU_Weight;
   float MC_Weight;
