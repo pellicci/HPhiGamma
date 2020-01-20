@@ -113,11 +113,30 @@ private:
   
   bool isTwoProngTrigger;
 
-  float jet_pT;
-  float jet_eta;
-  float jet_phi;
-  int jet_nTracks;
-  float jet_pTMax;
+  //Jet datamember
+  float _jet_pT;
+  float _jet_eta;
+  float _jet_phi;
+  int _jet_nDaughters;
+  float _jet_pTMax;
+  float _jet_chargedEmEnergy;
+  float _jet_neutralEmEnergy;
+  float _jet_chargedHadEnergy;
+  float _jet_neutralHadEnergy;
+  int _jet_chargedHadMultiplicity;
+  float _jet_invMass;
+
+  float _jetFromH_pT;
+  float _jetFromH_eta;
+  float _jetFromH_phi;
+  int _jetFromH_nDaughters;
+  float _jetFromH_pTMax;
+  float _jetFromH_chargedEmEnergy;
+  float _jetFromH_neutralEmEnergy;
+  float _jetFromH_chargedHadEnergy;
+  float _jetFromH_neutralHadEnergy;
+  int _jetFromH_chargedHadMultiplicity;
+  float _jetFromH_invMass;
   
   //MC truth
   float PU_Weight;

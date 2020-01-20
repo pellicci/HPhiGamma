@@ -54,8 +54,8 @@ using namespace std;
 #include "HPhiGammaAnalysis.h"
 
   //------verbose initialization-------  
-  bool jetVerbose=false;
-  bool chargesDebug=false;  
+  bool jetDebug=false;
+  bool chargesDebug=true;  
   //--------------------------------
 
  
@@ -301,11 +301,31 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
   met_pT = 0.;
   metpuppi_pT = 0.;
 
-  jet_pT=0.;
-  jet_eta=0.;
-  jet_phi=0.;
-  jet_nTracks=0;
-  jet_pTMax=-1.;
+  //20/01
+  _jet_pT=0.;
+  _jet_eta=0.;
+  _jet_phi=0.;
+  _jet_nDaughters=0;
+  _jet_pTMax=-1.;
+  _jet_chargedEmEnergy=0.;
+  _jet_neutralEmEnergy=0.;
+  _jet_chargedHadEnergy=0.;
+  _jet_neutralHadEnergy=0.;
+  _jet_chargedHadMultiplicity=0.;
+  _jet_invMass=0.;
+  
+  _jetFromH_pT=0.;
+  _jetFromH_eta=0.;
+  _jetFromH_phi=0.;
+  _jetFromH_nDaughters=0;
+  _jetFromH_pTMax=-1.;
+  _jetFromH_chargedEmEnergy=0.;
+  _jetFromH_neutralEmEnergy=0.;
+  _jetFromH_chargedHadEnergy=0.;
+  _jetFromH_neutralHadEnergy=0.;
+  _jetFromH_chargedHadMultiplicity=0.;
+  _jetFromH_invMass=0.;
+
   
 
   //*************************************************************//
@@ -560,8 +580,6 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
   int nDaughters=0;
   int bestJet_nDaughters=0;
   
-
-  //cout<<endl<<"sto per entrare nel  loop sui jet"<<endl;
   for (auto jet = slimmedJets->begin(); jet != slimmedJets->end(); ++jet)  //jet loop start    
     {
       jetIndex++;
@@ -579,11 +597,111 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
 		}
 	    }
 	} //gen particle loop end
+
       //------------------------------MC truth logout-----------------------------------------------
       
-      _Jet_Photon_invMass=(jet->p4()+ph_p4).M(); //calcolo massa invariante
-      nDaughters= jet->numberOfDaughters(); //calcolo il numero di particelle figlie
+      _Jet_Photon_invMass=(jet->p4()+ph_p4).M(); //calculate inv mass
+      nDaughters= jet->numberOfDaughters(); //calculate number of daughters
 
+      //20/01
+      //----------------------JET DEBUG------------------------------------------------------------      
+      if(jetDebug)
+	{
+	  if(MCtruthIndex == jetIndex)
+	    {
+	      _jetFromH_pT=jet->pt();
+	      _jetFromH_eta=jet->eta();
+	      _jetFromH_phi=jet->phi();
+	      _jetFromH_nDaughters=jet->numberOfDaughters();
+	      _jetFromH_chargedEmEnergy=jet->chargedEmEnergy();
+	      _jetFromH_neutralEmEnergy=jet->neutralEmEnergy();
+	      _jetFromH_chargedHadEnergy=jet->chargedHadronEnergy();
+	      _jetFromH_neutralHadEnergy=jet->neutralHadronEnergy();
+	      _jetFromH_chargedHadMultiplicity=jet->chargedHadronMultiplicity();
+	      _jetFromH_invMass=jet->mass();
+
+	      mytree->Branch("jetFromH_pT",&_jetFromH_pT);
+	      mytree->Branch("jetFromH_eta",&_jetFromH_eta);
+	      mytree->Branch("jetFromH_phi",&_jetFromH_phi);
+	      mytree->Branch("jetFromH_nDaughters",&_jetFromH_nDaughters);
+	      mytree->Branch("jetFromH_chargedEmEnergy",&_jetFromH_chargedEmEnergy);
+	      mytree->Branch("jetFromH_neutralEmEnergy",&_jetFromH_neutralEmEnergy);
+	      mytree->Branch("jetFromH_chargedHadEnergy",&_jetFromH_chargedHadEnergy);
+	      mytree->Branch("jetFromH_neutralHadEnergy",&_jetFromH_neutralHadEnergy);
+	      mytree->Branch("jetFromH_invMass",&_jetFromH_invMass);
+
+	      mytree->Fill();
+	      
+	      _jetFromH_pT=0.;
+	      _jetFromH_eta=0.;
+	      _jetFromH_phi=0.;
+	      _jetFromH_nDaughters=0;
+	      _jetFromH_pTMax=-1.;
+	      _jetFromH_chargedEmEnergy=0.;
+	      _jetFromH_neutralEmEnergy=0.;
+	      _jetFromH_chargedHadEnergy=0.;
+	      _jetFromH_neutralHadEnergy=0.;
+	      _jetFromH_chargedHadMultiplicity=0.;
+	      _jetFromH_invMass=0.;
+	      
+	    }
+	  
+	  else
+	    {
+	      _jet_pT=jet->pt();
+	      _jet_eta=jet->eta();
+	      _jet_phi=jet->phi();
+	      _jet_nDaughters=jet->numberOfDaughters();
+	      _jet_chargedEmEnergy=jet->chargedEmEnergy();
+	      _jet_neutralEmEnergy=jet->neutralEmEnergy();
+	      _jet_chargedHadEnergy=jet->chargedHadronEnergy();
+	      _jet_neutralHadEnergy=jet->neutralHadronEnergy();
+	      _jet_chargedHadMultiplicity=jet->chargedHadronMultiplicity();
+	      _jet_invMass=jet->mass();
+	     
+	      mytree->Branch("jet_pT",&_jet_pT);
+	      mytree->Branch("jet_eta",&_jet_eta);
+	      mytree->Branch("jet_phi",&_jet_phi);
+	      mytree->Branch("jet_nDaughters",&_jet_nDaughters);
+	      mytree->Branch("jet_chargedEmEnergy",&_jet_chargedEmEnergy);
+	      mytree->Branch("jet_neutralEmEnergy",&_jet_neutralEmEnergy);
+	      mytree->Branch("jet_chargedHadEnergy",&_jet_chargedHadEnergy);
+	      mytree->Branch("jet_neutralHadEnergy",&_jet_neutralHadEnergy);
+	      mytree->Branch("jet_invMass",&_jet_invMass);
+
+	      mytree->Fill();	  
+
+	      _jet_pT=0.;
+	      _jet_eta=0.;
+	      _jet_phi=0.;
+	      _jet_nDaughters=0;
+	      _jet_pTMax=-1.;
+	      _jet_chargedEmEnergy=0.;
+	      _jet_neutralEmEnergy=0.;
+	      _jet_chargedHadEnergy=0.;
+	      _jet_neutralHadEnergy=0.;
+	      _jet_chargedHadMultiplicity=0.;
+	      _jet_invMass=0.;
+	      
+	    }
+	  
+	  cout<<"---------------JET n."<<jetIndex+1<<"----------------";      
+	  if(MCtruthIndex == jetIndex) cout<<"-----------------------HIGGS HERE!!!";
+	  cout<<endl<<"number of daughters= "<<jet->numberOfDaughters()<<endl;
+	  cout<<"charged multiplicity= "<<jet->chargedMultiplicity()<<endl;
+	  cout<<"pT= "<<jet->pt()<<endl;
+	  cout<<"eta= "<<jet->eta()<<endl;
+	  cout<<"phi= "<<jet->phi()<<endl;
+	  cout<<endl<<"*Energies:"<<endl;
+	  cout<<"charged EM energy= "<<jet->chargedEmEnergy()<<endl;
+	  cout<<"neutral EM energy= "<<jet->neutralEmEnergy()<<endl;
+	  cout<<"charged HAD energy= "<<jet->chargedHadronEnergy()<<endl;
+	  cout<<"neutral HAD energy= "<<jet->neutralHadronEnergy()<<endl;
+	  cout<<"charged hadron multiplicity= "<<jet->chargedHadronMultiplicity()<<endl;      
+	  cout<<"jet inv. mass= "<<jet->mass()<<endl;	  
+	  cout<<"jet+photon inv. mass="<<_Jet_Photon_invMass<<endl;
+	}
+    
       //-----------------------------Pre-Filters--------------------------------------------------------
 
       if(jet->pt() < 20. || abs(jet->eta()) > 2.5) continue;
@@ -597,7 +715,7 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
       if(jet->chargedEmEnergyFraction() > 0.8) continue; //reject if chargedEm-energy fraction is >0.8                              
       //---------------------------------------------------------------------------------------------      
       
-      //scelgo il jet con pT maggiore
+      //choose the best jet 
       if(jet->pt()<jetPtMax) continue;
       else 
 	{
@@ -605,24 +723,6 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
       	  bestJet_Index=jetIndex; //note the position of the chosen jet inside the vector
 	  bestJet_InvMass=_Jet_Photon_invMass;
 	  bestJet_nDaughters=nDaughters;
-	}
-
-      if(jetVerbose)
-	{
-	  cout<<"number of daughters= "<<jet->numberOfDaughters()<<endl;
-	  cout<<"charged multiplicity= "<<jet->chargedMultiplicity()<<endl;
-	  cout<<"pT= "<<jet->pt()<<endl;
-	  cout<<"eta= "<<jet->eta()<<endl;
-	  cout<<"phi= "<<jet->phi()<<endl;
-	  cout<<"nMuons= "<<jet->muonMultiplicity()<<endl;
-	  cout<<"-----Energies:"<<endl;
-	  cout<<"charged EM energy= "<<jet->chargedEmEnergy()<<endl;
-	  cout<<"neutral EM energy= "<<jet->neutralEmEnergy()<<endl;
-	  cout<<"charged HAD energy= "<<jet->chargedHadronEnergy()<<endl;
-	  cout<<"neutral HAD energy= "<<jet->neutralHadronEnergy()<<endl;
-	  cout<<"charged hadron multiplicity= "<<jet->chargedHadronMultiplicity()<<endl;      
-	  cout<<"massa invariante="<<endl<<_Jet_Photon_invMass<<endl;
-	  cout<<"mass= "<<jet->mass()<<endl<<"==========================================="<<endl;
 	}
             
       if(jet->pt() < 25.) continue;
@@ -643,7 +743,7 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
   
   cout<<endl<<"n° Higgs found= "<<_Nevents_HiggsFound<<endl<<"n° Higgs not matched= "<<_Nevents_HiggsNotMatched<<endl;
   cout<<endl<<"Invariant mass of the jet= "<<bestJet_InvMass<<endl<<"n° of H-Mass matched= "<<_Nevents_HiggsMassMatched<<endl<<"n° of H-Mass NOT matched= "<<_Nevents_HiggsMassNotMatched<<endl;
-  cout<<endl<<"--------Spacchetto il jet--------";     
+  cout<<endl<<"--------Jet unpackaging--------";     
   cout<<endl<<"n° of daughters: "<<bestJet_nDaughters<<endl;
   
   //  cout<<endl<<slimmedJets->at(bestJet_Index).daughter(0)->charge()<<endl;
@@ -675,8 +775,6 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
   float firstCandPhi=0.;
   float secondCandEta=0.;
   float secondCandPhi=0.;
-
-  //constants
   float kMass = 0.4937;
   float candPtMin = 1;
  
@@ -686,7 +784,7 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
     cout<<"--------------CHARGES and PT DEBUG----------------------"<<endl;  
     for(int firstCand_Index=0; firstCand_Index < bestJet_nDaughters; firstCand_Index++) //DEBUG FORLOOP
       {
-	cout<<"Particle n°"<<firstCand_Index+1;
+	cout<<"Particle n."<<firstCand_Index+1;
 	cout<<" pt= "<<slimmedJets->at(bestJet_Index).daughter(firstCand_Index)->pt();
 	cout<<" Q= "<<slimmedJets->at(bestJet_Index).daughter(firstCand_Index)->charge()<<endl; 
       }	  
@@ -701,7 +799,7 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
       firstCandEta= slimmedJets->at(bestJet_Index).daughter(firstCand_Index)->eta(); //estrapolate firstCand eta
       firstCandPhi= slimmedJets->at(bestJet_Index).daughter(firstCand_Index)->phi(); //estrapolate firstCand phi
 
-      if(firstCandPt < candPtMin) continue; //firstCand filter: if pt < candPtMin, 'YOU SHALL NOT PASS!!!'
+      if(firstCandPt < candPtMin) continue; //firstCand filter if pt < candPtMin
 
       for(int secondCand_Index=firstCand_Index+1; secondCand_Index < bestJet_nDaughters; secondCand_Index++) //2nd loop starts
 	{	  
@@ -710,7 +808,7 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
 	  secondCandEta= slimmedJets->at(bestJet_Index).daughter(secondCand_Index)->eta(); //extrapolate secondCand eta
 	  secondCandPhi= slimmedJets->at(bestJet_Index).daughter(secondCand_Index)->phi(); //extrapolate secondCand phi
 
-	  //secondCand filter: if both pt are < 10GeV, 'YOU SHALL NOT PASS!!!'
+	  //secondCand filter if both pt are < 10GeV
 	  if(secondCandPt < candPtMin) continue;
 	  if(firstCandPt < 10. && secondCandPt < 10.) continue; 
 	  
@@ -729,20 +827,20 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
 	  
 	  if(firstCandCharge*secondCandCharge >= 0) continue; //filter on opposite charges
 	    
-	      firstCand_p4 = slimmedJets->at(bestJet_Index).daughter(firstCand_Index)->p4(); //calcolo quadrimpulsi
+	      firstCand_p4 = slimmedJets->at(bestJet_Index).daughter(firstCand_Index)->p4(); //extrapolate quadrimomentum
 	      secondCand_p4 = slimmedJets->at(bestJet_Index).daughter(secondCand_Index)->p4();
 	      couple_p4 = firstCand_p4 + secondCand_p4;
 	      //cout<<"couple pt= "<<couple_p4.pt()<<endl; //debug	      
 
-	      if(couple_p4.pt() > couplePtMax) //scelgo la coppia di candidati con impulso trasverso totale maggiore
+	      if(couple_p4.pt() > couplePtMax) //choose the couple with greatest pt
 		{
 		  couplePtMax = couple_p4.pt();
 		  deltaR_KChosen=deltaR_K;
 		  //-------------pions into kaons correction---------------------------------------------		  		  
-		  firstCandPx = firstCand_p4.px(); //estraggo le componenti dei quadrimpulsi del primo candidato
+		  firstCandPx = firstCand_p4.px(); //extrapolate px, py, pz of the first candidate
 		  firstCandPy = firstCand_p4.py();
 		  firstCandPz = firstCand_p4.pz();
-		  secondCandPx = secondCand_p4.px(); //estraggo le componenti dei quadrimpulsi del secondCando candidato
+		  secondCandPx = secondCand_p4.px(); //extrapolate px, py, pz of the second candidate
 		  secondCandPy = secondCand_p4.py();
 		  secondCandPz = secondCand_p4.pz();
 		  firstCandEnergy= sqrt(firstCandPx*firstCandPx + firstCandPy*firstCandPy + firstCandPz*firstCandPz + kMass*kMass); //energy recalculation
@@ -751,23 +849,24 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
 		  secondCand_p4.SetE(secondCandEnergy); //quadrimomentum correction
 		  //--------------end correction---------------------------------------------------------
 		  
-		  _Hmass = (firstCand_p4 + secondCand_p4 + ph_p4).M(); //calcolo massa invariante del candidato Higgs
+		  _Hmass = (firstCand_p4 + secondCand_p4 + ph_p4).M(); //calculate inv mass of the Higgs candidate
+		 
 		  if(abs(125.18 - _Hmass) > abs(125.18 - bestJet_InvMass)) 
 		    {
 		      _Hmass_HybridMethod = bestJet_InvMass;
 		    }
 		  else _Hmass_HybridMethod = _Hmass;
 		  
-		  _Phimass=(firstCand_p4 + secondCand_p4).M(); //calcolo massa invariante del candidato Phi
+		  _Phimass=(firstCand_p4 + secondCand_p4).M(); //calculate inv mass of the Phi candidate
 		}
 	    
 	} //2nd lopp ends
     } //1st loop ends
   cout<<"couple CHOSEN pt = "<<couplePtMax<<"  and deltaR_K= "<<deltaR_KChosen<<endl; //debug
-  cout<<"massa inv H dopo aver spacchettato il jet = "<<_Hmass<<endl;
+  cout<<"H inv mass after jet-unpackaging = "<<_Hmass<<endl;
   if(abs(125.18 - _Hmass) > abs(125.18 - bestJet_InvMass)) _Nevents_JetIsBetterForMass++;  
   cout<<"Jet is better for mass = "<<_Nevents_JetIsBetterForMass<<endl;
-  cout<<"massa inv phi candidate = "<<_Phimass<<endl<<endl;
+  cout<<"inv mass phi candidate = "<<_Phimass<<endl<<endl;
   
   mytree->Fill();
 }
@@ -829,11 +928,6 @@ void HPhiGammaAnalysis::create_trees()
   mytree->Branch("photon_iso_NeutralHadron",&ph_iso_NeutralHadron);
   mytree->Branch("photon_iso_Photon",&ph_iso_Photon);
   mytree->Branch("photon_iso_eArho",&ph_iso_eArho);
-
-  mytree->Branch("jet_pT",&jet_pTMax);
-  mytree->Branch("jet_eta",&jet_eta);
-  mytree->Branch("jet_phi",&jet_phi);
-  mytree->Branch("jet_nTracks",&jet_nTracks);
 
   mytree->Branch("firstCandPx",&firstCandPx);
   mytree->Branch("firstCandPy",&firstCandPy);
