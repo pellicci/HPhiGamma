@@ -105,38 +105,28 @@ private:
   float secondCandEnergy;
   float _Jet_Photon_invMass;
   float _Phimass;
-  float _Hmass;
-  float _Hmass_HybridMethod;
-  
+  float _Hmass_From2K_Photon;
+    
   float met_pT;
   float metpuppi_pT;
   
   bool isTwoProngTrigger;
 
   //Jet datamember
-  float _jet_pT;
-  float _jet_eta;
-  float _jet_phi;
-  int _jet_nDaughters;
-  float _jet_pTMax;
-  float _jet_chargedEmEnergy;
-  float _jet_neutralEmEnergy;
-  float _jet_chargedHadEnergy;
-  float _jet_neutralHadEnergy;
-  int _jet_chargedHadMultiplicity;
+  
   float _jet_invMass;
-
-  float _jetFromH_pT;
-  float _jetFromH_eta;
-  float _jetFromH_phi;
-  int _jetFromH_nDaughters;
-  float _jetFromH_pTMax;
-  float _jetFromH_chargedEmEnergy;
-  float _jetFromH_neutralEmEnergy;
-  float _jetFromH_chargedHadEnergy;
-  float _jetFromH_neutralHadEnergy;
-  int _jetFromH_chargedHadMultiplicity;
-  float _jetFromH_invMass;
+  float _bestJet_pT;
+  float _bestJet_eta;
+  float _bestJet_phi;
+  int _bestJet_nDaughters;
+  float _bestJet_pTMax;
+  float _bestJet_chargedEmEnergy;
+  float _bestJet_neutralEmEnergy;
+  float _bestJet_chargedHadEnergy;
+  float _bestJet_neutralHadEnergy;
+  int _bestJet_chargedHadMultiplicity;
+  float _bestJet_invMass;
+  float _bestJet_Photon_invMass;
   
   //MC truth
   float PU_Weight;
@@ -149,6 +139,7 @@ private:
 
   bool is_photon_a_photon;
   bool is_photon_matched;
+  bool _isHiggsFound;
 
   //rho for isolation
   float rho_;
