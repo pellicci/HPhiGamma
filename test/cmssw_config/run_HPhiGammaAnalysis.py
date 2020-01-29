@@ -90,11 +90,11 @@ process.HPhiGammaAnalysis.slimmedJets = cms.InputTag("updatedPatJetsUpdatedJEC")
 import HLTrigger.HLTfilters.triggerResultsFilter_cfi as hlt
 
 # Trigger filters for muons
-process.trigger_filter = hlt.triggerResultsFilter.clone()
-process.trigger_filter.triggerConditions = cms.vstring('HLT_Photon35_TwoProngs35_v*')
-process.trigger_filter.hltResults = cms.InputTag("TriggerResults", "", "HLT")
-process.trigger_filter.l1tResults = cms.InputTag("")
-process.trigger_filter.throw = cms.bool( False )
+#process.trigger_filter = hlt.triggerResultsFilter.clone()
+#process.trigger_filter.triggerConditions = cms.vstring('HLT_Photon35_TwoProngs35_v*')
+#process.trigger_filter.hltResults = cms.InputTag("TriggerResults", "", "HLT")
+#process.trigger_filter.l1tResults = cms.InputTag("")
+#process.trigger_filter.throw = cms.bool( False )
 
 
 ###############################################
@@ -103,6 +103,6 @@ process.trigger_filter.throw = cms.bool( False )
 #                                             #
 ###############################################
 
-process.seq = cms.Path(process.trigger_filter * process.patJetCorrFactorsUpdatedJEC * process.updatedPatJetsUpdatedJEC * process.HPhiGammaAnalysis)
+process.seq = cms.Path(process.patJetCorrFactorsUpdatedJEC * process.updatedPatJetsUpdatedJEC * process.HPhiGammaAnalysis)
 
 process.schedule = cms.Schedule(process.seq)

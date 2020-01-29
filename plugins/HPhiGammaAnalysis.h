@@ -36,6 +36,10 @@ private:
 
   TH1F* h_pileup;
 
+  //debug
+
+  bool debug;
+
   //Counters
   int nPV;
 
@@ -44,7 +48,7 @@ private:
   int nPhotons;
   int nJets;
   int nJets_25;
-
+  int _Nevents_triggered;
   int _Nevents_processed;
   int _Nevents_isTwoKaons;
   int _Nevents_isPhoton;
@@ -52,36 +56,13 @@ private:
   int _Nevents_HiggsNotMatched; 
   int _Nevents_HiggsMassMatched; 
   int _Nevents_HiggsMassNotMatched; 
-  int _Nevents_JetIsBetterForMass;
+  int _Nevents_bestCoupleFound;
+  //  int _Njets_PassPreFilters;
 
   //TTree and TTree variables
   TTree *mytree;
 
   int run_number;
-
-  float K1_pT;
-  float K1_eta;
-  float K1_phi;
-  float K1_energy;
-  float K1_dxy;
-  float K1_dz;
-  float K1_charge;
-  float K1_sum_pT_03;
-  float K1_sum_pT_05;
-  float K1_sum_pT_05_ch;
-  float K1_pTMax;
-
-  float K2_pT;
-  float K2_eta;
-  float K2_phi;
-  float K2_energy;
-  float K2_dxy;
-  float K2_dz;
-  float K2_charge;
-  float K2_sum_pT_03;
-  float K2_sum_pT_05;
-  float K2_sum_pT_05_ch;
-  float K2_pTMax;
 
   float ph_eT;
   float ph_eta;
@@ -103,10 +84,27 @@ private:
   float secondCandPz;
   float firstCandEnergy;
   float secondCandEnergy;
+  float _firstCandPt;
+  float _firstCandEta;
+  float _firstCandPhi;
+  float _secondCandPt;
+  float _secondCandEta;
+  float _secondCandPhi;
+  float _bestCouplePt;
+  float _bestCoupleEta;
+  float _bestCouplePhi;
+
   float _Jet_Photon_invMass;
   float _Phimass;
   float _Hmass_From2K_Photon;
     
+  float K1_sum_pT_05;
+  float K1_sum_pT_05_ch;
+  float K2_sum_pT_05;
+  float K2_sum_pT_05_ch;
+  float couple_sum_pT_05;
+  float couple_sum_pT_05_ch;
+
   float met_pT;
   float metpuppi_pT;
   
