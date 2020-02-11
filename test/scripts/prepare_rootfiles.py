@@ -21,8 +21,8 @@ if not os.path.exists("rootfiles/latest_production/MC"):
     os.makedirs("rootfiles/latest_production/MC")
 if not os.path.exists("rootfiles/latest_production/MC/signals"):
     os.makedirs("rootfiles/latest_production/MC/signals")
-if not os.path.exists("rootfiles/latest_production/backgrounds"):
-    os.makedirs("rootfiles/latest_production/backgrounds")
+if not os.path.exists("rootfiles/latest_production/MC/backgrounds"):
+    os.makedirs("rootfiles/latest_production/MC/backgrounds")
 if not os.path.exists("rootfiles/latest_production/dataprocess"):
     os.makedirs("rootfiles/latest_production/dataprocess")
 
@@ -47,8 +47,21 @@ for dirname in list_dirs:
 
     print "Number of jobs to be retrieved: ", n_jobs
 
-    crab_command = "crab getoutput -d " + dir_input + dirname
-    os.system(crab_command)
+    if n_jobs <= 500:
+        crab_command = "crab getoutput -d " + dir_input + dirname
+        os.system(crab_command)
+    elif (n_jobs > 500 and n_jobs <= 1000):
+        crab_command = "crab getoutput -d " + dir_input + dirname + " --jobids 1-500"
+        os.system(crab_command)
+        crab_command_1 = "crab getoutput -d " + dir_input + dirname + " --jobids 501-" + str(n_jobs) # Because it is impossible to concatenate str and int objects
+        os.system(crab_command_1)
+    else:
+        crab_command = "crab getoutput -d " + dir_input + dirname + " --jobids 1-500"
+        os.system(crab_command)
+        crab_command_1 = "crab getoutput -d " + dir_input + dirname + " --jobids 501-1000"
+        os.system(crab_command_1)
+        crab_command_2 = "crab getoutput -d " + dir_input + dirname + " --jobids 1001-" + str(n_jobs) # Because it is impossible to concatenate str and int objects
+        os.system(crab_command_2)
     
     samplename = dirname.split("crab_HPhiGammaAnalysis_")
 

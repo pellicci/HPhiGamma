@@ -10,6 +10,9 @@ private:
   virtual void beginJob() override;
   virtual void analyze(const edm::Event&, const edm::EventSetup&);
   virtual void endJob() override;
+ 
+ //test method
+  //  int countPrimaryVertex(edm::Handle<std::vector<reco::Vertex > > slimmedPV);
 
   bool runningOnData_;
   const edm::InputTag packedPFCandidates_;
@@ -57,8 +60,9 @@ private:
   int _Nevents_HiggsMassMatched; 
   int _Nevents_HiggsMassNotMatched; 
   int _Nevents_bestCoupleFound;
-  //  int _Njets_PassPreFilters;
-
+  int _Nevents_candPtFilter;
+  int _Nevents_coupleIsolationFilter;
+  
   //TTree and TTree variables
   TTree *mytree;
 
@@ -104,7 +108,14 @@ private:
   float K2_sum_pT_05_ch;
   float couple_sum_pT_05;
   float couple_sum_pT_05_ch;
+  float _iso_K1;
+  float _iso_K1_ch;
+  float _iso_K2;
+  float _iso_K2_ch;
+  float _iso_couple;
+  float _iso_couple_ch;
 
+  
   float met_pT;
   float metpuppi_pT;
   
