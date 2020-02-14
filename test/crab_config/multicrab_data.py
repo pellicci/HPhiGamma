@@ -50,19 +50,19 @@ if __name__ == '__main__':
     p = Process(target=submit, args=(config,))
     p.start()
     p.join()
-
+        
     config.General.requestName = '2018_HPhiGammaAnalysis_Tau_C'
     config.Data.inputDataset = '/Tau/Run2018C-17Sep2018-v1/MINIAOD'
     p = Process(target=submit, args=(config,))
     p.start()
     p.join()
-
-    config.General.requestName = '2018_HPhiGammaAnalysis_Tau_D1'
-    config.Data.inputDataset = '/Tau/Run2018D-PromptReco-v1/MINIAOD'
-    p = Process(target=submit, args=(config,))
-    p.start()
-    p.join()
-
+        
+    #config.General.requestName = '2018_HPhiGammaAnalysis_Tau_D1'
+    #config.Data.inputDataset = '/Tau/Run2018D-PromptReco-v1/MINIAOD'
+    #p = Process(target=submit, args=(config,))
+    #p.start()
+    #p.join()
+        
     config.General.requestName = '2018_HPhiGammaAnalysis_Tau_D2'
     config.Data.inputDataset = '/Tau/Run2018D-PromptReco-v2/MINIAOD'
     p = Process(target=submit, args=(config,))

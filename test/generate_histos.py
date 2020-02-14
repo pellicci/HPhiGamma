@@ -3,17 +3,22 @@ import argparse
 import math
 
 pdf_flag=False
-
 p = argparse.ArgumentParser(description='Select rootfile to plot')
+p.add_argument('dataSet_type', help='Type <<MC>> or <<DATA>>')
 p.add_argument('rootfile_name', help='Type rootfile name')
 args = p.parse_args()
 
+print "dataSet_type = ",args.dataSet_type
 print "input = ",args.rootfile_name
 
 fInput = ROOT.TFile(args.rootfile_name)
-normalization_InputFile = open("rootfiles/latest_production/MC/normalizations/Normalizations_table.txt","r")
+if args.dataSet_type == "MC":
+    normalization_InputFile = open("rootfiles/latest_production/MC/normalizations/Normalizations_table.txt","r")
+
 mytree = fInput.Get("HPhiGammaAnalysis/mytree")
-h_Events = fInput.Get("HPhiGammaAnalysis/h_Events")
+
+if args.dataSet_type == "MC":
+    h_Events = fInput.Get("HPhiGammaAnalysis/h_Events")
 
 #SPLIT: I can split a string of chars before and after a split code (that could be a string or a symbol)
 #then I can take the string stands before or after with [0] or [1], respectively. 
@@ -21,15 +26,17 @@ h_Events = fInput.Get("HPhiGammaAnalysis/h_Events")
 samplename =(args.rootfile_name.split("HPhiGammaAnalysis_")[1])[:-5] 
 print "samplename =", samplename
 
-norm_map = dict()
-for line in normalization_InputFile:
-    data_norm = line.split()
-    norm_map[data_norm[0]] = float(data_norm[1])
+#normalization for MC dataset
+if args.dataSet_type == "MC":
+    norm_map = dict()
+    for line in normalization_InputFile:
+        data_norm = line.split()
+        norm_map[data_norm[0]] = float(data_norm[1])
 
-MC_Weight = norm_map[samplename]
+    MC_Weight = norm_map[samplename]
 
-luminosity = 59.76 #fb^-1 (in crate_normalization_table.py there's a factor 1000)
-MC_Weight = MC_Weight * luminosity
+    luminosity = 59.76 #fb^-1 (in crate_normalization_table.py there's a factor 1000)
+    MC_Weight = MC_Weight * luminosity
 
 
 histo_map = dict()
@@ -114,7 +121,11 @@ histo_map["h_couple_Iso_ch"] = h_couple_Iso_ch
 h_photon_energy = ROOT.TH1F("h_photon_energy","h_photon_energy", 100, 0.,300.)
 histo_map["h_photon_energy"] = h_photon_energy
 
-#plot: photon energy
+#plot: photon eta
+h_photon_eta = ROOT.TH1F("h_photon_eta","h_photon_eta", 100, -2.5,2.5)
+histo_map["h_photon_eta"] = h_photon_eta
+
+#plot: n. of jets over 25 GeV
 h_nJets_25 = ROOT.TH1F("h_nJets_25","h_nJets_25", 15, -0.5,15.)
 histo_map["h_nJets_25"] = h_nJets_25
 
@@ -124,17 +135,21 @@ phi_max_invMass = 1.05
 higgs_min_invMass = 100.
 higgs_max_invMass = 150.
 
+#counters
+nEventsOverCuts = 0
+
 #dictionary: allows to apply all cuts except one related to the plotted variable
 def select_all_but_one(h_string):
 
     selection_bools = dict()
     selection_bools["h_phi_InvMass_TwoTrk"] = mytree.Phimass >= phi_min_invMass and mytree.Phimass <= phi_max_invMass 
     selection_bools["h_InvMass_TwoTrk_Photon"] = mytree.Hmass_From2K_Photon >= higgs_min_invMass and mytree.Hmass_From2K_Photon <= higgs_max_invMass 
-    selection_bools["h_couple_Iso_ch"] = mytree.iso_couple_ch <= 0.3
-    selection_bools["h_bestJetPt"] = mytree.bestJet_pT <= 200.
-    selection_bools["h_bestCouplePt"] = mytree.bestCouplePt >= 40.
-    selection_bools["h_secondKCand_pT"] = mytree.secondCandPt >= 15.
-    selection_bools["h_photon_energy"] = mytree.photon_energy >= 50.
+    selection_bools["h_couple_Iso_ch"] = mytree.iso_couple_ch <= 1.
+    selection_bools["h_bestJetPt"] = mytree.bestJet_pT <= 1000.
+    selection_bools["h_bestCouplePt"] = mytree.bestCouplePt >= 30.
+    selection_bools["h_firstKCand_pT"] = mytree.firstCandPt >= 15.
+    selection_bools["h_secondKCand_pT"] = mytree.secondCandPt >= 5.
+    selection_bools["h_photon_energy"] = mytree.photon_energy >= 10.
 
     result = True
 
@@ -143,7 +158,8 @@ def select_all_but_one(h_string):
             continue
         else:
             result = result and selection_bools[hname]
-        return result
+    
+    return result
 
 
 print "This sample has ", mytree.GetEntriesFast(), " events"
@@ -157,16 +173,34 @@ for jentry in xrange(nentries):
     if nb <= 0:
         continue
 
-    PUWeight = mytree.PU_Weight
-    MC_Weight *= mytree.MC_Weight/abs(mytree.MC_Weight)
-    eventWeight = PUWeight*MC_Weight
+    #normalization calculation for MC dataset
+    if args.dataSet_type == "MC":
+        PUWeight = mytree.PU_Weight
+        MC_Weight *= mytree.MC_Weight/abs(mytree.MC_Weight)
+        eventWeight = PUWeight*MC_Weight
+    
+    #phi angle folding
     coupleDeltaPhi = math.fabs(mytree.firstCandPhi - mytree.secondCandPhi)
     if coupleDeltaPhi > 3.14:
         coupleDeltaPhi = 6.28 - coupleDeltaPhi
     deltaR = math.sqrt((mytree.firstCandEta - mytree.secondCandEta)**2 + (coupleDeltaPhi)**2)
 
+    #NO normalization for DATA 
+    if args.dataSet_type == "DATA":
+        eventWeight = 1
+
+    #if DATA -> Blind Analysis on H inv mass plot
     if select_all_but_one(h_InvMass_TwoTrk_Photon.GetName()):
-        h_InvMass_TwoTrk_Photon.Fill(mytree.Hmass_From2K_Photon, eventWeight)
+        if args.dataSet_type == "DATA" and mytree.Hmass_From2K_Photon < 120. and mytree.Hmass_From2K_Photon > 130.:
+            h_InvMass_TwoTrk_Photon.Fill(mytree.Hmass_From2K_Photon, eventWeight)
+        if args.dataSet_type == "MC":
+            h_InvMass_TwoTrk_Photon.Fill(mytree.Hmass_From2K_Photon, eventWeight)
+
+    if select_all_but_one(""): #H inv mass plot without the phi mass cut    
+        if args.dataSet_type == "DATA" and mytree.Hmass_From2K_Photon < 120. and mytree.Hmass_From2K_Photon > 130.:
+            h_InvMass_TwoTrk_Photon_NoPhiMassCut.Fill(mytree.Hmass_From2K_Photon, eventWeight)
+        if args.dataSet_type == "MC":
+            h_InvMass_TwoTrk_Photon_NoPhiMassCut.Fill(mytree.Hmass_From2K_Photon, eventWeight)
         
     if select_all_but_one(h_phi_InvMass_TwoTrk.GetName()):
         h_phi_InvMass_TwoTrk.Fill(mytree.Phimass, eventWeight)
@@ -174,12 +208,14 @@ for jentry in xrange(nentries):
     if select_all_but_one(h_couple_Iso_ch.GetName()):    
         h_couple_Iso_ch.Fill(mytree.iso_couple_ch, eventWeight)
 
-   
     if select_all_but_one(h_bestJetPt.GetName()):    
         h_bestJetPt.Fill(mytree.bestJet_pT, eventWeight)
 
     if select_all_but_one(h_bestCouplePt.GetName()):    
         h_bestCouplePt.Fill(mytree.bestCouplePt, eventWeight)
+
+    if select_all_but_one(h_firstKCand_pT.GetName()):    
+        h_firstKCand_pT.Fill(mytree.firstCandPt, eventWeight)
 
     if select_all_but_one(h_secondKCand_pT.GetName()):    
         h_secondKCand_pT.Fill(mytree.secondCandPt, eventWeight)
@@ -187,10 +223,6 @@ for jentry in xrange(nentries):
     if select_all_but_one(h_photon_energy.GetName()):    
         h_photon_energy.Fill(mytree.photon_energy, eventWeight)
 
-    if select_all_but_one(""):    
-        h_InvMass_TwoTrk_Photon_NoPhiMassCut.Fill(mytree.Hmass_From2K_Photon, eventWeight)
-    if select_all_but_one(""):    
-        h_firstKCand_pT.Fill(mytree.firstCandPt, eventWeight)    
     if select_all_but_one(""):    
         h_firstKCand_Eta.Fill(mytree.firstCandEta, eventWeight)    
     if select_all_but_one(""):    
@@ -214,9 +246,14 @@ for jentry in xrange(nentries):
     if select_all_but_one(""):    
         h_K2_Iso_ch.Fill(mytree.iso_K2_ch, eventWeight)
     if select_all_but_one(""):    
+        h_photon_eta.Fill(mytree.photon_eta, eventWeight)
+    if select_all_but_one(""):    
         h_nJets_25.Fill(mytree.nJets_25, eventWeight)
 
-    
+    #counters
+    if select_all_but_one(""):
+        nEventsOverCuts += 1
+
 h_InvMass_TwoTrk_Photon.GetXaxis().SetTitle("m_{K^{+}K^{-}#gamma} [GeV/c^2]")
 h_InvMass_TwoTrk_Photon.SetTitle("Tracks+Photon invariant mass (Cut on phi inv. mass)")
 
@@ -277,12 +314,17 @@ h_bestCoupleDeltaR.SetTitle("Delta R of the couple")
 h_photon_energy.GetXaxis().SetTitle("E_{#gamma}")
 h_photon_energy.SetTitle("Energy of the photon")
 
+h_photon_eta.GetXaxis().SetTitle("#eta_{#gamma}")
+h_photon_eta.SetTitle("Eta of the photon")
+
 h_nJets_25.GetXaxis().SetTitle("nJets over 25 GeV")
 h_nJets_25.SetTitle("# of jets with pT > 25 GeV")
 
 
 fOutput = ROOT.TFile("histos/latest_production/histos_"+samplename+".root","RECREATE")
 
+if samplename == "Signal":
+    print "n. events after cuts: " , nEventsOverCuts
 
 for histo in histo_map:
     histo_map[histo].Write(histo)
@@ -291,26 +333,6 @@ for histo in histo_map:
         canvas.cd()
         histo_map[histo].Draw("E1")
         canvas.SaveAs("plots/" + histo +".pdf")
-
-#h_InvMass_TwoTrk_Photon.Write("h_InvMass_TwoTrk_Photon_PhiMassCut")
-#h_phi_InvMass_TwoTrk.Write("h_phi_InvMass_TwoTrk")
-#h_InvMass_TwoTrk_Photon_NoPhiMassCut.Write("h_InvMass_TwoTrk_Photon_NoPhiMassCut")
-#h_firstKCand_pT.Write("h_firstKCand_pT")
-#h_secondKCand_pT.Write("h_secondKCand_pT")
-#h_firstKCand_Eta.Write("h_firstKCand_Eta")
-#h_secondKCand_Eta.Write("h_secondKCand_Eta")
-#h_firstKCand_Phi.Write("h_firstKCand_Phi")
-#h_secondKCand_Phi.Write("h_secondKCand_Phi")
-#h_bestCouplePt.Write("h_bestCouplePt")
-#h_bestJetPt.Write("h_bestJetPt")
-#h_bestJetEta.Write("h_bestJetEta")
-#h_K1_Iso.Write("h_K1_Iso")
-#h_K1_Iso_ch.Write("h_K1_Iso_ch")
-#h_K2_Iso.Write("h_K2_Iso")
-#h_K2_Iso_ch.Write("h_K2_Iso_ch")
-#h_couple_Iso.Write("h_couple_Iso")
-#h_couple_Iso_ch.Write("h_couple_Iso_ch")
-#h_Events.Write("h_Events")
 
 fOutput.Close()
 

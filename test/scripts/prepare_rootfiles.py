@@ -63,8 +63,10 @@ for dirname in list_dirs:
         crab_command_2 = "crab getoutput -d " + dir_input + dirname + " --jobids 1001-" + str(n_jobs) # Because it is impossible to concatenate str and int objects
         os.system(crab_command_2)
     
-    samplename = dirname.split("crab_HPhiGammaAnalysis_")
-
+    if args.isData_option == "MC":
+        samplename = dirname.split("crab_HPhiGammaAnalysis_")
+    if args.isData_option == "data":
+        samplename = dirname.split("crab_2018_HPhiGammaAnalysis_")
     if "Signal" in dirname:
         hadd_command = "hadd -f " + dir_output_sig + "HPhiGammaAnalysis_" + samplename[1] + ".root " + dir_input + dirname + "/results/*.root"
     elif isData:

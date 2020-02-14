@@ -790,7 +790,7 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
     }
 
   //CUTS ON CANDIDATES PT
-  if(_firstCandPt < 20. || _secondCandPt < 10.) return;
+  if(_firstCandPt < 15. || _secondCandPt < 5.) return;
   _Nevents_candPtFilter++;
 
   //ISOLATION DATAMEMBER FOR TREE FILLING 
