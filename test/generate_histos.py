@@ -2,23 +2,14 @@ import ROOT
 import argparse
 import math
 
-pdf_flag=False
+pdf_flag=True
 p = argparse.ArgumentParser(description='Select rootfile to plot')
-p.add_argument('dataSet_type', help='Type <<MC>> or <<DATA>>')
 p.add_argument('rootfile_name', help='Type rootfile name')
 args = p.parse_args()
 
-print "dataSet_type = ",args.dataSet_type
 print "input = ",args.rootfile_name
 
 fInput = ROOT.TFile(args.rootfile_name)
-if args.dataSet_type == "MC":
-    normalization_InputFile = open("rootfiles/latest_production/MC/normalizations/Normalizations_table.txt","r")
-
-mytree = fInput.Get("HPhiGammaAnalysis/mytree")
-
-if args.dataSet_type == "MC":
-    h_Events = fInput.Get("HPhiGammaAnalysis/h_Events")
 
 #SPLIT: I can split a string of chars before and after a split code (that could be a string or a symbol)
 #then I can take the string stands before or after with [0] or [1], respectively. 
@@ -26,18 +17,37 @@ if args.dataSet_type == "MC":
 samplename =(args.rootfile_name.split("HPhiGammaAnalysis_")[1])[:-5] 
 print "samplename =", samplename
 
+if not samplename == "Data":
+    normalization_InputFile = open("rootfiles/latest_production/MC/normalizations/Normalizations_table.txt","r")
+
+mytree = fInput.Get("HPhiGammaAnalysis/mytree")
+
+if not samplename == "Data":
+    h_Events = fInput.Get("HPhiGammaAnalysis/h_Events")
+
 #normalization for MC dataset
-if args.dataSet_type == "MC":
+if not samplename == "Data":
     norm_map = dict()
     for line in normalization_InputFile:
         data_norm = line.split()
         norm_map[data_norm[0]] = float(data_norm[1])
 
     MC_Weight = norm_map[samplename]
-
-    luminosity = 59.76 #fb^-1 (in crate_normalization_table.py there's a factor 1000)
+    #    luminosity = 59.76 #fb^-1 (in crate_normalization_table.py there's a factor 1000
+    luminosity = 53.03 #fb^-1 LUMINOSITY REDUCED BY Run2018C
     MC_Weight = MC_Weight * luminosity
 
+
+#MCfromDATA correction for photons 
+ph_ID_scale_name_2018  = "scale_factors/2018_PhotonsMVAwp90.root"
+ph_ID_scale_file_2018  = ROOT.TFile(ph_ID_scale_name_2018)
+ph_ID_scale_histo_2018 = ROOT.TH2F()
+ph_ID_scale_histo_2018 = ph_ID_scale_file_2018.Get("EGamma_SF2D")
+
+ph_pixVeto_scale_name_2018  = "scale_factors/HasPix_2018.root"
+ph_pixVeto_scale_file_2018  = ROOT.TFile(ph_pixVeto_scale_name_2018)
+ph_pixVeto_scale_histo_2018 = ROOT.TH1F()
+ph_pixVeto_scale_histo_2018 = ph_pixVeto_scale_file_2018.Get("eleVeto_SF")
 
 histo_map = dict()
 
@@ -129,6 +139,15 @@ histo_map["h_photon_eta"] = h_photon_eta
 h_nJets_25 = ROOT.TH1F("h_nJets_25","h_nJets_25", 15, -0.5,15.)
 histo_map["h_nJets_25"] = h_nJets_25
 
+#plot: n. of muons for each event
+h_nMuons = ROOT.TH1F("h_nMuons","h_nMuons", 11, -0.5,10.5)
+histo_map["h_nMuons"] = h_nMuons
+
+#plot: n. of electrons for each event
+h_nElectrons = ROOT.TH1F("h_nElectrons","h_nElectrons", 6, -0.5,5.5)
+histo_map["h_nElectrons"] = h_nElectrons
+
+
 #cuts
 phi_min_invMass = 1.
 phi_max_invMass = 1.05
@@ -162,6 +181,26 @@ def select_all_but_one(h_string):
     return result
 
 
+#photon scaling
+def get_photon_scale(ph_pt, ph_eta):
+
+    local_ph_pt = ph_pt
+    if local_ph_pt > 499.: # This is because corrections are up to 499 GeV
+        local_ph_pt = 499.
+    
+    local_ph_eta = ph_eta
+    if local_ph_eta >= 2.5:
+        local_ph_eta = 2.49
+    if local_ph_eta < -2.5: # Corrections reach down to eta = -2.5, but only up to eta = 2.49
+        local_ph_eta = -2.5
+
+    scale_factor_ID      = ph_ID_scale_histo_2018.GetBinContent( ph_ID_scale_histo_2018.GetXaxis().FindBin(local_ph_eta), ph_ID_scale_histo_2018.GetYaxis().FindBin(local_ph_pt) )
+    scale_factor_pixVeto = ph_pixVeto_scale_histo_2018.GetBinContent( ph_pixVeto_scale_histo_2018.GetXaxis().FindBin(local_ph_pt), ph_pixVeto_scale_histo_2018.GetYaxis().FindBin(math.fabs(local_ph_eta)) )
+    scale_factor = scale_factor_ID * scale_factor_pixVeto
+    
+    return scale_factor
+
+
 print "This sample has ", mytree.GetEntriesFast(), " events"
 nentries = mytree.GetEntriesFast()
 
@@ -174,10 +213,10 @@ for jentry in xrange(nentries):
         continue
 
     #normalization calculation for MC dataset
-    if args.dataSet_type == "MC":
+    if not samplename == "Data":
         PUWeight = mytree.PU_Weight
         MC_Weight *= mytree.MC_Weight/abs(mytree.MC_Weight)
-        eventWeight = PUWeight*MC_Weight
+        eventWeight = PUWeight*MC_Weight*get_photon_scale(mytree.photon_eT, mytree.photon_eta)
     
     #phi angle folding
     coupleDeltaPhi = math.fabs(mytree.firstCandPhi - mytree.secondCandPhi)
@@ -186,20 +225,22 @@ for jentry in xrange(nentries):
     deltaR = math.sqrt((mytree.firstCandEta - mytree.secondCandEta)**2 + (coupleDeltaPhi)**2)
 
     #NO normalization for DATA 
-    if args.dataSet_type == "DATA":
+    if samplename == "Data":
         eventWeight = 1
 
     #if DATA -> Blind Analysis on H inv mass plot
     if select_all_but_one(h_InvMass_TwoTrk_Photon.GetName()):
-        if args.dataSet_type == "DATA" and mytree.Hmass_From2K_Photon < 120. and mytree.Hmass_From2K_Photon > 130.:
-            h_InvMass_TwoTrk_Photon.Fill(mytree.Hmass_From2K_Photon, eventWeight)
-        if args.dataSet_type == "MC":
+        if samplename == "Data":
+            if mytree.Hmass_From2K_Photon < 120. or mytree.Hmass_From2K_Photon > 130.:
+                h_InvMass_TwoTrk_Photon.Fill(mytree.Hmass_From2K_Photon, eventWeight)
+        else:
             h_InvMass_TwoTrk_Photon.Fill(mytree.Hmass_From2K_Photon, eventWeight)
 
     if select_all_but_one(""): #H inv mass plot without the phi mass cut    
-        if args.dataSet_type == "DATA" and mytree.Hmass_From2K_Photon < 120. and mytree.Hmass_From2K_Photon > 130.:
-            h_InvMass_TwoTrk_Photon_NoPhiMassCut.Fill(mytree.Hmass_From2K_Photon, eventWeight)
-        if args.dataSet_type == "MC":
+        if samplename == "Data":
+            if mytree.Hmass_From2K_Photon < 120. or mytree.Hmass_From2K_Photon > 130.:
+                h_InvMass_TwoTrk_Photon_NoPhiMassCut.Fill(mytree.Hmass_From2K_Photon, eventWeight)
+        else:
             h_InvMass_TwoTrk_Photon_NoPhiMassCut.Fill(mytree.Hmass_From2K_Photon, eventWeight)
         
     if select_all_but_one(h_phi_InvMass_TwoTrk.GetName()):
@@ -249,6 +290,10 @@ for jentry in xrange(nentries):
         h_photon_eta.Fill(mytree.photon_eta, eventWeight)
     if select_all_but_one(""):    
         h_nJets_25.Fill(mytree.nJets_25, eventWeight)
+    if select_all_but_one(""):    
+        h_nMuons.Fill(mytree.nMuons, eventWeight)
+    if select_all_but_one(""):    
+        h_nElectrons.Fill(mytree.nElectrons, eventWeight)
 
     #counters
     if select_all_but_one(""):
@@ -328,11 +373,12 @@ if samplename == "Signal":
 
 for histo in histo_map:
     histo_map[histo].Write(histo)
-    if pdf_flag and samplename == "Signal":
-        canvas = ROOT.TCanvas()
-        canvas.cd()
-        histo_map[histo].Draw("E1")
-        canvas.SaveAs("plots/" + histo +".pdf")
+    if pdf_flag: 
+        if samplename == "Signal" or samplename == "Data":
+            canvas = ROOT.TCanvas()
+            canvas.cd()
+            histo_map[histo].Draw("E1")
+            canvas.SaveAs("plots/" + histo +".pdf")
 
 fOutput.Close()
 
