@@ -84,8 +84,6 @@ HPhiGammaAnalysis::HPhiGammaAnalysis(const edm::ParameterSet& iConfig) :
   _Nevents_isPhoton   = 0;
   _Nevents_HiggsFound = 0;
   _Nevents_HiggsNotMatched = 0;
-  _Nevents_HiggsMassMatched = 0;
-  _Nevents_HiggsMassNotMatched = 0;
   _Nevents_bestCoupleFound = 0;
   _Nevents_candPtFilter = 0;
   _Nevents_coupleIsolationFilter = 0;
@@ -280,7 +278,8 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
 
   nMuons     = 0;
   nElectrons = 0;
-  nPhotons   = 0;
+  nPhotonsOverSelection = 0;
+  nPhotonsChosen   = 0;
   nJets      = 0;
   nJets_25   = 0;
   
@@ -383,7 +382,7 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
     if(el_iso > 0.35) continue;
 
     //-------------Conditions on loose/medium MVA electron ID-------------//
-    if(el->electronID("mvaEleID-Fall17-iso-V1-wp80") == 0) continue;
+    if(el->electronID("mvaEleID-Fall17-iso-V1-wp90") == 0) continue;
     nElectrons++;
   }
 
@@ -426,7 +425,7 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
 
     //std::cout << "photon et " << corr_et << std::endl;
 
-    if(corr_et < 20. || fabs(photon->eta()) > 2.5 || corr_et < eTphMax) continue;
+    if(corr_et < 20. || fabs(photon->eta()) > 2.5) continue;
     if(photon->hasPixelSeed()) continue;   //electron veto
 
     //std::cout << "photon" << photon->photonID("mvaPhoID-RunIIFall17-v1-wp90") << " " << photon->photonID("mvaPhoID-RunIIFall17-v1p1-wp90") << std::endl;
@@ -436,13 +435,17 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
     float abseta = fabs(photon->superCluster()->eta());
     float eA = effectiveAreas_ph_.getEffectiveArea(abseta);
     //photon_iso = (pfIso.sumChargedHadronPt + std::max( 0.0f, pfIso.sumNeutralHadronEt + pfIso.sumPhotonEt - eA*rho_))/photon->et();
+
     if(photon->chargedHadronIso()/corr_et > 0.3 || photon->photonIso() > 4.) continue; //|| photon->trackIso() > 6
+
+    nPhotonsOverSelection++;
+
+    if(corr_et < eTphMax) continue;
+    eTphMax = corr_et;
     ph_iso_ChargedHadron = photon->chargedHadronIso();
     ph_iso_NeutralHadron = photon->neutralHadronIso();
     ph_iso_Photon        = photon->photonIso();
     ph_iso_eArho         = eA*rho_;
-
-    eTphMax = corr_et;
 
     ph_eT     = corr_et;
     ph_eta    = photon->eta();
@@ -454,6 +457,7 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
     ph_p4     = photon->p4();  //* photon->userFloat("ecalEnergyPostCorr")/photon->energy();
     
     cand_photon_found = true;
+    nPhotonsChosen++;
 
     float deltapTMax = 10000.;
     const float deltaRMax = 0.3;
@@ -807,41 +811,38 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
 
   
   //MC TRUTH CHECK
-  _isHiggsFound=false; //bool initialization
-  
-  if(MCtruthIndex == bestJet_Index) //if the index of the best jet matches with one of the MC truth, it passes here
+  if(!runningOnData_)
     {
-      if(debug) cout<<endl<<"****************TRUE HIGGS FOUND******************"<<endl;
-      if(debug) cout<<"Higgs deltaR = "<<deltaR<<endl;
-      _Nevents_HiggsFound++;
-      _isHiggsFound=true;
-      if(_bestJet_Photon_invMass > 100. && _bestJet_Photon_invMass < 150.) _Nevents_HiggsMassMatched++;
+      _isHiggsFound=false; //bool initialization
+      
+      if(MCtruthIndex == bestJet_Index) //if the index of the best jet matches with one of the MC truth, it passes here
+	{
+	  if(debug) cout<<endl<<"****************TRUE HIGGS FOUND******************"<<endl;
+	  if(debug) cout<<"Higgs deltaR = "<<deltaR<<endl;
+	  _Nevents_HiggsFound++;
+	  _isHiggsFound=true;
+	}  
       else 
 	{
-	  _Nevents_HiggsMassNotMatched++;
-	  return;	
+	  _Nevents_HiggsNotMatched++;
+	  if(debug) cout<<endl<<"THAT'S NOT A HIGGS!"<<endl;
 	}
-    }  
-  else 
-    {
-      _Nevents_HiggsNotMatched++;
-      if(debug) cout<<endl<<"THAT'S NOT A HIGGS!"<<endl;
+      
+      //some prints
+      
+      if(debug){
+	cout<<"Jet + photon inv. mass = "<<_bestJet_Photon_invMass<<endl;
+	cout<<"n. of daughters: "<<_bestJet_nDaughters<<endl;
+	cout<<"Best couple pT = "<<_firstCandPt + _secondCandPt<<endl;
+	cout<<"Best couple DeltaR = "<<deltaR_KChosen<<endl;
+	cout<<"Phi candidate inv. mass  = "<<_Phimass<<endl;
+	cout<<"H inv. mass after jet-unpackaging = "<<_Hmass_From2K_Photon<<endl;
+	cout<<"--------------------------------------------------"<<endl;
+	cout<<"Higgs found = "<<_Nevents_HiggsFound<<",   Higgs NOT matched = "<<_Nevents_HiggsNotMatched<<endl;
+	cout<<"--------------------------------------------------"<<endl<<endl;
+      }
     }
   
-  //some prints
-  if(debug){
-    cout<<"Jet + photon inv. mass = "<<_bestJet_Photon_invMass<<endl;
-    cout<<"n. of daughters: "<<_bestJet_nDaughters<<endl;
-    cout<<"Best couple pT = "<<_firstCandPt + _secondCandPt<<endl;
-    cout<<"Best couple DeltaR = "<<deltaR_KChosen<<endl;
-    cout<<"Phi candidate inv. mass  = "<<_Phimass<<endl;
-    cout<<"H inv. mass after jet-unpackaging = "<<_Hmass_From2K_Photon<<endl;
-    cout<<"--------------------------------------------------"<<endl;
-    cout<<"Higgs found = "<<_Nevents_HiggsFound<<",   Higgs NOT matched = "<<_Nevents_HiggsNotMatched<<endl;
-    cout<<"H-Mass matched = "<<_Nevents_HiggsMassMatched<<",    H-Mass NOT matched= "<<_Nevents_HiggsMassNotMatched<<endl;
-    cout<<"--------------------------------------------------"<<endl<<endl;
-  }
-
   mytree->Fill();
   if(debug) cout<<"Ending analyze method"<<endl;
 }
@@ -866,6 +867,8 @@ void HPhiGammaAnalysis::create_trees()
 
   mytree->Branch("nMuons",&nMuons);
   mytree->Branch("nElectrons",&nElectrons);
+  mytree->Branch("nPhotonsOverSelection",&nPhotonsOverSelection);
+  mytree->Branch("nPhotonsChosen",&nPhotonsChosen);
   mytree->Branch("nJets",&nJets);
   mytree->Branch("nJets_25",&nJets_25);
   mytree->Branch("met_pT",&met_pT);
@@ -969,7 +972,6 @@ void HPhiGammaAnalysis::endJob()
   h_Events->Fill(3.5,_Nevents_bestCoupleFound);  
   h_Events->Fill(4.5,_Nevents_candPtFilter);  
   h_Events->Fill(5.5,_Nevents_coupleIsolationFilter);  
-  h_Events->Fill(6.5,_Nevents_HiggsMassMatched);  
 
   h_Events->GetXaxis()->SetBinLabel(1,"Events processed");
   h_Events->GetXaxis()->SetBinLabel(2,"Events triggered");
@@ -977,7 +979,6 @@ void HPhiGammaAnalysis::endJob()
   h_Events->GetXaxis()->SetBinLabel(4,"Best couple of the event found");
   h_Events->GetXaxis()->SetBinLabel(5,"Cand pT selection ");
   h_Events->GetXaxis()->SetBinLabel(6,"Phi isolation selection");
-  h_Events->GetXaxis()->SetBinLabel(7,"Higgs mass matched");
 }
 
 //define this as a plug-in

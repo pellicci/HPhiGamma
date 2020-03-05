@@ -23,6 +23,11 @@ secs_table["Signal"] = 48.58*10**(-5) #cross section * B.R.(10^-5)
 secs_table["GammaJets20to40"] = 231.6
 secs_table["GammaJets20toInf"] = 3155.0
 secs_table["GammaJets40toInf"] = 874.2
+secs_table["GammaJetsHT40to100"] = 18700.0
+secs_table["GammaJetsHT100to200"] = 8640.0
+secs_table["GammaJetsHT200to400"] = 2185.0
+secs_table["GammaJetsHT400to600"] = 259.9
+secs_table["GammaJetsHT600toInf"] = 85.31
 secs_table["QCDHT100to200"] = 27540000.0
 secs_table["QCDHT200to300"] = 1717000.0
 secs_table["QCDHT300to500"] = 351300.0
@@ -34,6 +39,7 @@ secs_table["QCDHT2000toInf"] = 25.25
 secs_table["WJetsToLNu0J"] = 50131.98
 secs_table["WJetsToLNu1J"] = 8426.09
 secs_table["WJetsToLNu2J"] = 3172.96
+secs_table["DiPhotonJets"] = 134.3
 
 #fraction of negative-weighted events in NLO samples (2018)
 frac_table = dict()
@@ -61,9 +67,16 @@ frac_table["QCDHT2000toInf"] = 0.009878
 frac_table["GammaJets20to40"] = 0.
 frac_table["GammaJets20toInf"] = 0.
 frac_table["GammaJets40toInf"] = 0.
+frac_table["GammaJetsHT40to100"] = 9.997e-06
+frac_table["GammaJetsHT100to200"] = 7.919e-05
+frac_table["GammaJetsHT200to400"] = 0.000396
+frac_table["GammaJetsHT400to600"] = 0.0008157
+frac_table["GammaJetsHT600toInf"] = 0.001946
 frac_table["WJetsToLNu0J"] = 0.09868
 frac_table["WJetsToLNu1J"] = 0.269
 frac_table["WJetsToLNu2J"] = 0.3460
+frac_table["DiPhotonJets"] = 0.2238
+
 
 ##Now starts the program
 def main():

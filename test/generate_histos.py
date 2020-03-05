@@ -1,13 +1,17 @@
 import ROOT
 import argparse
 import math
+#import numpy as np
 
-pdf_flag=True
+pdf_flag=False
+debug=False
+doSelection=True
+
 p = argparse.ArgumentParser(description='Select rootfile to plot')
 p.add_argument('rootfile_name', help='Type rootfile name')
 args = p.parse_args()
 
-print "input = ",args.rootfile_name
+#print "input = ",args.rootfile_name
 
 fInput = ROOT.TFile(args.rootfile_name)
 
@@ -33,10 +37,20 @@ if not samplename == "Data":
         norm_map[data_norm[0]] = float(data_norm[1])
 
     MC_Weight = norm_map[samplename]
-    #    luminosity = 59.76 #fb^-1 (in crate_normalization_table.py there's a factor 1000
-    luminosity = 53.03 #fb^-1 LUMINOSITY REDUCED BY Run2018C
+
+    if debug:
+        print "MC_Weight = ",MC_Weight
+
+    luminosity2018A = 14.00 #fb^-1
+    luminosity2018B = 3.41 #fb^-1
+    luminosity2018C = 6.94 #fb^-1
+    luminosity2018D = 31.93 #fb^-1
+
+    luminosity = luminosity2018B + luminosity2018D
     MC_Weight = MC_Weight * luminosity
 
+    if debug:
+        print "MC_Weight * lumi = ",MC_Weight
 
 #MCfromDATA correction for photons 
 ph_ID_scale_name_2018  = "scale_factors/2018_PhotonsMVAwp90.root"
@@ -91,6 +105,10 @@ histo_map["h_secondKCand_Phi"] = h_secondKCand_Phi
 h_bestCouplePt = ROOT.TH1F("bestCouplePt","bestCouplePt", 100, 0.,150.)
 histo_map["h_bestCouplePt"] = h_bestCouplePt
 
+#plot: best couple Eta
+h_bestCoupleEta = ROOT.TH1F("bestCoupleEta","bestCoupleEta", 100, -2.5,2.5)
+histo_map["h_bestCoupleEta"] = h_bestCoupleEta
+
 #plot: best couple deltaR
 h_bestCoupleDeltaR = ROOT.TH1F("bestCoupleDeltaR","bestCoupleDeltaR", 100, 0.,0.02)
 histo_map["h_bestCoupleDeltaR"] = h_bestCoupleDeltaR
@@ -136,7 +154,7 @@ h_photon_eta = ROOT.TH1F("h_photon_eta","h_photon_eta", 100, -2.5,2.5)
 histo_map["h_photon_eta"] = h_photon_eta
 
 #plot: n. of jets over 25 GeV
-h_nJets_25 = ROOT.TH1F("h_nJets_25","h_nJets_25", 15, -0.5,15.)
+h_nJets_25 = ROOT.TH1F("h_nJets_25","h_nJets_25", 13, -0.5,12.5)
 histo_map["h_nJets_25"] = h_nJets_25
 
 #plot: n. of muons for each event
@@ -147,10 +165,34 @@ histo_map["h_nMuons"] = h_nMuons
 h_nElectrons = ROOT.TH1F("h_nElectrons","h_nElectrons", 6, -0.5,5.5)
 histo_map["h_nElectrons"] = h_nElectrons
 
+#plot: n. of photons for each event
+h_nPhotons = ROOT.TH1F("h_nPhotons","h_nPhotons", 6, -0.5,5.5)
+histo_map["h_nPhotons"] = h_nPhotons
 
-#cuts
-phi_min_invMass = 1.
-phi_max_invMass = 1.05
+"""
+#CREATE OUTPUT ROOTFILE
+#Variables to go in the tree
+_HiggsMass = np.zeros(1, dtype=float)
+_PhiMass = np.zeros(1, dtype=float)
+_coupleIsoCh = np.zeros(1, dtype=float)
+_bestJetPt = np.zeros(1, dtype=float)
+_bestCouplePt = np.zeros(1, dtype=float)
+_firstCandPt = np.zeros(1, dtype=float)
+_secondCandPt = np.zeros(1, dtype=float)
+
+tree_output = ROOT.TTree('Output Tree','tree with branches')
+tree_output.Branch('Higgs Mass',_HiggsMass,'HiggsMass/D')
+tree_output.Branch('Phi Mass',_PhiMass,'PhiMass/D')
+tree_output.Branch('Couple Iso Ch',_coupleIsoCh,'CoupleIsoCh/D')
+tree_output.Branch('Best Jet Pt',_bestJetPt,'bestJetPt/D')
+tree_output.Branch('Best Couple Pt',_bestCouplePt,'bestCouplePt/D')
+tree_output.Branch('First Candidate Pt',_firstCandPt,'PfirstCandt/D')
+tree_output.Branch('Second Candidate Pt',_secondCandPt,'PsecondCandt/D')
+"""
+
+#CUTS
+phi_min_invMass = 1.01
+phi_max_invMass = 1.03
 higgs_min_invMass = 100.
 higgs_max_invMass = 150.
 
@@ -158,17 +200,21 @@ higgs_max_invMass = 150.
 nEventsOverCuts = 0
 
 #dictionary: allows to apply all cuts except one related to the plotted variable
+#if it returns FALSE it throws that event away
 def select_all_but_one(h_string):
+
+    if not doSelection:
+        return True
 
     selection_bools = dict()
     selection_bools["h_phi_InvMass_TwoTrk"] = mytree.Phimass >= phi_min_invMass and mytree.Phimass <= phi_max_invMass 
     selection_bools["h_InvMass_TwoTrk_Photon"] = mytree.Hmass_From2K_Photon >= higgs_min_invMass and mytree.Hmass_From2K_Photon <= higgs_max_invMass 
-    selection_bools["h_couple_Iso_ch"] = mytree.iso_couple_ch <= 1.
-    selection_bools["h_bestJetPt"] = mytree.bestJet_pT <= 1000.
-    selection_bools["h_bestCouplePt"] = mytree.bestCouplePt >= 30.
-    selection_bools["h_firstKCand_pT"] = mytree.firstCandPt >= 15.
-    selection_bools["h_secondKCand_pT"] = mytree.secondCandPt >= 5.
-    selection_bools["h_photon_energy"] = mytree.photon_energy >= 10.
+    selection_bools["h_couple_Iso_ch"] = mytree.iso_couple_ch <= 0.3
+    selection_bools["h_bestJetPt"] = mytree.bestJet_pT <= 150.
+    selection_bools["h_bestCouplePt"] = mytree.bestCouplePt >= 40.
+    selection_bools["h_firstKCand_pT"] = mytree.firstCandPt >= 25.
+    selection_bools["h_secondKCand_pT"] = mytree.secondCandPt >= 15.
+    selection_bools["h_photon_energy"] = mytree.photon_eT >= 50.
 
     result = True
 
@@ -177,7 +223,7 @@ def select_all_but_one(h_string):
             continue
         else:
             result = result and selection_bools[hname]
-    
+               
     return result
 
 
@@ -197,13 +243,21 @@ def get_photon_scale(ph_pt, ph_eta):
     scale_factor_ID      = ph_ID_scale_histo_2018.GetBinContent( ph_ID_scale_histo_2018.GetXaxis().FindBin(local_ph_eta), ph_ID_scale_histo_2018.GetYaxis().FindBin(local_ph_pt) )
     scale_factor_pixVeto = ph_pixVeto_scale_histo_2018.GetBinContent( ph_pixVeto_scale_histo_2018.GetXaxis().FindBin(local_ph_pt), ph_pixVeto_scale_histo_2018.GetYaxis().FindBin(math.fabs(local_ph_eta)) )
     scale_factor = scale_factor_ID * scale_factor_pixVeto
-    
+
+    if debug:
+        print "local_ph_pt = ",local_ph_pt
+        print "local_ph_eta = ",local_ph_eta
+        print "scale_factor_ID = ",scale_factor_ID
+        print "scale_factor_pixVeto = ",scale_factor_pixVeto
+
     return scale_factor
 
 
 print "This sample has ", mytree.GetEntriesFast(), " events"
 nentries = mytree.GetEntriesFast()
 
+
+#EVENTS LOOP
 for jentry in xrange(nentries):
     ientry = mytree.LoadTree( jentry )
     if ientry < 0:
@@ -215,9 +269,27 @@ for jentry in xrange(nentries):
     #normalization calculation for MC dataset
     if not samplename == "Data":
         PUWeight = mytree.PU_Weight
+
+        if debug:
+            print "event n.",jentry+1
+            print "PUWeight = ",PUWeight
+
+        MC_Weight = abs(MC_Weight) #re-inizialize MC_Weight as positive
         MC_Weight *= mytree.MC_Weight/abs(mytree.MC_Weight)
-        eventWeight = PUWeight*MC_Weight*get_photon_scale(mytree.photon_eT, mytree.photon_eta)
-    
+
+        if debug:
+            print "mytree.MC_Weight = ",mytree.MC_Weight
+            print "mytree.MC_Weight/abs(mytree.MC_Weight) = ",mytree.MC_Weight/abs(mytree.MC_Weight)
+            print "MC_Weight *= mytree.MC_Weight/abs(mytree.MC_Weight) = ",MC_Weight
+
+        photonScaleFactor = get_photon_scale(mytree.photon_eT, mytree.photon_eta)
+        eventWeight = PUWeight*MC_Weight*photonScaleFactor
+        
+        if debug:
+            print "photonScaleFactor = ",photonScaleFactor
+            print "PUWeight*MC_Weight*photonScaleFactor = eventWeight = ",eventWeight
+            print ""
+
     #phi angle folding
     coupleDeltaPhi = math.fabs(mytree.firstCandPhi - mytree.secondCandPhi)
     if coupleDeltaPhi > 3.14:
@@ -226,10 +298,10 @@ for jentry in xrange(nentries):
 
     #NO normalization for DATA 
     if samplename == "Data":
-        eventWeight = 1
+        eventWeight = 1.
 
     #if DATA -> Blind Analysis on H inv mass plot
-    if select_all_but_one(h_InvMass_TwoTrk_Photon.GetName()):
+    if select_all_but_one("h_InvMass_TwoTrk_Photon"):
         if samplename == "Data":
             if mytree.Hmass_From2K_Photon < 120. or mytree.Hmass_From2K_Photon > 130.:
                 h_InvMass_TwoTrk_Photon.Fill(mytree.Hmass_From2K_Photon, eventWeight)
@@ -242,27 +314,27 @@ for jentry in xrange(nentries):
                 h_InvMass_TwoTrk_Photon_NoPhiMassCut.Fill(mytree.Hmass_From2K_Photon, eventWeight)
         else:
             h_InvMass_TwoTrk_Photon_NoPhiMassCut.Fill(mytree.Hmass_From2K_Photon, eventWeight)
-        
-    if select_all_but_one(h_phi_InvMass_TwoTrk.GetName()):
-        h_phi_InvMass_TwoTrk.Fill(mytree.Phimass, eventWeight)
 
-    if select_all_but_one(h_couple_Iso_ch.GetName()):    
+    if select_all_but_one("h_phi_InvMass_TwoTrk"):
+        h_phi_InvMass_TwoTrk.Fill(mytree.Phimass, eventWeight)
+    
+    if select_all_but_one("h_couple_Iso_ch"):    
         h_couple_Iso_ch.Fill(mytree.iso_couple_ch, eventWeight)
 
-    if select_all_but_one(h_bestJetPt.GetName()):    
+    if select_all_but_one("h_bestJetPt"):    
         h_bestJetPt.Fill(mytree.bestJet_pT, eventWeight)
 
-    if select_all_but_one(h_bestCouplePt.GetName()):    
+    if select_all_but_one("h_bestCouplePt"):    
         h_bestCouplePt.Fill(mytree.bestCouplePt, eventWeight)
 
-    if select_all_but_one(h_firstKCand_pT.GetName()):    
+    if select_all_but_one("h_firstKCand_pT"):    
         h_firstKCand_pT.Fill(mytree.firstCandPt, eventWeight)
 
-    if select_all_but_one(h_secondKCand_pT.GetName()):    
+    if select_all_but_one("h_secondKCand_pT"):    
         h_secondKCand_pT.Fill(mytree.secondCandPt, eventWeight)
    
-    if select_all_but_one(h_photon_energy.GetName()):    
-        h_photon_energy.Fill(mytree.photon_energy, eventWeight)
+    if select_all_but_one("h_photon_energy"):    
+        h_photon_energy.Fill(mytree.photon_eT, eventWeight)
 
     if select_all_but_one(""):    
         h_firstKCand_Eta.Fill(mytree.firstCandEta, eventWeight)    
@@ -294,6 +366,12 @@ for jentry in xrange(nentries):
         h_nMuons.Fill(mytree.nMuons, eventWeight)
     if select_all_but_one(""):    
         h_nElectrons.Fill(mytree.nElectrons, eventWeight)
+    if select_all_but_one(""):    
+        h_nPhotons.Fill(mytree.nPhotonsOverSelection, eventWeight)
+    if select_all_but_one(""):    
+        h_bestCoupleEta.Fill(mytree.bestCoupleEta, eventWeight)
+
+
 
     #counters
     if select_all_but_one(""):
@@ -328,6 +406,9 @@ h_secondKCand_Phi.SetTitle("Azimuthal angle of the second charged particle (pT_{
 
 h_bestCouplePt.GetXaxis().SetTitle("pT_{K^{+}K^{-}} [GeV]")
 h_bestCouplePt.SetTitle("Transverse momentum of the couple")
+
+h_bestCoupleEta.GetXaxis().SetTitle("#eta")
+h_bestCoupleEta.SetTitle("Pseudorapidity of the couple")
 
 h_bestJetPt.GetXaxis().SetTitle("pT_{jet} [GeV]")
 h_bestJetPt.SetTitle("Transverse momentum of the jet")
@@ -365,11 +446,17 @@ h_photon_eta.SetTitle("Eta of the photon")
 h_nJets_25.GetXaxis().SetTitle("nJets over 25 GeV")
 h_nJets_25.SetTitle("# of jets with pT > 25 GeV")
 
+h_nPhotons.GetXaxis().SetTitle("n.#gamma")
+h_nPhotons.SetTitle("n.#gamma over selections")
+
 
 fOutput = ROOT.TFile("histos/latest_production/histos_"+samplename+".root","RECREATE")
 
 if samplename == "Signal":
     print "n. events after cuts: " , nEventsOverCuts
+
+print "entries in histos= ",h_phi_InvMass_TwoTrk.GetEntries()
+print ""
 
 for histo in histo_map:
     histo_map[histo].Write(histo)
@@ -381,5 +468,3 @@ for histo in histo_map:
             canvas.SaveAs("plots/" + histo +".pdf")
 
 fOutput.Close()
-
-

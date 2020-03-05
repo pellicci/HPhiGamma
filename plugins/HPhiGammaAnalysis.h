@@ -48,7 +48,8 @@ private:
 
   int nMuons;
   int nElectrons;
-  int nPhotons;
+  int nPhotonsChosen;
+  int nPhotonsOverSelection;
   int nJets;
   int nJets_25;
   int _Nevents_triggered;

@@ -39,17 +39,11 @@ if __name__ == '__main__':
             print "Failed submitting task: %s" % (cle)
 
 
-    #config.General.requestName = '2018_HPhiGammaAnalysis_Tau_A'
-    #config.Data.inputDataset = '/Tau/Run2018A-17Sep2018-v1/MINIAOD'
-    #p = Process(target=submit, args=(config,))
-    #p.start()
-    #p.join()
-
-    #config.General.requestName = '2018_HPhiGammaAnalysis_Tau_B'
-    #config.Data.inputDataset = '/Tau/Run2018B-17Sep2018-v1/MINIAOD'
-    #p = Process(target=submit, args=(config,))
-    #p.start()
-    #p.join()
+    config.General.requestName = '2018_HPhiGammaAnalysis_Tau_B'
+    config.Data.inputDataset = '/Tau/Run2018B-17Sep2018-v1/MINIAOD'
+    p = Process(target=submit, args=(config,))
+    p.start()
+    p.join()
         
     #config.General.requestName = '2018_HPhiGammaAnalysis_Tau_C'
     #config.Data.inputDataset = '/Tau/Run2018C-17Sep2018-v1/MINIAOD'

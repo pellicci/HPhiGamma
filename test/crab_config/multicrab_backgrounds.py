@@ -173,6 +173,42 @@ p = Process(target=submit, args=(config,))
 p.start()
 p.join()
 
+
+config.General.requestName = 'HPhiGammaAnalysis_GammaJetsHT600toInf'
+config.Data.unitsPerJob = 5
+config.Data.inputDataset = '/GJets_HT-600ToInf_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15_ext1-v2/MINIAODSIM'
+p = Process(target=submit, args=(config,))
+p.start()
+p.join()
+
+config.General.requestName = 'HPhiGammaAnalysis_GammaJetsHT40to100'
+config.Data.unitsPerJob = 5
+config.Data.inputDataset = '/GJets_HT-40To100_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM'
+p = Process(target=submit, args=(config,))
+p.start()
+p.join()
+
+config.General.requestName = 'HPhiGammaAnalysis_GammaJetsHT400to600'
+config.Data.unitsPerJob = 5
+config.Data.inputDataset = '/GJets_HT-400To600_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM'
+p = Process(target=submit, args=(config,))
+p.start()
+p.join()
+
+config.General.requestName = 'HPhiGammaAnalysis_GammaJetsHT100to200'
+config.Data.unitsPerJob = 5
+config.Data.inputDataset = '/GJets_HT-100To200_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18MiniAOD-4cores5k_102X_upgrade2018_realistic_v15-v1/MINIAODSIM'
+p = Process(target=submit, args=(config,))
+p.start()
+p.join()
+
+config.General.requestName = 'HPhiGammaAnalysis_GammaJetsHT200to400'
+config.Data.unitsPerJob = 5
+config.Data.inputDataset = '/GJets_HT-200To400_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM'
+p = Process(target=submit, args=(config,))
+p.start()
+p.join()
+
 config.General.requestName = 'HPhiGammaAnalysis_WJetsToLNu0J'
 config.Data.unitsPerJob = 5
 config.Data.inputDataset = '/WJetsToLNu_0J_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM'
@@ -191,6 +227,13 @@ p.join()
 config.General.requestName = 'HPhiGammaAnalysis_WJetsToLNu2J'
 config.Data.unitsPerJob = 5
 config.Data.inputDataset = '/WJetsToLNu_2J_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM'
+p = Process(target=submit, args=(config,))
+p.start()
+p.join()
+
+config.General.requestName = 'HPhiGammaAnalysis_DiPhotonJets'
+config.Data.unitsPerJob = 5
+config.Data.inputDataset = '/DiPhotonJets_MGG-80toInf_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM'
 p = Process(target=submit, args=(config,))
 p.start()
 p.join()
