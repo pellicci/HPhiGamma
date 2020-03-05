@@ -23,6 +23,7 @@ canvas  = dict()
 
 histo_container = [] #just for memory management
 
+#rename histos
 list_histos = ["h_InvMass_TwoTrk_Photon","h_phi_InvMass_TwoTrk","h_InvMass_TwoTrk_Photon_NoPhiMassCut","h_firstKCand_pT","h_secondKCand_pT","h_secondKCand_Eta","h_firstKCand_Phi","h_secondKCand_Phi","h_bestCouplePt","h_bestCoupleEta","h_bestJetPt","h_bestJetEta","h_K1_Iso","h_K1_Iso_ch","h_K2_Iso","h_K2_Iso_ch","h_couple_Iso","h_couple_Iso_ch","h_photon_energy","h_photon_eta","h_nJets_25","h_nMuons","h_nElectrons","h_nPhotons"] 
 
 for hname in list_histos:
