@@ -122,7 +122,7 @@ for filename in list_inputfiles:
             hstack[histo_name].Add(histo_container[-1])
             
     #fill legend
-    #if histo_name == "h_nMuons": #Add the legend only once (h_nMuons is just a random variable)
+    #if histo_name == "nMuons": #Add the legend only once (nMuons is just a random variable)
 
     #if histo.Integral() > float(signal_magnify)/12. or sample_name == "Signal": #Only plot in the legend those samples which have some contribution
     if not sample_name == "Data" and not sample_name == "Signal":
@@ -151,7 +151,7 @@ for histo_name in list_histos:
     pad2.SetBorderMode(0)
     pad1.Draw()
     pad2.Draw()
-    if histo_name == "h_nJets_25" or histo_name == "h_nMuons" or histo_name == "h_nElectrons": # or histo_name == "h_nPhotons"
+    if histo_name == "h_nJets_25" or histo_name == "h_nMuons" or histo_name == "h_nElectrons": # or histo_name == "nPhotons"
         pad1.SetLogy()
         
     ##########################################
