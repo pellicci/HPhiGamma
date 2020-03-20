@@ -5,13 +5,11 @@ import numpy as np
 
 pdf_flag=False
 debug=False
-doSelection=True
+doSelection=False
 
 p = argparse.ArgumentParser(description='Select rootfile to plot')
 p.add_argument('rootfile_name', help='Type rootfile name')
 args = p.parse_args()
-
-#print "input = ",args.rootfile_name
 
 fInput = ROOT.TFile(args.rootfile_name)
 
@@ -36,10 +34,7 @@ if not samplename == "Data":
         data_norm = line.split()
         norm_map[data_norm[0]] = float(data_norm[1])
 
-    MC_Weight = norm_map[samplename]
-
-    if debug:
-        print "MC_Weight = ",MC_Weight
+    normalization_weight = norm_map[samplename]
 
     luminosity2018A = 14.00 #fb^-1
     luminosity2018B = 3.41 #fb^-1
@@ -47,10 +42,6 @@ if not samplename == "Data":
     luminosity2018D = 31.93 #fb^-1
 
     luminosity = luminosity2018B + luminosity2018D
-    MC_Weight = MC_Weight * luminosity
-
-    if debug:
-        print "MC_Weight * lumi = ",MC_Weight
 
 #MCfromDATA correction for photons 
 ph_ID_scale_name_2018  = "scale_factors/2018_PhotonsMVAwp90.root"
@@ -107,16 +98,19 @@ _bestCouplePt = np.zeros(1, dtype=float)
 _firstCandPt = np.zeros(1, dtype=float)
 _secondCandPt = np.zeros(1, dtype=float)
 _photonEt = np.zeros(1, dtype=float)
+_nEvents = np.zeros(1, dtype=float)
 
-tree_output = ROOT.TTree('Output Tree','tree with branches')
-tree_output.Branch('Higgs Mass',_HiggsMass,'HiggsMass/D')
-tree_output.Branch('Phi Mass',_PhiMass,'PhiMass/D')
-tree_output.Branch('Phi Iso Ch',_coupleIsoCh,'coupleIsoCh/D')
+
+tree_output = ROOT.TTree('tree_output','tree with branches')
+tree_output.Branch('Higgs mass',_HiggsMass,'HiggsMass/D')
+tree_output.Branch('Phi mass',_PhiMass,'PhiMass/D')
+tree_output.Branch('Phi iso Ch',_coupleIsoCh,'coupleIsoCh/D')
 tree_output.Branch('jet pT',_bestJetPt,'bestJetPt/D')
 tree_output.Branch('Phi pT',_bestCouplePt,'bestCouplePt/D')
 tree_output.Branch('1st K pT',_firstCandPt,'firstCandt/D')
 tree_output.Branch('2nd K pT',_secondCandPt,'secondCandt/D')
 tree_output.Branch('photon eT',_photonEt,'photonEt/D')
+tree_output.Branch('event weight',_nEvents,'nEvents/D')
 
 
 #CUTS
@@ -197,26 +191,26 @@ for jentry in xrange(nentries):
 
     #normalization calculation for MC dataset
     if not samplename == "Data":
+
+        if debug:
+            print "EVENT n.",jentry+1,"================"
+
         PUWeight = mytree.PU_Weight
 
-        if debug:
-            print "event n.",jentry+1
-            print "PUWeight = ",PUWeight
-
-        MC_Weight = abs(MC_Weight) #re-inizialize MC_Weight as positive
-        MC_Weight *= mytree.MC_Weight/abs(mytree.MC_Weight)
-
-        if debug:
-            print "mytree.MC_Weight = ",mytree.MC_Weight
-            print "mytree.MC_Weight/abs(mytree.MC_Weight) = ",mytree.MC_Weight/abs(mytree.MC_Weight)
-            print "MC_Weight *= mytree.MC_Weight/abs(mytree.MC_Weight) = ",MC_Weight
-
+        weight_sign = mytree.MC_Weight/abs(mytree.MC_Weight)
+            
         photonScaleFactor = get_photon_scale(mytree.photon_eT, mytree.photon_eta)
-        eventWeight = PUWeight*MC_Weight*photonScaleFactor
+
+        eventWeight = weight_sign * luminosity * normalization_weight * PUWeight * photonScaleFactor
         
         if debug:
+            print "luminosity = ",luminosity
+            print "normalization_weight  = ",normalization_weight
+            print "mytree.MC_Weight = ",mytree.MC_Weight
+            print "weight sign = ",weight_sign
+            print "PUWeight = ",PUWeight
             print "photonScaleFactor = ",photonScaleFactor
-            print "PUWeight*MC_Weight*photonScaleFactor = eventWeight = ",eventWeight
+            print "eventWeight = ",eventWeight
             print ""
 
     #retrieving from the tree
@@ -245,6 +239,7 @@ for jentry in xrange(nentries):
     nPhotons = mytree.nPhotonsOverSelection
     PhiEta = mytree.bestCoupleEta
 
+
     #phi angle folding
     coupleDeltaPhi = math.fabs(mytree.firstCandPhi - mytree.secondCandPhi)
     if coupleDeltaPhi > 3.14:
@@ -261,10 +256,8 @@ for jentry in xrange(nentries):
         if samplename == "Data":
             if Hmass < 120. or Hmass > 130.:
                 histo_map["h_InvMass_TwoTrk_Photon"].Fill(Hmass, eventWeight)
-                _HiggsMass[0] = Hmass
         else:
             histo_map["h_InvMass_TwoTrk_Photon"].Fill(Hmass, eventWeight)
-            _HiggsMass[0] = Hmass
 
     if select_all_but_one(""): #H inv mass plot without the phi mass cut    
         if samplename == "Data":
@@ -272,76 +265,83 @@ for jentry in xrange(nentries):
                 histo_map["h_InvMass_TwoTrk_Photon_NoPhiMassCut"].Fill(Hmass, eventWeight)
         else:
             histo_map["h_InvMass_TwoTrk_Photon_NoPhiMassCut"].Fill(Hmass, eventWeight)
-
+            
     if select_all_but_one("h_phi_InvMass_TwoTrk"):
         histo_map["h_phi_InvMass_TwoTrk"].Fill(PhiMass, eventWeight)
-        _PhiMass[0] = PhiMass
-
+        
     if select_all_but_one("h_couple_Iso_ch"):    
         histo_map["h_couple_Iso_ch"].Fill(PhiIsoCh, eventWeight)
-        _coupleIsoCh[0] = PhiIsoCh
-
+        
     if select_all_but_one("h_bestJetPt"):    
         histo_map["h_bestJetPt"].Fill(jetPt, eventWeight)
-        _bestJetPt[0] = jetPt        
 
     if select_all_but_one("h_bestCouplePt"):    
-       histo_map["h_bestCouplePt"].Fill(PhiPt, eventWeight)
-       _bestCouplePt[0] = PhiPt        
+        histo_map["h_bestCouplePt"].Fill(PhiPt, eventWeight)
 
     if select_all_but_one("h_firstKCand_pT"):    
-       histo_map["h_firstKCand_pT"].Fill(firstKpT, eventWeight)
-       _firstCandPt[0] = firstKpT        
+        histo_map["h_firstKCand_pT"].Fill(firstKpT, eventWeight)
 
     if select_all_but_one("h_secondKCand_pT"):    
-       histo_map["h_secondKCand_pT"].Fill(secondKpT, eventWeight)
-       _secondCandPt[0] = secondKpT           
+        histo_map["h_secondKCand_pT"].Fill(secondKpT, eventWeight)
 
     if select_all_but_one("h_photon_energy"):    
-       histo_map["h_photon_energy"].Fill(photonEt, eventWeight)
-       _photonEt[0] = photonEt        
-
+        histo_map["h_photon_energy"].Fill(photonEt, eventWeight)
+        
+        
     if select_all_but_one(""):    
-       histo_map["h_firstKCand_Eta"].Fill(firstKeta, eventWeight)    
+        histo_map["h_firstKCand_Eta"].Fill(firstKeta, eventWeight)    
     if select_all_but_one(""):    
-       histo_map["h_secondKCand_Eta"].Fill(secondKeta, eventWeight)   
+        histo_map["h_secondKCand_Eta"].Fill(secondKeta, eventWeight)   
     if select_all_but_one(""):    
-       histo_map["h_firstKCand_Phi"].Fill(firstKphi, eventWeight)    
+        histo_map["h_firstKCand_Phi"].Fill(firstKphi, eventWeight)    
     if select_all_but_one(""):    
-       histo_map["h_secondKCand_Phi"].Fill(secondKphi, eventWeight)   
+        histo_map["h_secondKCand_Phi"].Fill(secondKphi, eventWeight)   
     if select_all_but_one(""):    
-       histo_map["h_bestCoupleDeltaR"].Fill(deltaR, eventWeight)
+        histo_map["h_bestCoupleDeltaR"].Fill(deltaR, eventWeight)
     if select_all_but_one(""):    
-       histo_map["h_bestJetEta"].Fill(jetEta, eventWeight)
+        histo_map["h_bestJetEta"].Fill(jetEta, eventWeight)
     if select_all_but_one(""):    
-       histo_map["h_couple_Iso"].Fill(PhiIso, eventWeight)
+        histo_map["h_couple_Iso"].Fill(PhiIso, eventWeight)
     if select_all_but_one(""):    
-       histo_map["h_K1_Iso"].Fill(firstKiso, eventWeight)
+        histo_map["h_K1_Iso"].Fill(firstKiso, eventWeight)
     if select_all_but_one(""):    
-       histo_map["h_K1_Iso_ch"].Fill(firstKisoCh, eventWeight)
+        histo_map["h_K1_Iso_ch"].Fill(firstKisoCh, eventWeight)
     if select_all_but_one(""):    
-       histo_map["h_K2_Iso"].Fill(secondKiso, eventWeight)
+        histo_map["h_K2_Iso"].Fill(secondKiso, eventWeight)
     if select_all_but_one(""):    
-       histo_map["h_K2_Iso_ch"].Fill(secondKisoCh, eventWeight)
+        histo_map["h_K2_Iso_ch"].Fill(secondKisoCh, eventWeight)
     if select_all_but_one(""):    
-       histo_map["h_photon_eta"].Fill(photonEta, eventWeight)
+        histo_map["h_photon_eta"].Fill(photonEta, eventWeight)
     if select_all_but_one(""):    
-       histo_map["h_nJets_25"].Fill(nJets, eventWeight)
+        histo_map["h_nJets_25"].Fill(nJets, eventWeight)
     if select_all_but_one(""):    
-       histo_map["h_nMuons"].Fill(nMu, eventWeight)
+        histo_map["h_nMuons"].Fill(nMu, eventWeight)
     if select_all_but_one(""):    
-       histo_map["h_nElectrons"].Fill(nEle, eventWeight)
+        histo_map["h_nElectrons"].Fill(nEle, eventWeight)
     if select_all_but_one(""):    
-       histo_map["h_nPhotons"].Fill(nPhotons, eventWeight)
+        histo_map["h_nPhotons"].Fill(nPhotons, eventWeight)
     if select_all_but_one(""):    
-       histo_map["h_bestCoupleEta"].Fill(PhiEta, eventWeight)
-
-    tree_output.Fill()
-
+        histo_map["h_bestCoupleEta"].Fill(PhiEta, eventWeight)
+    
+    if select_all_but_one(""):    
+        _HiggsMass[0] = Hmass
+        print "mH = ",Hmass
+        _PhiMass[0] = PhiMass
+        print "mPhi = ",PhiMass
+        _coupleIsoCh[0] = PhiIsoCh
+        _bestJetPt[0] = jetPt        
+        _bestCouplePt[0] = PhiPt        
+        _firstCandPt[0] = firstKpT        
+        _secondCandPt[0] = secondKpT           
+        _photonEt[0] = photonEt        
+        _nEvents[0] = eventWeight
+        print "nE = ",_nEvents[0]
+        tree_output.Fill()
+        
     #counters
     if select_all_but_one(""):
         nEventsOverCuts += 1
-
+        
 histo_map["h_InvMass_TwoTrk_Photon"].GetXaxis().SetTitle("m_{K^{+}K^{-}#gamma} [GeV/c^2]")
 histo_map["h_InvMass_TwoTrk_Photon"].SetTitle("Tracks+Photon invariant mass (Cut on phi inv. mass)")
 
@@ -421,7 +421,7 @@ if samplename == "Signal":
 print "entries in histos= ", histo_map["h_phi_InvMass_TwoTrk"].GetEntries()
 print ""
 
-#tree_output.Write()
+tree_output.Write()
 
 for histo in histo_map:
     histo_map[histo].Write(histo)
