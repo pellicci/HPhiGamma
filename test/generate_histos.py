@@ -4,8 +4,8 @@ import math
 import numpy as np
 
 pdf_flag=False
-debug=False
-doSelection=False
+debug=True
+doSelection=True
 
 p = argparse.ArgumentParser(description='Select rootfile to plot')
 p.add_argument('rootfile_name', help='Type rootfile name')
@@ -101,16 +101,16 @@ _photonEt = np.zeros(1, dtype=float)
 _nEvents = np.zeros(1, dtype=float)
 
 
-tree_output = ROOT.TTree('tree_output','tree with branches')
-tree_output.Branch('Higgs mass',_HiggsMass,'HiggsMass/D')
-tree_output.Branch('Phi mass',_PhiMass,'PhiMass/D')
-tree_output.Branch('Phi iso Ch',_coupleIsoCh,'coupleIsoCh/D')
-tree_output.Branch('jet pT',_bestJetPt,'bestJetPt/D')
-tree_output.Branch('Phi pT',_bestCouplePt,'bestCouplePt/D')
-tree_output.Branch('1st K pT',_firstCandPt,'firstCandt/D')
-tree_output.Branch('2nd K pT',_secondCandPt,'secondCandt/D')
-tree_output.Branch('photon eT',_photonEt,'photonEt/D')
-tree_output.Branch('event weight',_nEvents,'nEvents/D')
+tree_output = ROOT.TTree('tree_output','tree_output')
+tree_output.Branch('_HiggsMass',_HiggsMass,'_HiggsMass/D')
+tree_output.Branch('_Phimass',_PhiMass,'_PhiMass/D')
+tree_output.Branch('_coupleIsoCh',_coupleIsoCh,'_coupleIsoCh/D')
+tree_output.Branch('_bestJetPt',_bestJetPt,'_bestJetPt/D')
+tree_output.Branch('_bestCouplePt',_bestCouplePt,'_bestCouplePt/D')
+tree_output.Branch('_firstCandPt',_firstCandPt,'_firstCandt/D')
+tree_output.Branch('_secondCandPt',_secondCandPt,'_secondCandt/D')
+tree_output.Branch('_photonEt',_photonEt,'_photonEt/D')
+tree_output.Branch('_nEvents',_nEvents,'_nEvents/D')
 
 
 #CUTS
@@ -258,7 +258,7 @@ for jentry in xrange(nentries):
                 histo_map["h_InvMass_TwoTrk_Photon"].Fill(Hmass, eventWeight)
         else:
             histo_map["h_InvMass_TwoTrk_Photon"].Fill(Hmass, eventWeight)
-
+ 
     if select_all_but_one(""): #H inv mass plot without the phi mass cut    
         if samplename == "Data":
             if Hmass < 120. or Hmass > 130.:
@@ -325,9 +325,7 @@ for jentry in xrange(nentries):
     
     if select_all_but_one(""):    
         _HiggsMass[0] = Hmass
-        print "mH = ",Hmass
         _PhiMass[0] = PhiMass
-        print "mPhi = ",PhiMass
         _coupleIsoCh[0] = PhiIsoCh
         _bestJetPt[0] = jetPt        
         _bestCouplePt[0] = PhiPt        
@@ -335,7 +333,6 @@ for jentry in xrange(nentries):
         _secondCandPt[0] = secondKpT           
         _photonEt[0] = photonEt        
         _nEvents[0] = eventWeight
-        print "nE = ",_nEvents[0]
         tree_output.Fill()
         
     #counters
@@ -422,6 +419,7 @@ print "entries in histos= ", histo_map["h_phi_InvMass_TwoTrk"].GetEntries()
 print ""
 
 tree_output.Write()
+#tree_output.Scan()
 
 for histo in histo_map:
     histo_map[histo].Write(histo)
