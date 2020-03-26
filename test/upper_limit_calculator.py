@@ -85,14 +85,16 @@ n = int(totalEvents)
 summation = Decimal(0.)
 delta_s = 0.01
 
-'''
-#test values
-b = 20
-n = 22
-s_zero = 3.
-'''
-print "alpha = ",alpha,"  b = ",b,"  n = ",n, "  s0 starting = ",s_zero 
 
+#test values
+'''
+b = 130
+Signal_events = 0.2
+n = int(b + Signal_events)
+s_zero = 100*Signal_events
+'''
+
+print "alpha = ",alpha,"  b = ",b,"  n = ",n, "  s0 starting = ",s_zero 
 
 #RECURSIVE FUNCTION FOR UL CALCULATION--------------------------------------
 def upper_limit(s):
@@ -100,6 +102,7 @@ def upper_limit(s):
    
     if s <= 0:
         if debug:
+            print "NO values fallen in range!!!"     
             print "s0 = ",s + delta_s
             return s + delta_s #returns the former value of s
 
@@ -124,10 +127,12 @@ def upper_limit(s):
             print "summation = ",summation
             print "---------------------------------------"
             
-    if summation <= alpha + 0.001 and summation >= alpha - 0.001:  
-        print "*******************************************"
-        print "summation fallen in range = ",summation, "for s0 = ",s
-        print "*******************************************"
+    if summation <= alpha + alpha/100 and summation >= alpha - alpha/100:  
+        print ""
+        print "Done!"
+        print "***************************************************************"
+        print "summation fallen in range = ",round(summation,5), "for s0 = ",s
+        print "***************************************************************"
         return s
 
     else:
