@@ -7,7 +7,7 @@ from decimal import Decimal
 
 sys.setrecursionlimit(1000000)
 
-debug = True
+debug = False
 
 #INPUT SETTINGS-------------------------------------------------------------
 fInput1 = ROOT.TFile("histos/latest_production/MCbackgroundHistogram.root")
@@ -21,7 +21,6 @@ BKG_entries = BKG_tree.GetEntriesFast()
 Signal_entries = Signal_tree.GetEntriesFast()
 print "BKG samples have ", BKG_entries, " entries"
 print "Signal sample has ", Signal_entries, " entries"
-
 
 
 #FACTORIAL DEFINITION------------------------------------------
@@ -98,8 +97,7 @@ print "alpha = ",alpha,"  b = ",b,"  n = ",n, "  s0 starting = ",s_zero
 
 #RECURSIVE FUNCTION FOR UL CALCULATION--------------------------------------
 def upper_limit(s):
-   
-   
+      
     if s <= 0:
         if debug:
             print "NO values fallen in range!!!"     
@@ -132,6 +130,7 @@ def upper_limit(s):
         print "Done!"
         print "***************************************************************"
         print "summation fallen in range = ",round(summation,5), "for s0 = ",s
+        print "B.R.UL = ",s/n
         print "***************************************************************"
         return s
 

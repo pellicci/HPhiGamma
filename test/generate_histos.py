@@ -4,8 +4,10 @@ import math
 import numpy as np
 
 pdf_flag=False
-debug=True
+debug=False
 doSelection=True
+looseSelection = True
+tightSelection = False
 
 p = argparse.ArgumentParser(description='Select rootfile to plot')
 p.add_argument('rootfile_name', help='Type rootfile name')
@@ -88,6 +90,7 @@ histo_map[list_histos[25]] = ROOT.TH1F(list_histos[25],"n. of #gamma", 6, -0.5,5
 fOutput = ROOT.TFile("histos/latest_production/histos_"+samplename+".root","RECREATE")
 fOutput.cd()
 
+
 #CREATE OUTPUT ROOTFILE
 #Variables to go in the tree
 _HiggsMass = np.zeros(1, dtype=float)
@@ -112,13 +115,51 @@ tree_output.Branch('_secondCandPt',_secondCandPt,'_secondCandt/D')
 tree_output.Branch('_photonEt',_photonEt,'_photonEt/D')
 tree_output.Branch('_nEvents',_nEvents,'_nEvents/D')
 
+if samplename == "Data":
+    print "Data tree output set!"  #FIXME
+
 
 #CUTS
-phi_min_invMass = 1.01
-phi_max_invMass = 1.03
-higgs_min_invMass = 100.
-higgs_max_invMass = 150.
+if looseSelection:
+    #Higgs mass
+    higgs_min_invMass = 100.
+    higgs_max_invMass = 150.
+    #Phi mass
+    phi_min_invMass = 1.015
+    phi_max_invMass = 1.027
+    #Phi iso
+    iso_coupleCh_max = 0.1
+    #Phi pT
+    phi_pT_min = 42. 
+    #K1 pT
+    firstCand_pT_min = 27.
+    #K2 pT
+    secondCand_pT_min = 20.
+    #photon eT
+    photon_eT_min = 30.
+    #best jet pT
+    bestJet_pT_max = 120. 
 
+if tightSelection:
+    #Higgs mass
+    higgs_min_invMass = 100.
+    higgs_max_invMass = 150.
+    #Phi mass
+    phi_min_invMass = 1.01
+    phi_max_invMass = 1.03
+    #Phi iso
+    iso_coupleCh_max = 0.15
+    #Phi pT
+    phi_pT_min = 45. 
+    #K1 pT
+    firstCand_pT_min = 27.
+    #K2 pT
+    secondCand_pT_min = 20.
+    #photon eT
+    photon_eT_min = 55.
+    #best jet pT
+    bestJet_pT_max = 100. 
+    
 #counters
 nEventsOverCuts = 0
 
@@ -132,12 +173,12 @@ def select_all_but_one(h_string):
     selection_bools = dict()
     selection_bools["h_phi_InvMass_TwoTrk"] = mytree.Phimass >= phi_min_invMass and mytree.Phimass <= phi_max_invMass 
     selection_bools["h_InvMass_TwoTrk_Photon"] = mytree.Hmass_From2K_Photon >= higgs_min_invMass and mytree.Hmass_From2K_Photon <= higgs_max_invMass 
-    selection_bools["h_couple_Iso_ch"] = mytree.iso_couple_ch <= 0.3
-    selection_bools["h_bestJetPt"] = mytree.bestJet_pT <= 150.
-    selection_bools["h_bestCouplePt"] = mytree.bestCouplePt >= 40.
-    selection_bools["h_firstKCand_pT"] = mytree.firstCandPt >= 25.
-    selection_bools["h_secondKCand_pT"] = mytree.secondCandPt >= 15.
-    selection_bools["h_photon_energy"] = mytree.photon_eT >= 50.
+    selection_bools["h_couple_Iso_ch"] = mytree.iso_couple_ch <= iso_coupleCh_max
+    selection_bools["h_bestCouplePt"] = mytree.bestCouplePt >= phi_pT_min
+    selection_bools["h_firstKCand_pT"] = mytree.firstCandPt >= firstCand_pT_min
+    selection_bools["h_secondKCand_pT"] = mytree.secondCandPt >= secondCand_pT_min
+    selection_bools["h_photon_energy"] = mytree.photon_eT >= photon_eT_min
+    selection_bools["h_bestJetPt"] = mytree.bestJet_pT <= bestJet_pT_max
 
     result = True
 
@@ -217,9 +258,9 @@ for jentry in xrange(nentries):
     Hmass = mytree.Hmass_From2K_Photon
     PhiMass = mytree.Phimass
     PhiIsoCh = mytree.iso_couple_ch
-    jetPt = mytree.bestJet_pT        
-    PhiPt = mytree.bestCouplePt        
-    firstKpT = mytree.firstCandPt        
+    jetPt = mytree.bestJet_pT      
+    PhiPt = mytree.bestCouplePt      
+    firstKpT = mytree.firstCandPt       
     secondKpT = mytree.secondCandPt        
     photonEt = mytree.photon_eT        
     firstKeta = mytree.firstCandEta
@@ -286,6 +327,7 @@ for jentry in xrange(nentries):
 
     if select_all_but_one("h_photon_energy"):    
         histo_map["h_photon_energy"].Fill(photonEt, eventWeight)
+
         
         
     if select_all_but_one(""):    
@@ -323,6 +365,7 @@ for jentry in xrange(nentries):
     if select_all_but_one(""):    
         histo_map["h_bestCoupleEta"].Fill(PhiEta, eventWeight)
     
+
     if select_all_but_one(""):    
         _HiggsMass[0] = Hmass
         _PhiMass[0] = PhiMass
@@ -334,7 +377,10 @@ for jentry in xrange(nentries):
         _photonEt[0] = photonEt        
         _nEvents[0] = eventWeight
         tree_output.Fill()
-        
+        if samplename == "Data":
+            print "event n.",jentry  #FIXME
+            print "tree filled"
+
     #counters
     if select_all_but_one(""):
         nEventsOverCuts += 1
