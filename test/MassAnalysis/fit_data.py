@@ -1,6 +1,6 @@
 import ROOT
 
-mass = ROOT.RooRealVar("_HiggsMass","_HiggsMass",100.,150.,"GeV/c^2")
+mass = ROOT.RooRealVar("mass_KKg","mass_KKg",100.,150.,"GeV/c^2")
 mass.setRange("LowSideband",100.,120.)
 mass.setRange("HighSideband",130.,150.)
 
@@ -21,7 +21,7 @@ nEntries = dataset.numEntries()
 
 bkgPDF.fitTo(dataset,ROOT.RooFit.Range("LowSideband,HighSideband"))
 
-data_blinded = dataset.reduce("_HiggsMass < 120. || _HiggsMass > 130.")
+data_blinded = dataset.reduce("mass_KKg < 120. || mass_KKg > 130.")
 xframe = mass.frame(30)
 data_blinded.plotOn(xframe)
 bkgPDF.plotOn(xframe,ROOT.RooFit.Range("LowSideband,HighSideband"))

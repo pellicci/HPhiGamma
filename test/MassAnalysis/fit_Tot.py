@@ -17,57 +17,47 @@ fInput3 = ROOT.TFile(args.dir_path + "histos_Signal.root")
 Signal_tree = fInput3.Get("tree_output")
 Signal_entries = Signal_tree.GetEntriesFast()
 
-#EVENTS COUNTING------------------------------------------------
-Signal_events = 0.
-
-#SIGNAL events loop
-for jentry in xrange(Signal_entries):
-    ientry = Signal_tree.LoadTree( jentry )
-    if ientry < 0:
-        break
-    nb = Signal_tree.GetEntry(jentry )
-    if nb <= 0:
-        continue
-
-    Signal_events += Signal_tree._nEvents #s   
-
 #GET WORKSPACES
 fInput1.cd()
 workspaceSignal = fInput1.Get("myworkspace")
 fInput2.cd()
 workspaceData = fInput2.Get("myworkspace")
 
+workspaceSignal.Print()
+workspaceData.Print()
+
 #RETRIEVE PDFs
 sigPDF = workspaceSignal.pdf("signalPDF")
 backgroundPDF = workspaceData.pdf("bkgPDF")
 
 #N. OF EVENTS
-Nsig = ROOT.RooRealVar("Signal_events","N of signal events",Signal_events) 
-Nbkg = ROOT.RooRealVar("Bkg events", "N of bkg events",789)
+signalWeight = 0.692480078053
+Ndata = 789
+Nsig = ROOT.RooRealVar("Signal_events","N of signal events",signalWeight,signalWeight-0.5*signalWeight,signalWeight+0.5*signalWeight) 
+Nbkg = ROOT.RooRealVar("Bkg events", "N of bkg events",Ndata,Ndata-0.5*Ndata,Ndata+0.5*Ndata)
 
 #ARGLISTs and VARs
 argListPDFs = ROOT.RooArgList(sigPDF,backgroundPDF)
 argListN = ROOT.RooArgList(Nsig,Nbkg)
-mass = ROOT.RooRealVar("mass","The invariant mass",125.,100.,150.,"GeV/c^2")
+mass_KKg = ROOT.RooRealVar("mass_KKg","The invariant mass_KKg",125.,100.,150.,"GeV/c^2")
 
 #ADD PDFs
 totPDF = ROOT.RooAddPdf("totPDF","The total PDF",argListPDFs,argListN)
 print "PDFs added!"
 
 #GENERATE DATA
-data = totPDF.generate(ROOT.RooArgSet(mass),1000)
-totPDF.fitTo(data)
-print "Data fitted!"
+dataset = totPDF.generate(ROOT.RooArgSet(mass_KKg),1000)
+#totPDF.fitTo(dataset)
 
 #PLOT
-massplot = mass.frame()
-print "mass plot created!"
-totPDF.plotOn(massplot)
+mass_KKgplot = mass_KKg.frame()
+print "mass_KKg plot created!"
+totPDF.plotOn(mass_KKgplot)
 print "totpdf plotted!"
-data.plotOn(massplot)
-print "data plotted!"
+dataset.plotOn(mass_KKgplot)
+print "dataset plotted!"
 
 canvas = ROOT.TCanvas()
 canvas.cd()
-massplot.Draw()
+mass_KKgplot.Draw()
 canvas.SaveAs("PDFtot.pdf")

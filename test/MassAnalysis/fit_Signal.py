@@ -1,6 +1,6 @@
 import ROOT
 
-mass = ROOT.RooRealVar("_HiggsMass","_HiggsMass",125.,100.,150.,"GeV/c^2")
+mass = ROOT.RooRealVar("mass_KKg","mass_KKg",125.,100.,150.,"GeV/c^2")
 mean = ROOT.RooRealVar("mean","mean",125.,100.,150.)
 width = ROOT.RooRealVar("width","width",2.5,0.1,5.)
 sigma = ROOT.RooRealVar("sigma","sigma",2.,0.1,5.)

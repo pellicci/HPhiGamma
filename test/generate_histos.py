@@ -93,27 +93,27 @@ fOutput.cd()
 
 #CREATE OUTPUT ROOTFILE
 #Variables to go in the tree
-_HiggsMass = np.zeros(1, dtype=float)
-_PhiMass = np.zeros(1, dtype=float)
+mass_KKg = np.zeros(1, dtype=float)
+mass_KK = np.zeros(1, dtype=float)
 _coupleIsoCh = np.zeros(1, dtype=float)
 _bestJetPt = np.zeros(1, dtype=float)
 _bestCouplePt = np.zeros(1, dtype=float)
 _firstCandPt = np.zeros(1, dtype=float)
 _secondCandPt = np.zeros(1, dtype=float)
 _photonEt = np.zeros(1, dtype=float)
-_nEvents = np.zeros(1, dtype=float)
+_eventWeight = np.zeros(1, dtype=float)
 
 
 tree_output = ROOT.TTree('tree_output','tree_output')
-tree_output.Branch('_HiggsMass',_HiggsMass,'_HiggsMass/D')
-tree_output.Branch('_Phimass',_PhiMass,'_PhiMass/D')
+tree_output.Branch('mass_KKg',mass_KKg,'mass_KKg/D')
+tree_output.Branch('mass_KK',mass_KK,'mass_KK/D')
 tree_output.Branch('_coupleIsoCh',_coupleIsoCh,'_coupleIsoCh/D')
 tree_output.Branch('_bestJetPt',_bestJetPt,'_bestJetPt/D')
 tree_output.Branch('_bestCouplePt',_bestCouplePt,'_bestCouplePt/D')
 tree_output.Branch('_firstCandPt',_firstCandPt,'_firstCandt/D')
 tree_output.Branch('_secondCandPt',_secondCandPt,'_secondCandt/D')
 tree_output.Branch('_photonEt',_photonEt,'_photonEt/D')
-tree_output.Branch('_nEvents',_nEvents,'_nEvents/D')
+tree_output.Branch('_eventWeight',_eventWeight,'_eventWeight/D')
 
 if samplename == "Data":
     print "Data tree output set!"  #FIXME
@@ -367,20 +367,21 @@ for jentry in xrange(nentries):
     
 
     if select_all_but_one(""):    
-        _HiggsMass[0] = Hmass
-        _PhiMass[0] = PhiMass
+        mass_KKg[0] = Hmass
+        mass_KK[0] = PhiMass
         _coupleIsoCh[0] = PhiIsoCh
         _bestJetPt[0] = jetPt        
         _bestCouplePt[0] = PhiPt        
         _firstCandPt[0] = firstKpT        
         _secondCandPt[0] = secondKpT           
         _photonEt[0] = photonEt        
-        _nEvents[0] = eventWeight
+        _eventWeight[0] = eventWeight
         tree_output.Fill()
+        
         if samplename == "Data":
             print "event n.",jentry  #FIXME
             print "tree filled"
-
+        
     #counters
     if select_all_but_one(""):
         nEventsOverCuts += 1
