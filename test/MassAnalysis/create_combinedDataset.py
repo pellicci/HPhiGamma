@@ -34,13 +34,13 @@ backgroundPDF = workspaceData.pdf("bkgPDF")
 signal_amplifier = 1.
 signalWeight = 0.692480078053*signal_amplifier
 Ndata = 789
-Nsig = ROOT.RooRealVar("Signal_events","N of signal events",signalWeight,signalWeight-0.5*signalWeight,signalWeight+0.5*signalWeight) 
+Nsig = ROOT.RooRealVar("Signal_events","N of signal events",signalWeight,-0.1,signalWeight+0.5*signalWeight) 
 Nbkg = ROOT.RooRealVar("Bkg events", "N of bkg events",Ndata,Ndata-0.5*Ndata,Ndata+0.5*Ndata)
 
 #ARGLISTs and VARs
 argListPDFs = ROOT.RooArgList(sigPDF,backgroundPDF)
 argListN = ROOT.RooArgList(Nsig,Nbkg)
-mass_KKg = ROOT.RooRealVar("mass_KKg","The invariant mass_KKg",125.,100.,150.,"GeV/c^2")
+mass_KKg = ROOT.RooRealVar("mass_KKg","The invariant mass_KKg",125.,100.,160.,"GeV/c^2")
 
 #ADD PDFs
 totPDF = ROOT.RooAddPdf("totPDF","The total PDF",argListPDFs,argListN)

@@ -1,5 +1,6 @@
+from CRABAPI.RawCommand import crabCommand
 from WMCore.Configuration import Configuration
-from CRABClient.UserUtilities import config, getUsernameFromSiteDB
+from CRABClient.UserUtilities import config
 config = Configuration()
 
 config.section_('General')
@@ -17,7 +18,6 @@ config.JobType.pyCfgParams = ['runningOnData=False'] # Configure 2016 data jobs 
 config.section_('Data')
 config.Data.splitting = 'FileBased'
 config.Data.unitsPerJob = 5
-config.Data.outLFNDirBase = '/store/user/%s/' % (getUsernameFromSiteDB())
 config.Data.publication = False
 
 config.section_('Site')

@@ -1,8 +1,8 @@
 import ROOT
 
-mass = ROOT.RooRealVar("mass_KKg","mass_KKg",100.,150.,"GeV/c^2")
+mass = ROOT.RooRealVar("mass_KKg","mass_KKg",100.,170.,"GeV/c^2")
 mass.setRange("LowSideband",100.,120.)
-mass.setRange("HighSideband",130.,150.)
+mass.setRange("HighSideband",130.,170.)
 
 a_bkg = ROOT.RooRealVar("a_bkg","a_bkg",0.1,-10.,10.)
 b_bkg = ROOT.RooRealVar("b_bkg","b_bkg",0.,-10.,10.)
@@ -22,12 +22,13 @@ nEntries = dataset.numEntries()
 bkgPDF.fitTo(dataset,ROOT.RooFit.Range("LowSideband,HighSideband"))
 
 data_blinded = dataset.reduce("mass_KKg < 120. || mass_KKg > 130.")
-xframe = mass.frame(30)
+xframe = mass.frame(50)
 data_blinded.plotOn(xframe)
 bkgPDF.plotOn(xframe,ROOT.RooFit.Range("LowSideband,HighSideband"))
 
 c1 = ROOT.TCanvas()
 c1.cd()
+c1.SetTitle("")
 xframe.Draw()
 c1.SaveAs("fitdata.pdf")
 

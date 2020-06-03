@@ -1,7 +1,7 @@
 import ROOT
 
-mass = ROOT.RooRealVar("mass_KKg","mass_KKg",125.,100.,150.,"GeV/c^2")
-mean = ROOT.RooRealVar("mean","mean",125.,100.,150.)
+mass = ROOT.RooRealVar("mass_KKg","mass_KKg",125.,100.,170.,"GeV/c^2")
+mean = ROOT.RooRealVar("mean","mean",125.,100.,170.)
 width = ROOT.RooRealVar("width","width",2.5,0.1,5.)
 sigma = ROOT.RooRealVar("sigma","sigma",2.,0.1,5.)
 alpha = ROOT.RooRealVar("alpha","alpha",1.,0.1,10.)
@@ -17,12 +17,13 @@ dataset = ROOT.RooDataSet("dataset","dataset",ROOT.RooArgSet(mass),ROOT.RooFit.I
 
 signalPDF.fitTo(dataset)
 
-xframe = mass.frame(30)
+xframe = mass.frame(50)
 dataset.plotOn(xframe)
 signalPDF.plotOn(xframe)
 
 c1 = ROOT.TCanvas()
 c1.cd()
+c1.SetTitle("")
 xframe.Draw()
 c1.SaveAs("fitsignal.pdf")
 

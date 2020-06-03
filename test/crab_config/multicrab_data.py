@@ -1,5 +1,6 @@
+from CRABAPI.RawCommand import crabCommand
 from WMCore.Configuration import Configuration
-from CRABClient.UserUtilities import config, getUsernameFromSiteDB
+from CRABClient.UserUtilities import config
 config = Configuration()
 
 config.section_('General')
@@ -16,7 +17,6 @@ config.JobType.pyCfgParams = ['runningOnData=True']
 config.section_('Data')
 config.Data.inputDBS = 'global'
 config.Data.splitting = 'Automatic'
-config.Data.outLFNDirBase = '/store/user/%s/' % (getUsernameFromSiteDB())
 config.Data.publication = False
 config.Data.lumiMask = 'json/Cert_314472-325175_13TeV_PromptReco_Collisions18_JSON.txt'
 
@@ -39,11 +39,11 @@ if __name__ == '__main__':
             print "Failed submitting task: %s" % (cle)
 
 
-#    config.General.requestName = '2018_HPhiGammaAnalysis_Tau_B'
- #   config.Data.inputDataset = '/Tau/Run2018B-17Sep2018-v1/MINIAOD'
-  #  p = Process(target=submit, args=(config,))
-   # p.start()
-   # p.join()
+    config.General.requestName = '2018_HPhiGammaAnalysis_Tau_B'
+    config.Data.inputDataset = '/Tau/Run2018B-17Sep2018-v1/MINIAOD'
+    p = Process(target=submit, args=(config,))
+    p.start()
+    p.join()
         
     config.General.requestName = '2018_HPhiGammaAnalysis_Tau_C'
     config.Data.inputDataset = '/Tau/Run2018C-17Sep2018-v1/MINIAOD'
@@ -57,10 +57,10 @@ if __name__ == '__main__':
     #p.start()
     #p.join()
         
-    #config.Data.splitting = 'FileBased'
-    #config.Data.unitsPerJob = 50
-    #config.General.requestName = '2018_HPhiGammaAnalysis_Tau_D'
-    #config.Data.inputDataset = '/Tau/Run2018D-PromptReco-v2/MINIAOD'
-    #p = Process(target=submit, args=(config,))
-    #p.start()
-    #p.join()
+    config.Data.splitting = 'FileBased'
+    config.Data.unitsPerJob = 50
+    config.General.requestName = '2018_HPhiGammaAnalysis_Tau_D'
+    config.Data.inputDataset = '/Tau/Run2018D-PromptReco-v2/MINIAOD'
+    p = Process(target=submit, args=(config,))
+    p.start()
+    p.join()

@@ -425,7 +425,7 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
 
     //std::cout << "photon et " << corr_et << std::endl;
 
-    if(corr_et < 20. || fabs(photon->eta()) > 2.5) continue;
+    if(corr_et < 35. || fabs(photon->eta()) > 2.5) continue;
     if(photon->hasPixelSeed()) continue;   //electron veto
 
     //std::cout << "photon" << photon->photonID("mvaPhoID-RunIIFall17-v1-wp90") << " " << photon->photonID("mvaPhoID-RunIIFall17-v1p1-wp90") << std::endl;
@@ -656,7 +656,7 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
 	     
 	      //PHI INV MASS - FILTER
 	      _Phimass=(couple_p4).M(); //calculate inv mass of the Phi candidate	
-	      if(_Phimass < 1. || _Phimass > 1.05) continue; //filter on phi invariant mass	      
+	      if(_Phimass < 1. || _Phimass > 1.04) continue; //filter on phi invariant mass	      
 	      
 	      if(couple_p4.pt() < 30.) continue;
 	      //PT MAX OF THE JET - FILTER

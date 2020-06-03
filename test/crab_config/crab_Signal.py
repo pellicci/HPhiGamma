@@ -1,4 +1,5 @@
-from CRABClient.UserUtilities import config, getUsernameFromSiteDB
+from CRABAPI.RawCommand import crabCommand
+from CRABClient.UserUtilities import config
 config = config()
 
 config.section_('General')
@@ -20,7 +21,6 @@ config.Data.inputDataset = '/HPhiGamma_GENSIM_1026/pellicci-HPhiGamma_MINIAOD_10
 config.Data.inputDBS = 'phys03'
 config.Data.splitting = 'FileBased'
 config.Data.unitsPerJob = 15
-config.Data.outLFNDirBase = '/store/user/%s/' % (getUsernameFromSiteDB())
 config.Data.publication = False
 
 config.section_('Site')
