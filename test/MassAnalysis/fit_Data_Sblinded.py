@@ -36,8 +36,8 @@ bkgPDF = ROOT.RooChebychev("bkgPDF","bkgPDF",mass,ROOT.RooArgList(a_bkg,b_bkg,c_
 #RIPARAMETRIZATION
 cross_sig = ROOT.RooRealVar("cross_sig","The signal cross section",52.36)#pb (gluon fusion + vector boson fusion xsec)
 lumi = ROOT.RooRealVar("lumi","The luminosity",39540)#pb^-1
-eff = ROOT.RooRealVar("eff","efficiency",0,06172705) # = 1707/27654
-B_R_ = ROOT.RooRealVar("B_R_","branching_ratio",10**(-5),10**(-7),10**(-3))
+eff = ROOT.RooRealVar("eff","efficiency",0.6172705) # = 1707/27654
+B_R_ = ROOT.RooRealVar("B_R_","branching_ratio",10**(-5),-10**(-3),10**(-3))
 Nsig = ROOT.RooFormulaVar("Nsig","@0*@1*@2*@3",ROOT.RooArgList(cross_sig,lumi,eff,B_R_))
 
 #SIGNAL PDF
@@ -69,7 +69,7 @@ c1.SaveAs("fitdataSblinded.pdf")
 #create Workspace
 print "**************************************n. events = ",nEntries
 workspace = ROOT.RooWorkspace("myworkspace")
-getattr(workspace,'import')(bkgPDF)
+getattr(workspace,'import')(totPDF)
 
 fOut = ROOT.TFile("workspaces/ws_data.root","RECREATE")
 fOut.cd()
