@@ -131,7 +131,7 @@ if tightSelection:
     phi_min_invMass = 1.015 #1.015
     phi_max_invMass = 1.027 #1.027
     #Phi iso
-    iso_coupleCh_max = 0.2  #0.1
+    iso_coupleCh_max = 0.2  #0.2
     #Phi pT
     phi_pT_min = 42. #42. 
     #K1 pT
@@ -499,9 +499,9 @@ histo_map["h_efficiency"].SetMarkerSize(1.4)
 histo_map["h_efficiency"].GetXaxis().SetRangeUser(1.,7.1)
 histo_map["h_efficiency"].GetYaxis().SetRangeUser(0.,30.)
 #histo_map["h_efficiency"].SetMaximum(max(histo_map["h_efficiency"].GetHistogram().GetMaximum(),30.))
-#histo_map["h_efficiency"].Draw("HIST TEXT0")
+histo_map["h_efficiency"].Draw("HIST TEXT0")
 
-#c11.SaveAs("plots/h_efficiency.pdf")
+c11.SaveAs("plots/h_efficiency.pdf")
 
 
 #HISTOS WRITING

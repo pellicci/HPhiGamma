@@ -62,7 +62,7 @@ poimin = poi_list.find("B_R_").getMin()
 poimax = poi_list.find("B_R_").getMax()
 
 min_scan = 10**(-10)
-max_scan = 10**(-4)
+max_scan = 10**(-3)
 print "Doing a fixed scan  in interval : ",min_scan, " , ", max_scan
 calc.SetFixedScan(npoints,min_scan,max_scan)
 #calc.SetAutoScan()
