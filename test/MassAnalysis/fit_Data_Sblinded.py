@@ -23,7 +23,7 @@ signalWeight = mytree.nEvents_Signal
 print "Ndata = ",Ndata
 print "Nsig = ",signalWeight
 
-Nbkg = ROOT.RooRealVar("Nbkg", "N of bkg events",Ndata,Ndata-0.5*Ndata,Ndata+0.5*Ndata)
+Nbkg = ROOT.RooRealVar("Nbkg", "N of bkg events",Ndata, 0.1, 5000)
 mass = ROOT.RooRealVar("mass_KKg","mass_KKg",100.,170.,"GeV")
 
 a_bkg = ROOT.RooRealVar("a_bkg","a_bkg",0.1,-10.,10.)
@@ -34,11 +34,11 @@ c_bkg = ROOT.RooRealVar("c_bkg","c_bkg",0.,-10.,10.)
 bkgPDF = ROOT.RooChebychev("bkgPDF","bkgPDF",mass,ROOT.RooArgList(a_bkg,b_bkg,c_bkg))
 
 #RIPARAMETRIZATION
-cross_sig = ROOT.RooRealVar("cross_sig","The signal cross section",52.36)#52.36pb (gluon fusion + vector boson fusion xsec)
+cross_sig = ROOT.RooRealVar("cross_sig","Th e signal cross section",52.36)#52.36pb (gluon fusion + vector boson fusion xsec)
 lumi = ROOT.RooRealVar("lumi","The luminosity",39540)#pb^-1
 eff = ROOT.RooRealVar("eff","efficiency",0.061727) # = 1707/27654=0.061727
 B_R_phiKK = ROOT.RooRealVar("B_R_phiKK","b_r_phi_KK",0.489) # = BR(phi -> K+K-)
-B_R_ = ROOT.RooRealVar("B_R_","branching_ratio",10**(-5),-10**(-2),10**(-2))
+B_R_ = ROOT.RooRealVar("B_R_","branching_ratio",10**(-5),-1,10**(-2))
 Nsig = ROOT.RooFormulaVar("Nsig","@0*@1*@2*@3*@4",ROOT.RooArgList(cross_sig,lumi,eff,B_R_phiKK,B_R_))
 
 #SIGNAL PDF
@@ -57,7 +57,7 @@ print "pdf added"
 totPDF.fitTo(dataset)
 
 #PLOT
-xframe = mass.frame(50)
+xframe = mass.frame(70)
 xframe.SetTitle("#sqrt{s} = 13 TeV       lumi = 39.54/fb")
 xframe.GetXaxis().SetTitle("m_{K^{+}K^{-}#gamma} [GeV]")
 dataset.plotOn(xframe)

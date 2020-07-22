@@ -4,7 +4,7 @@ import copy
 
 debug = False
 #debug = True
-pad2Flag = True
+pad2Flag = False
 
 #Supress the opening of many Canvas's
 ROOT.gROOT.SetBatch(True)   
@@ -127,7 +127,7 @@ for filename in list_inputfiles:
     #fill legend
     #if histo_name == "nMuons": #Add the legend only once (nMuons is just a random variable)
 
-    if histo.Integral() > float(signal_magnify)/100. or sample_name == "Signal": #Only plot in the legend those samples which have some contribution
+    if histo.Integral() > float(signal_magnify)/20. or sample_name == "Signal": #Only plot in the legend those samples which have some contribution
         if not sample_name == "Data" and not sample_name == "Signal":
             leg1.AddEntry(histo_container[-1],sample_name,"f")
         elif sample_name == "Data":
@@ -184,7 +184,7 @@ for histo_name in list_histos:
         else:
             yMax_mKKg = 400.
 
-        hstack[histo_name].GetXaxis().SetTitle("m_{K^{+}K^{-}#gamma} [GeV/c^2]")
+        hstack[histo_name].GetXaxis().SetTitle("m_{K^{+}K^{-}#gamma} [GeV]")
         hstack[histo_name].GetXaxis().SetRangeUser(xMin_mKKg,xMax_mKKg)
         hstack[histo_name].SetMaximum(max(hstack[histo_name].GetHistogram().GetMaximum(),yMax_mKKg))
 
@@ -198,6 +198,7 @@ for histo_name in list_histos:
         hstack[histo_name].GetXaxis().SetRangeUser(100.,170.)
     
     if histo_name == "h_phi_InvMass_TwoTrk" :
+        hstack[histo_name].GetXaxis().SetTitle("m_{K^{+}K^{-}} [GeV]")
         xMin_mKK = 1.
         xMax_mKK = 1.04
         yMin_mKK = 0.
@@ -221,7 +222,7 @@ for histo_name in list_histos:
         hstack[histo_name].SetMaximum(max(hstack[histo_name].GetHistogram().GetMaximum(),yMax_pTK1))
 
     if histo_name == "h_secondKCand_pT" :
-        hstack[histo_name].GetXaxis().SetTitle("p_{T}^{K_{2}} [GeV]")
+        hstack[histo_name].GetXaxis().SetTitle("p_{T}^{K_2} [GeV]")
         xMin_pTK2 = 12.
         xMax_pTK2 = 58.
         yMin_pTK2 = 0.
@@ -368,7 +369,7 @@ for histo_name in list_histos:
         hstack[histo_name].GetXaxis().SetTitle("E_{T}^{#gamma}[GeV]")
         hstack[histo_name].GetYaxis().SetTitle("Events")
         hstack[histo_name].SetTitle("#sqrt{s} = 13 TeV       lumi = 39.54/fb")
-        xMin_eTgamma = 20.
+        xMin_eTgamma = 30.
         xMax_eTgamma = 160.
         yMin_eTgamma = 0.
         if pad2Flag:
@@ -384,9 +385,9 @@ for histo_name in list_histos:
         hstack[histo_name].SetTitle("#sqrt{s} = 13 TeV       lumi = 39.54/fb")
         yMin_etagamma = 0.
         if pad2Flag:
-            yMax_etagamma = 15000.
+            yMax_etagamma = 30000.
         else:
-            yMax_etagamma = 350.
+            yMax_etagamma = 650.
         hstack[histo_name].SetMaximum(max(hstack[histo_name].GetHistogram().GetMaximum(),yMax_etagamma))
 
     if histo_name == "h_nElectrons" :
@@ -446,31 +447,48 @@ for histo_name in list_histos:
         totalData.SetMinimum(-0.2)
 
 
+        line_on_one = ROOT.TLine(hstack[histo_name].GetXaxis().GetXmin(),1.,hstack[histo_name].GetXaxis().GetXmax(),1.)
+        line_on_one.SetLineColor(38)
+
         if histo_name == "h_InvMass_TwoTrk_Photon":
             totalData.GetXaxis().SetTitle("m_{K^{+}K^{-}#gamma} [GeV]")
             totalData.GetXaxis().SetRangeUser(xMin_mKKg,xMax_mKKg)
+            line_on_one = ROOT.TLine(xMin_mKKg,1.,xMax_mKKg,1.)
+            line_on_one.SetLineColor(38)
         if histo_name == "h_phi_InvMass_TwoTrk":
             totalData.GetXaxis().SetTitle("m_{K^{+}K^{-}} [GeV]")
             totalData.GetXaxis().SetRangeUser(xMin_mKK,xMax_mKK)
+            line_on_one = ROOT.TLine(xMin_mKK,1.,xMax_mKK,1.)
+            line_on_one.SetLineColor(38)
         if histo_name == "h_nJets_25" :
             totalData.GetXaxis().SetTitle("nJets")
         if histo_name == "h_photon_energy":
             totalData.GetXaxis().SetTitle("E_{T}^{#gamma}[GeV]")
             totalData.GetXaxis().SetRangeUser(xMin_eTgamma,xMax_eTgamma)
+            line_on_one = ROOT.TLine(xMin_eTgamma,1.,xMax_eTgamma,1.)
+            line_on_one.SetLineColor(38)
         if histo_name == "h_bestCouplePt" :
             totalData.GetXaxis().SetTitle("p_{T}^{K^{+}K^{-}} [GeV]")
             totalData.GetXaxis().SetRangeUser(xMin_pTKK,xMax_pTKK)
+            line_on_one = ROOT.TLine(xMin_pTKK,1.,xMax_pTKK,1.)
+            line_on_one.SetLineColor(38)
         if histo_name == "h_bestJetPt" :
             totalData.GetXaxis().SetTitle("p_{T}^{jet} [GeV]")
             totalData.GetXaxis().SetRangeUser(xMin_jetPt,xMax_jetPt)
+            line_on_one = ROOT.TLine(xMin_jetPt,1.,xMax_jetPt,1.)
+            line_on_one.SetLineColor(38)
         if histo_name == "h_couple_Iso_ch" :
             totalData.GetXaxis().SetTitle("#Sigmap_{T}^{ch}/p_{T}^{K^{+}K^{-}}")
         if histo_name == "h_firstKCand_pT" :
             totalData.GetXaxis().SetTitle("p_{T}^{K_{1}} [GeV]")
             totalData.GetXaxis().SetRangeUser(xMin_pTK1,xMax_pTK1)
+            line_on_one = ROOT.TLine(xMin_pTK1,1.,xMax_pTK1,1.)
+            line_on_one.SetLineColor(38)
         if histo_name == "h_secondKCand_pT" :
             totalData.GetXaxis().SetTitle("p_{T}^{K_{2}} [GeV]")
             totalData.GetXaxis().SetRangeUser(xMin_pTK2,xMax_pTK2)
+            line_on_one = ROOT.TLine(xMin_pTK2,1.,xMax_pTK2,1.)
+            line_on_one.SetLineColor(38)
         if histo_name == "h_nElectrons" :
             totalData.GetXaxis().SetTitle("n.electrons")
         if histo_name == "h_nMuons" :
@@ -478,8 +496,6 @@ for histo_name in list_histos:
 
 
 
-        line_on_one = ROOT.TLine(totalData.GetXaxis().GetXmin(),1.,totalData.GetXaxis().GetXmax(),1.)
-        line_on_one.SetLineColor(38)
         
         totalData.Draw()
         line_on_one.Draw("SAME")
