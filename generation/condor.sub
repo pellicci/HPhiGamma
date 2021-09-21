@@ -1,0 +1,10 @@
+executable              = testScript_queue.sh
+arguments               = $(ProcId)
+output                  = outputs/run_HRhoGamma_ggH_$(ProcId).out 
+error                   = logs/run_HRhoGamma_ggH_$(ProcId).err 
+log                     = logs/run_HRhoGamma_ggH_$(ProcId).log 
++JobFlavour             = "longlunch"
+periodic_remove         = JobStatus == 5  
+WhenToTransferOutput    = ON_EXIT_OR_EVICT 
+
+Queue 200
