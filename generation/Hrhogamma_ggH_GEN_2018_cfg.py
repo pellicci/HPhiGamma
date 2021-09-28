@@ -132,12 +132,11 @@ process.generator = cms.EDFilter("Pythia8HadronizerFilter",
 
 process.externalLHEProducer = cms.EDProducer("ExternalLHEProducer",
     args = cms.vstring('/afs/cern.ch/user/g/gumoret/public/forMario/gg_H_quark-mass-effects_slc7_amd64_gcc820_CMSSW_10_6_9_my_gg_H.tgz'),
-    nEvents = cms.untracked.uint32(10),
+    nEvents = cms.untracked.uint32(250),
     numberOfParameters = cms.uint32(1),
     outputFile = cms.string('cmsgrid_final.lhe'),
     scriptName = cms.FileInPath('GeneratorInterface/LHEInterface/data/run_generic_tarball_cvmfs.sh')
 )
-
 
 process.ProductionFilterSequence = cms.Sequence(process.generator)
 
