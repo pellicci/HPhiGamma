@@ -2,7 +2,7 @@
 # using: 
 # Revision: 1.19 
 # Source: /local/reps/CMSSW/CMSSW/Configuration/Applications/python/ConfigBuilder.py,v 
-# with command line options: --python_filename HMesonGamma_NANO_2018_cfg.py --eventcontent NANOEDMAODSIM --datatier NANOAODSIM --fileout file:process.root --conditions 106X_upgrade2018_realistic_v15_L1v1 --step NANO --filein file:process_IN.root --era Run2_2018,run2_nanoAOD_106Xv1 --no_exec --mc -n -1
+# with command line options: --python_filename HMesonGamma_NANO_2018_2_cfg.py --eventcontent NANOAODSIM --datatier NANOAODSIM --fileout file:process.root --conditions 106X_upgrade2018_realistic_v15_L1v1 --step NANO --filein file:process_IN.root --era Run2_2018,run2_nanoAOD_106Xv1 --no_exec --mc -n -1
 import FWCore.ParameterSet.Config as cms
 
 from Configuration.Eras.Era_Run2_2018_cff import Run2_2018
@@ -45,7 +45,7 @@ process.configurationMetadata = cms.untracked.PSet(
 
 # Output definition
 
-process.NANOEDMAODSIMoutput = cms.OutputModule("PoolOutputModule",
+process.NANOAODSIMoutput = cms.OutputModule("NanoAODOutputModule",
     compressionAlgorithm = cms.untracked.string('LZMA'),
     compressionLevel = cms.untracked.int32(9),
     dataset = cms.untracked.PSet(
@@ -65,10 +65,10 @@ process.GlobalTag = GlobalTag(process.GlobalTag, '106X_upgrade2018_realistic_v15
 # Path and EndPath definitions
 process.nanoAOD_step = cms.Path(process.nanoSequenceMC)
 process.endjob_step = cms.EndPath(process.endOfProcess)
-process.NANOEDMAODSIMoutput_step = cms.EndPath(process.NANOEDMAODSIMoutput)
+process.NANOAODSIMoutput_step = cms.EndPath(process.NANOAODSIMoutput)
 
 # Schedule definition
-process.schedule = cms.Schedule(process.nanoAOD_step,process.endjob_step,process.NANOEDMAODSIMoutput_step)
+process.schedule = cms.Schedule(process.nanoAOD_step,process.endjob_step,process.NANOAODSIMoutput_step)
 from PhysicsTools.PatAlgos.tools.helpers import associatePatAlgosToolsTask
 associatePatAlgosToolsTask(process)
 
