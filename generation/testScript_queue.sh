@@ -2,8 +2,8 @@
 
 HOMEDIR=/afs/cern.ch/user/p/pellicci/work/HPhiGamma/Prod/CMSSW_10_6_17_patch1/src/HiggsAnalysis/HPhiGamma/generation
 CMSSW_TO_USE=CMSSW_10_6_17_patch1
-INPUTDIR=/eos/user/p/pellicci/MesonGamma_root/2018/HRhoGamma_ggH/RECO
-OUTPUTDIR=/eos/user/p/pellicci/MesonGamma_root/2018/HRhoGamma_ggH/MINI
+INPUTDIR=/eos/user/p/pellicci/MesonGamma_root/2018/HRhoGamma_VBF/
+OUTPUTDIR=/eos/user/p/pellicci/MesonGamma_root/2018/HRhoGamma_VBF/GEN
 PYTHONAME=HMesonGamma_MINI_2018_cfg.py
 
 #this is necessary only if EOS access is required
