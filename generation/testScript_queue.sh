@@ -2,9 +2,9 @@
 
 HOMEDIR=/afs/cern.ch/user/p/pellicci/work/HPhiGamma/Prod/CMSSW_10_6_17_patch1/src/HiggsAnalysis/HPhiGamma/generation
 CMSSW_TO_USE=CMSSW_10_6_17_patch1
-INPUTDIR=/eos/user/p/pellicci/MesonGamma_root/2018/HRhoGamma_VBF/HLT
-OUTPUTDIR=/eos/user/p/pellicci/MesonGamma_root/2018/HRhoGamma_VBF/RECO
-PYTHONAME=HMesonGamma_RECO_2018_cfg.py
+INPUTDIR=/eos/user/p/pellicci/MesonGamma_root/2018/HPhiGamma_ggH/RECO
+OUTPUTDIR=/eos/user/p/pellicci/MesonGamma_root/2018/HPhiGamma_ggH/MINI
+PYTHONAME=HMesonGamma_MINI_2018_cfg.py
 
 #this is necessary only if EOS access is required
 export X509_USER_PROXY=/afs/cern.ch/user/p/pellicci/voms_proxy/x509up_u28550
