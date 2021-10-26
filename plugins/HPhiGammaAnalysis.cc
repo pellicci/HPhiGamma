@@ -53,7 +53,8 @@ using namespace std;
  
 #include "HPhiGammaAnalysis.h"
 
- 
+
+
 // constructors and destructor
 HPhiGammaAnalysis::HPhiGammaAnalysis(const edm::ParameterSet& iConfig) :
   runningOnData_(iConfig.getParameter<bool>("runningOnData")),
@@ -88,7 +89,8 @@ HPhiGammaAnalysis::HPhiGammaAnalysis(const edm::ParameterSet& iConfig) :
   _Nevents_candPtFilter = 0;
   _Nevents_coupleIsolationFilter = 0;
 
-  debug=false;  //DEBUG datamember  
+  debug=false;  //DEBUG datamember 
+  verbose=true; 
 
   h_pileup   = fs->make<TH1F>("pileup", "pileup", 75,0,75);
 
@@ -417,6 +419,7 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
   //*************************************************************//
 
   bool cand_photon_found = false;
+  bool is_photon_wp90 = false;
   float corr_et = -1.;
 
   for(auto photon = slimmedPhotons->begin(); photon != slimmedPhotons->end(); ++photon){
@@ -430,8 +433,6 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
 
     //std::cout << "photon" << photon->photonID("mvaPhoID-RunIIFall17-v1-wp90") << " " << photon->photonID("mvaPhoID-RunIIFall17-v1p1-wp90") << std::endl;
 
-    if(photon->photonID("mvaPhoID-RunIIFall17-v1p1-wp90") == 0) continue;
-
     float abseta = fabs(photon->superCluster()->eta());
     float eA = effectiveAreas_ph_.getEffectiveArea(abseta);
     //photon_iso = (pfIso.sumChargedHadronPt + std::max( 0.0f, pfIso.sumNeutralHadronEt + pfIso.sumPhotonEt - eA*rho_))/photon->et();
@@ -441,6 +442,18 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
     nPhotonsOverSelection++;
 
     if(corr_et < eTphMax) continue;
+
+    //ABCD method update: Initialize photon ID bool 
+    //bool turns into false after the eT of the current photon is higher than the previous one
+    is_photon_wp90 = false;
+    //if the current photon is at wp90 the bool turns into true
+    if(photon->photonID("mvaPhoID-RunIIFall17-v1p1-wp90") == 1) is_photon_wp90 = true;
+
+    cout<<"Photon ID = "<<photon->photonID("mvaPhoID-RunIIFall17-v1p1-wp90")<<endl;
+    cout<<"Photon ID bool = "<<is_photon_wp90<<endl;
+    printf("%s", is_photon_wp90 ? "true" : "false");
+    cout<<endl;
+    
     eTphMax = corr_et;
     ph_iso_ChargedHadron = photon->chargedHadronIso();
     ph_iso_NeutralHadron = photon->neutralHadronIso();
@@ -817,7 +830,7 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
       
       if(MCtruthIndex == bestJet_Index) //if the index of the best jet matches with one of the MC truth, it passes here
 	{
-	  if(debug) cout<<endl<<"****************TRUE HIGGS FOUND******************"<<endl;
+	  if(debug) cout<<endl<<"**************** HIGGS FOUND ******************"<<endl;
 	  if(debug) cout<<"Higgs deltaR = "<<deltaR<<endl;
 	  _Nevents_HiggsFound++;
 	  _isHiggsFound=true;
@@ -830,19 +843,22 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
       
       //some prints
       
-      if(debug){
+      if(verbose){
 	cout<<"Jet + photon inv. mass = "<<_bestJet_Photon_invMass<<endl;
 	cout<<"n. of daughters: "<<_bestJet_nDaughters<<endl;
 	cout<<"Best couple pT = "<<_firstCandPt + _secondCandPt<<endl;
 	cout<<"Best couple DeltaR = "<<deltaR_KChosen<<endl;
 	cout<<"Phi candidate inv. mass  = "<<_Phimass<<endl;
+  cout<<"Best photon ID bool = "<<is_photon_wp90<<endl;
 	cout<<"H inv. mass after jet-unpackaging = "<<_Hmass_From2K_Photon<<endl;
 	cout<<"--------------------------------------------------"<<endl;
 	cout<<"Higgs found = "<<_Nevents_HiggsFound<<",   Higgs NOT matched = "<<_Nevents_HiggsNotMatched<<endl;
 	cout<<"--------------------------------------------------"<<endl<<endl;
       }
     }
+
   
+
   mytree->Fill();
   if(debug) cout<<"Ending analyze method"<<endl;
 }
@@ -941,7 +957,7 @@ void HPhiGammaAnalysis::create_trees()
     mytree->Branch("isKminusfromPhi",&is_Kminus_fromPhi);
     mytree->Branch("isPhiFromH",&is_Phi_fromH);
     mytree->Branch("isPhotonFromH",&is_Photon_fromH);
-
+    mytree->Branch("is_photon_wp90",&photon_IDbool);     //ABCD method update
     mytree->Branch("isPhotonTrue",&is_photon_a_photon);
     mytree->Branch("isPhotonMatched",&is_photon_matched);
 
@@ -975,10 +991,10 @@ void HPhiGammaAnalysis::endJob()
 
   h_Events->GetXaxis()->SetBinLabel(1,"Events processed");
   h_Events->GetXaxis()->SetBinLabel(2,"Events triggered");
-  h_Events->GetXaxis()->SetBinLabel(3,"Photon requested");
-  h_Events->GetXaxis()->SetBinLabel(4,"Best couple of the event found");
-  h_Events->GetXaxis()->SetBinLabel(5,"Cand pT selection ");
-  h_Events->GetXaxis()->SetBinLabel(6,"Phi isolation selection");
+  h_Events->GetXaxis()->SetBinLabel(3,"Best photon selection");
+  h_Events->GetXaxis()->SetBinLabel(4,"Best pair selection");
+  h_Events->GetXaxis()->SetBinLabel(5,"1trk pT 15, 2trk pT 5");
+  h_Events->GetXaxis()->SetBinLabel(6,"Pair isolation selection");
 }
 
 //define this as a plug-in

@@ -42,6 +42,7 @@ private:
   //debug
 
   bool debug;
+  bool verbose;
 
   //Counters
   int nPV;
@@ -146,7 +147,7 @@ private:
   bool is_Kminus_fromPhi;
   bool is_Phi_fromH;
   bool is_Photon_fromH;
-
+  bool photon_IDbool;
   bool is_photon_a_photon;
   bool is_photon_matched;
   bool _isHiggsFound;

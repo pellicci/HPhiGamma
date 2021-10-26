@@ -512,6 +512,6 @@ for histo in histo_map:
             canvas = ROOT.TCanvas()
             canvas.cd()
             histo_map[histo].Draw("E1")
-            canvas.SaveAs("plots/" + histo +".pdf")
+            canvas.SaveAs("plots/" + histo +".jpg")
 
 fOutput.Close()

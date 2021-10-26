@@ -1,4 +1,5 @@
 import FWCore.ParameterSet.Config as cms
+import os
 process = cms.Process("USER")
 process.load('Configuration.StandardSequences.MagneticField_cff')
 process.load('Configuration.Geometry.GeometryRecoDB_cff')
@@ -9,7 +10,7 @@ process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_condD
 from Configuration.AlCa.GlobalTag import GlobalTag
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(10000)
+    input = cms.untracked.int32(100000)
 )
 
 import FWCore.ParameterSet.VarParsing as VarParsing
@@ -28,6 +29,33 @@ options.parseArguments()
 #                       era='2018-Prompt')  
 ################################################################################################################
 
+#INPUT FILE LIST                                                                                                                                                                                      
+input_path = '/eos/user/p/pellicci/MesonGamma_root/2018/HPhiGamma_ggH/MINI/'                                                                                                                          
+'''                                                                                                                                                                                                   
+    For the given path, get the List of all files in the directory tree                                                                                                                               
+'''                                                                                                                                                                                                   
+def getListOfFiles(dirName):                                                                                                                                                                          
+    # create a list of file and sub directories                                                                                                                                                       
+    # names in the given directory                                                                                                                                                                    
+    listOfFile = os.listdir(dirName)                                                                                                                                                                  
+    allFiles = list()                                                                                                                                                                                 
+    # Iterate over all the entries                                                                                                                                                                    
+    for entry in listOfFile:                                                                                                                                                                          
+        # Create full path                                                                                                                                                                            
+        fullPath = os.path.join(dirName, entry)                                                                                                                                                       
+        # If entry is a directory then get the list of files in this directory                                                                                                                        
+        if os.path.isdir(fullPath):                                                                                                                                                                   
+            allFiles = allFiles + getListOfFiles(fullPath)                                                                                                                                            
+        else:                                                                                                                                                                                         
+            allFiles.append("file:" + fullPath)                                                                                                                                                                 
+                                                                                                                                                                                                      
+    return allFiles     
+
+# Get the list of all files in directory tree at given path                                                                                                                                           
+listOfFiles = getListOfFiles(input_path)                                                                                                                                                              
+#print(listOfFiles)
+
+
 #Input source
 if options.runningOnData:
    process.GlobalTag = GlobalTag(process.GlobalTag, '102X_dataRun2_Sep2018ABC_v2')
@@ -36,11 +64,14 @@ if options.runningOnData:
 else:
    process.GlobalTag = GlobalTag(process.GlobalTag, '102X_upgrade2018_realistic_v18')
    #inputFiles = {"/store/mc/RunIIAutumn18MiniAOD/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/MINIAODSIM/102X_upgrade2018_realistic_v15-v1/80000/F9947F2D-F185-4E43-9A4B-EA7FAF2CE4C2.root"}
-   inputFiles = {"file:HPhiGamma_signal_MINIAOD_4769.root","file:HPhiGamma_signal_MINIAOD_1040.root","file:HPhiGamma_signal_MINIAOD_886.root","file:HPhiGamma_signal_MINIAOD_887.root","file:HPhiGamma_signal_MINIAOD_888.root","file:HPhiGamma_signal_MINIAOD_889.root","file:HPhiGamma_signal_MINIAOD_890.root","file:HPhiGamma_signal_MINIAOD_892.root","file:HPhiGamma_signal_MINIAOD_893.root","file:HPhiGamma_signal_MINIAOD_894.root","file:HPhiGamma_signal_MINIAOD_89.root"}
-
+   #inputFiles = listOfFiles
+   inputFiles = 'file:/eos/user/p/pellicci/MesonGamma_root/2018/HPhiGamma_ggH/MINI/process_81.root'
+   
 process.source = cms.Source ("PoolSource",
-                             fileNames = cms.untracked.vstring (inputFiles)
+                             fileNames = cms.untracked.vstring (inputFiles),
+                             duplicateCheckMode = cms.untracked.string ('noDuplicateCheck')
 )
+
 
 # Output file
 process.TFileService = cms.Service("TFileService",
