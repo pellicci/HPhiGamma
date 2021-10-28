@@ -90,7 +90,7 @@ HPhiGammaAnalysis::HPhiGammaAnalysis(const edm::ParameterSet& iConfig) :
   _Nevents_coupleIsolationFilter = 0;
 
   debug=false;  //DEBUG datamember 
-  verbose=true; 
+  verbose=false; 
 
   h_pileup   = fs->make<TH1F>("pileup", "pileup", 75,0,75);
 

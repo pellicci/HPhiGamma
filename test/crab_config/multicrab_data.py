@@ -10,7 +10,7 @@ config.General.workArea = 'crab_projects/samples_data'
 config.section_('JobType')
 config.JobType.psetName = 'cmssw_config/run_HPhiGammaAnalysis.py'
 config.JobType.pluginName = 'Analysis'
-config.JobType.outputFiles = ['HPhiGammaAnalysis_Data.root']
+config.JobType.outputFiles = ['HPhiGammaAnalysis_output.root']
 config.JobType.allowUndistributedCMSSW = True
 config.JobType.pyCfgParams = ['runningOnData=True']
 
