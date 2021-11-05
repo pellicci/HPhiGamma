@@ -899,6 +899,7 @@ void HPhiGammaAnalysis::create_trees()
   mytree->Branch("photon_iso_NeutralHadron",&ph_iso_NeutralHadron);
   mytree->Branch("photon_iso_Photon",&ph_iso_Photon);
   mytree->Branch("photon_iso_eArho",&ph_iso_eArho);
+  mytree->Branch("is_photon_wp90",&photon_IDbool);     //ABCD method update
 
   mytree->Branch("bestJet_pT",&_bestJet_pT);
   mytree->Branch("bestJet_eta",&_bestJet_eta);
@@ -943,7 +944,7 @@ void HPhiGammaAnalysis::create_trees()
 
 
   //Save MC info
-  if(!runningOnData_){
+  if(!runningOnData_){ //NO INFO FOR DATA
     mytree->Branch("PU_Weight",&PU_Weight);
     mytree->Branch("MC_Weight",&MC_Weight);
     mytree->Branch("isHiggsFound",&_isHiggsFound);
@@ -957,7 +958,6 @@ void HPhiGammaAnalysis::create_trees()
     mytree->Branch("isKminusfromPhi",&is_Kminus_fromPhi);
     mytree->Branch("isPhiFromH",&is_Phi_fromH);
     mytree->Branch("isPhotonFromH",&is_Photon_fromH);
-    mytree->Branch("is_photon_wp90",&photon_IDbool);     //ABCD method update
     mytree->Branch("isPhotonTrue",&is_photon_a_photon);
     mytree->Branch("isPhotonMatched",&is_photon_matched);
 

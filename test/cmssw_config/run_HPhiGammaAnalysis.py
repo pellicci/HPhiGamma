@@ -64,8 +64,8 @@ if options.runningOnData:
 else:
    process.GlobalTag = GlobalTag(process.GlobalTag, '102X_upgrade2018_realistic_v18')
    #inputFiles = {"/store/mc/RunIIAutumn18MiniAOD/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/MINIAODSIM/102X_upgrade2018_realistic_v15-v1/80000/F9947F2D-F185-4E43-9A4B-EA7FAF2CE4C2.root"}
-   #inputFiles = listOfFiles
-   inputFiles = 'file:/eos/user/p/pellicci/MesonGamma_root/2018/HPhiGamma_ggH/MINI/process_81.root'
+   inputFiles = listOfFiles
+   #inputFiles = 'file:/eos/user/p/pellicci/MesonGamma_root/2018/HPhiGamma_ggH/MINI/process_81.root'
    
 process.source = cms.Source ("PoolSource",
                              fileNames = cms.untracked.vstring (inputFiles),

@@ -5,9 +5,10 @@ import numpy as np
 
 pdf_flag=False
 debug=False
-doSelection=True
-tightSelection = True
+doSelection=False
+tightSelection = False
 isDataBlind = False
+doABCDmethod = True
 
 p = argparse.ArgumentParser(description='Select rootfile to plot')
 p.add_argument('rootfile_name', help='Type rootfile name')
@@ -45,8 +46,8 @@ if not samplename == "Data":
     luminosity2018C = 6.94 #fb^-1
     luminosity2018D = 31.93 #fb^-1
 
-    #luminosity = luminosity2018B + luminosity2018C + luminosity2018D
-    luminosity = 39.54 #fb^-1
+    luminosity = luminosity2018C
+    #luminosity = 39.54 #fb^-1
 
 #MCfromDATA correction for photons 
 ph_ID_scale_name_2018  = "scale_factors/2018_PhotonsMVAwp90.root"
@@ -65,24 +66,24 @@ list_histos = ["h_InvMass_TwoTrk_Photon","h_InvMass_TwoTrk_Photon_NoPhiMassCut",
 
 histo_map[list_histos[0]]  = ROOT.TH1F(list_histos[0],"M_{H}",90,80.,170.) 
 histo_map[list_histos[1]]  = ROOT.TH1F(list_histos[1],"M_{H} (no cut on phi mass)",90,80.,170.) 
-histo_map[list_histos[2]]  = ROOT.TH1F(list_histos[2],"M_{#phi}", 200, 1., 1.05) 
-histo_map[list_histos[3]]  = ROOT.TH1F(list_histos[3],"p_{T} of the 1st K", 100, 0.,150.)
-histo_map[list_histos[4]]  = ROOT.TH1F(list_histos[4],"p_{T} of the 2nd K", 100, 0.,150.)
-histo_map[list_histos[5]]  = ROOT.TH1F(list_histos[5],"#eta of the 1st K", 100, -2.5,2.5)
-histo_map[list_histos[6]]  = ROOT.TH1F(list_histos[6],"#eta of the 2nd K", 100, -2.5,2.5)
-histo_map[list_histos[7]]  = ROOT.TH1F(list_histos[7],"#phi of the 1st K", 100, -3.14,3.14)
-histo_map[list_histos[8]]  = ROOT.TH1F(list_histos[8],"#phi of the 2nd K", 100, -3.14,3.14)
+histo_map[list_histos[2]]  = ROOT.TH1F(list_histos[2],"M_{meson}", 200, 1., 1.05) 
+histo_map[list_histos[3]]  = ROOT.TH1F(list_histos[3],"p_{T} of the 1st track", 100, 0.,150.)
+histo_map[list_histos[4]]  = ROOT.TH1F(list_histos[4],"p_{T} of the 2nd track", 100, 0.,150.)
+histo_map[list_histos[5]]  = ROOT.TH1F(list_histos[5],"#eta of the 1st track", 100, -2.5,2.5)
+histo_map[list_histos[6]]  = ROOT.TH1F(list_histos[6],"#eta of the 2nd track", 100, -2.5,2.5)
+histo_map[list_histos[7]]  = ROOT.TH1F(list_histos[7],"#phi of the 1st track", 100, -3.14,3.14)
+histo_map[list_histos[8]]  = ROOT.TH1F(list_histos[8],"#phi of the 2nd track", 100, -3.14,3.14)
 histo_map[list_histos[9]]  = ROOT.TH1F(list_histos[9],"p_{T} of the #phi", 100, 0.,150.)
-histo_map[list_histos[10]] = ROOT.TH1F(list_histos[10],"#eta_{#phi}", 100, -2.5,2.5)
-histo_map[list_histos[11]] = ROOT.TH1F(list_histos[11],"#Delta R_{#phi}", 100, 0.,0.02)
+histo_map[list_histos[10]] = ROOT.TH1F(list_histos[10],"#eta_{meson}", 100, -2.5,2.5)
+histo_map[list_histos[11]] = ROOT.TH1F(list_histos[11],"#Delta R_{meson}", 100, 0.,0.02)
 histo_map[list_histos[12]] = ROOT.TH1F(list_histos[12],"p_{T} of the jet", 100, 0.,400.)
 histo_map[list_histos[13]] = ROOT.TH1F(list_histos[13],"#eta of the jet", 100, -2.5,2.5)
-histo_map[list_histos[14]] = ROOT.TH1F(list_histos[14],"Iso of the 1st K", 100, 0.,1.)
-histo_map[list_histos[15]] = ROOT.TH1F(list_histos[15],"Iso_ch of the 1st K", 100, 0.,1.)
-histo_map[list_histos[16]] = ROOT.TH1F(list_histos[16],"Iso of the 2nd K", 100, 0.,1.)
-histo_map[list_histos[17]] = ROOT.TH1F(list_histos[17],"Iso_ch of the 2nd K", 100, 0.,1.)
-histo_map[list_histos[18]] = ROOT.TH1F(list_histos[18],"Iso of the #phi", 100, 0.,1.)
-histo_map[list_histos[19]] = ROOT.TH1F(list_histos[19],"Iso_ch of the #phi", 100, 0.,1.)
+histo_map[list_histos[14]] = ROOT.TH1F(list_histos[14],"Iso of the 1st track", 100, 0.,1.)
+histo_map[list_histos[15]] = ROOT.TH1F(list_histos[15],"Iso_ch of the 1st track", 100, 0.,1.)
+histo_map[list_histos[16]] = ROOT.TH1F(list_histos[16],"Iso of the 2nd track", 100, 0.,1.)
+histo_map[list_histos[17]] = ROOT.TH1F(list_histos[17],"Iso_ch of the 2nd track", 100, 0.,1.)
+histo_map[list_histos[18]] = ROOT.TH1F(list_histos[18],"Iso of the meson", 100, 0.,1.)
+histo_map[list_histos[19]] = ROOT.TH1F(list_histos[19],"Iso_ch of the meson", 100, 0.,1.)
 histo_map[list_histos[20]] = ROOT.TH1F(list_histos[20],"E_{T} of the #gamma", 100, 0.,300.)
 histo_map[list_histos[21]] = ROOT.TH1F(list_histos[21],"#eta_{#gamma}", 100, -2.5,2.5)
 histo_map[list_histos[22]] = ROOT.TH1F(list_histos[22],"n. of jets over pre-filters", 13, -0.5,12.5)
@@ -202,6 +203,8 @@ def get_photon_scale(ph_pt, ph_eta):
 print "This sample has ", mytree.GetEntriesFast(), " events"
 nentries = mytree.GetEntriesFast()
 
+photonId_true = 0
+photonId_false = 0
 
 #EVENTS LOOP
 for jentry in xrange(nentries):
@@ -261,6 +264,12 @@ for jentry in xrange(nentries):
     nEle = mytree.nElectrons
     nPhotons = mytree.nPhotonsOverSelection
     PhiEta = mytree.bestCoupleEta
+    photonIDbool = mytree.is_photon_wp90
+
+    if photonIDbool:
+        photonId_true += 1
+    else:
+        photonId_false += 1
 
 
     #phi angle folding
@@ -374,6 +383,12 @@ for jentry in xrange(nentries):
     if select_all_but_one(""):
         nEventsOverCuts += 1
         
+print "#############################"
+print "wp90 photons = ",photonId_true
+print "NOT wp90 photons = ",photonId_false
+print "#############################"
+
+
 histo_map["h_InvMass_TwoTrk_Photon"].GetXaxis().SetTitle("m_{K^{+}K^{-}#gamma} [GeV/c^2]")
 histo_map["h_InvMass_TwoTrk_Photon"].SetTitle("Tracks+Photon invariant mass (Cut on phi inv. mass)")
 
