@@ -88,6 +88,8 @@ HPhiGammaAnalysis::HPhiGammaAnalysis(const edm::ParameterSet& iConfig) :
   _Nevents_bestCoupleFound = 0;
   _Nevents_candPtFilter = 0;
   _Nevents_coupleIsolationFilter = 0;
+  _nPhotonsWP90 = 0;
+  _nPhotonsNotWP90 = 0;
 
   debug=false;  //DEBUG datamember 
   verbose=false; 
@@ -333,6 +335,7 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
   _bestCoupleEta=0.;
   _bestCouplePhi=0.;  
 
+
   //*************************************************************//
   //                                                             //
   //----------------------------- MET ---------------------------//
@@ -419,7 +422,7 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
   //*************************************************************//
 
   bool cand_photon_found = false;
-  bool is_photon_wp90 = false;
+  is_photon_wp90 = false;
   float corr_et = -1.;
 
   for(auto photon = slimmedPhotons->begin(); photon != slimmedPhotons->end(); ++photon){
@@ -437,17 +440,25 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
     float eA = effectiveAreas_ph_.getEffectiveArea(abseta);
     //photon_iso = (pfIso.sumChargedHadronPt + std::max( 0.0f, pfIso.sumNeutralHadronEt + pfIso.sumPhotonEt - eA*rho_))/photon->et();
 
-    if(photon->chargedHadronIso()/corr_et > 0.3 || photon->photonIso() > 4.) continue; //|| photon->trackIso() > 6
+    //if(photon->chargedHadronIso()/corr_et > 0.3 || photon->photonIso() > 4.) continue; //|| photon->trackIso() > 6
 
     nPhotonsOverSelection++;
 
-    if(corr_et < eTphMax) continue;
+    if(corr_et < eTphMax) continue; //choose the best photon
 
     //ABCD method update: Initialize photon ID bool 
     //bool turns into false after the eT of the current photon is higher than the previous one
     is_photon_wp90 = false;
     //if the current photon is at wp90 the bool turns into true
     if(photon->photonID("mvaPhoID-RunIIFall17-v1p1-wp90") == 1) is_photon_wp90 = true;
+
+    if(is_photon_wp90 == true){
+      _nPhotonsWP90 ++; 
+    }
+    else
+    {
+      _nPhotonsNotWP90 ++;
+    }
 
     cout<<"Photon ID = "<<photon->photonID("mvaPhoID-RunIIFall17-v1p1-wp90")<<endl;
     cout<<"Photon ID bool = "<<is_photon_wp90<<endl;
@@ -483,7 +494,7 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
     if(!runningOnData_){
       for (auto gen = genParticles->begin(); gen != genParticles->end(); ++gen){
 
-	//phi folding	
+	//gen particles phi folding	
 	float deltaPhi = fabs(ph_phi-gen->phi());
 	if (deltaPhi > 3.14) deltaPhi = 6.28 - deltaPhi;
 	  	      	
@@ -504,7 +515,7 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
 
   }
 
-  //Do not continue if there's no photons
+  //Do not continue if there are no photons
   if(!cand_photon_found) return;
   _Nevents_isPhoton++;
 
@@ -858,9 +869,16 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
     }
 
   
+  cout<<"print before filling: wp90 = "<<is_photon_wp90<<endl;
+  cout<<"n photons wp90 = "<<_nPhotonsWP90<<endl;
+  cout<<"n photons not wp90 = "<<_nPhotonsNotWP90<<endl;
 
   mytree->Fill();
+
+  cout<<"print after filling: wp90 = "<<is_photon_wp90<<endl;
+
   if(debug) cout<<"Ending analyze method"<<endl;
+
 }
 
 //*************************************************************//
@@ -899,7 +917,7 @@ void HPhiGammaAnalysis::create_trees()
   mytree->Branch("photon_iso_NeutralHadron",&ph_iso_NeutralHadron);
   mytree->Branch("photon_iso_Photon",&ph_iso_Photon);
   mytree->Branch("photon_iso_eArho",&ph_iso_eArho);
-  mytree->Branch("is_photon_wp90",&photon_IDbool);     //ABCD method update
+  mytree->Branch("is_photon_wp90",&is_photon_wp90);     //ABCD method update
 
   mytree->Branch("bestJet_pT",&_bestJet_pT);
   mytree->Branch("bestJet_eta",&_bestJet_eta);

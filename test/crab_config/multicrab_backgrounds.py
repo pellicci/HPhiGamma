@@ -50,175 +50,143 @@ if __name__ == '__main__':
 
 config.General.requestName = 'HPhiGammaAnalysis_ttbarToHadronic'
 config.Data.unitsPerJob = 5
-config.Data.inputDataset = '/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15_ext2-v2/MINIAODSIM' #There is also a version without ext2 (and with v1), it has a few less events but still more than 100M. This one has 200M, I think it is enough
+#config.Data.inputDataset = '/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15_ext2-v2/MINIAODSIM' #OLD
+config.Data.inputDataset = '/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v1/MINIAODSIM' #NEW
 p = Process(target=submit, args=(config,))
 p.start()
 p.join()
 
 config.General.requestName = 'HPhiGammaAnalysis_ttbarToSemiLeptonic' #Requires FileBased splitting
 config.Data.unitsPerJob = 5
-config.Data.inputDataset = '/TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15_ext3-v2/MINIAODSIM' #Same story as TTToHadronic
+#config.Data.inputDataset = '/TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15_ext3-v2/MINIAODSIM' #OLD
+config.Data.inputDataset = '/TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v2/MINIAODSIM'#NEW
 p = Process(target=submit, args=(config,))
 p.start()
 p.join()
 
 config.General.requestName = 'HPhiGammaAnalysis_ttbarlnu'
 config.Data.unitsPerJob = 5
-config.Data.inputDataset = '/TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM'
+#config.Data.inputDataset = '/TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM' #OLD
+config.Data.inputDataset = '/TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v1/MINIAODSIM'#NEW
 p = Process(target=submit, args=(config,))
 p.start()
 p.join()
 
 config.General.requestName = 'HPhiGammaAnalysis_DY10to50'
 config.Data.unitsPerJob = 5
-config.Data.inputDataset = '/DYJetsToLL_M-10to50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15_ext1-v1/MINIAODSIM'
+#config.Data.inputDataset = '/DYJetsToLL_M-10to50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15_ext1-v1/MINIAODSIM' #OLD
+config.Data.inputDataset = '/DYJetsToLL_M-10to50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v1/MINIAODSIM' #NEW
 p = Process(target=submit, args=(config,))
 p.start()
 p.join()
 
 config.General.requestName = 'HPhiGammaAnalysis_DY50'#Requires FileBased job splitting
-config.Data.inputDataset = '/DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15_ext2-v1/MINIAODSIM'
+#config.Data.inputDataset = '/DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15_ext2-v1/MINIAODSIM'#OLD
+config.Data.inputDataset = '/DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v2/MINIAODSIM'#NEW
 p = Process(target=submit, args=(config,))
 p.start()
 p.join()
 
-config.General.requestName = 'HPhiGammaAnalysis_QCDHT100to200'
+config.General.requestName = 'HPhiGammaAnalysis_QCDpT30to50'
 config.Data.unitsPerJob = 5
-config.Data.inputDataset = '/QCD_HT100to200_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM'
+config.Data.inputDataset = '/QCD_Pt-30to50_EMEnriched_TuneCP5_13TeV-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v2/MINIAODSIM'#NEW
 p = Process(target=submit, args=(config,))
 p.start()
 p.join()
 
-config.General.requestName = 'HPhiGammaAnalysis_QCDHT200to300'
+config.General.requestName = 'HPhiGammaAnalysis_QCDpT50to80'
 config.Data.unitsPerJob = 5
-config.Data.inputDataset = '/QCD_HT200to300_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM'
-p = Process(target=submit, args=(config,))
-p.start()
-p.join() 
-
-config.General.requestName = 'HPhiGammaAnalysis_QCDHT300to500'
-config.Data.unitsPerJob = 5
-config.Data.inputDataset = '/QCD_HT300to500_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM'
+config.Data.inputDataset = '/QCD_Pt-50to80_EMEnriched_TuneCP5_13TeV-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v2/MINIAODSIM'#NEW
 p = Process(target=submit, args=(config,))
 p.start()
 p.join()
 
-config.General.requestName = 'HPhiGammaAnalysis_QCDHT500to700'
+config.General.requestName = 'HPhiGammaAnalysis_QCDpT80to120'
 config.Data.unitsPerJob = 5
-config.Data.inputDataset = '/QCD_HT500to700_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM'
+config.Data.inputDataset = '/QCD_Pt-80to120_EMEnriched_TuneCP5_13TeV-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v2/MINIAODSIM'#NEW
 p = Process(target=submit, args=(config,))
 p.start()
 p.join()
 
-config.General.requestName = 'HPhiGammaAnalysis_QCDHT700to1000'
+config.General.requestName = 'HPhiGammaAnalysis_QCDpT120to170'
 config.Data.unitsPerJob = 5
-config.Data.inputDataset = '/QCD_HT700to1000_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM'
+config.Data.inputDataset = '/QCD_Pt-120to170_EMEnriched_TuneCP5_13TeV-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v2/MINIAODSIM'#NEW
 p = Process(target=submit, args=(config,))
 p.start()
 p.join()
 
-config.General.requestName = 'HPhiGammaAnalysis_QCDHT1000to1500'
+config.General.requestName = 'HPhiGammaAnalysis_QCDpT170to300'
 config.Data.unitsPerJob = 5
-config.Data.inputDataset = '/QCD_HT1000to1500_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM'
+config.Data.inputDataset = '/QCD_Pt-170to300_EMEnriched_TuneCP5_13TeV-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v2/MINIAODSIM'#NEW
 p = Process(target=submit, args=(config,))
 p.start()
 p.join()
 
-config.General.requestName = 'HPhiGammaAnalysis_QCDHT1500to2000'
+config.General.requestName = 'HPhiGammaAnalysis_QCDpT300toInf'
 config.Data.unitsPerJob = 5
-config.Data.inputDataset = '/QCD_HT1500to2000_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM'
+config.Data.inputDataset = '/QCD_Pt-300toInf_EMEnriched_TuneCP5_13TeV-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v2/MINIAODSIM'#NEW
 p = Process(target=submit, args=(config,))
 p.start()
 p.join()
 
-config.General.requestName = 'HPhiGammaAnalysis_QCDHT2000toInf'
-config.Data.unitsPerJob = 5
-config.Data.inputDataset = '/QCD_HT2000toInf_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM'
-p = Process(target=submit, args=(config,))
-p.start()
-p.join()
 
 config.General.requestName = 'HPhiGammaAnalysis_WW'
 config.Data.unitsPerJob = 5
-config.Data.inputDataset = '/WWTo4Q_NNPDF31_TuneCP5_13TeV-powheg-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM'
-p = Process(target=submit, args=(config,))
-p.start()
-p.join()
-
-config.General.requestName = 'HPhiGammaAnalysis_WZ'
-config.Data.unitsPerJob = 5
-config.Data.inputDataset = '/WZ_TuneCP5_13TeV-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v3/MINIAODSIM' 
-p = Process(target=submit, args=(config,))
-p.start()
-p.join()
-
-config.General.requestName = 'HPhiGammaAnalysis_GammaJets20to40'
-config.Data.unitsPerJob = 5
-config.Data.inputDataset = '/GJet_Pt-20to40_DoubleEMEnriched_MGG-80toInf_TuneCP5_13TeV_Pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15_ext1-v2/MINIAODSIM'
-p = Process(target=submit, args=(config,))
-p.start()
-p.join()
-
-config.General.requestName = 'HPhiGammaAnalysis_GammaJets20toInf'
-config.Data.unitsPerJob = 5
-config.Data.inputDataset = '/GJet_Pt-20toInf_DoubleEMEnriched_MGG-40to80_TuneCP5_13TeV_Pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15_ext1-v2/MINIAODSIM'
-p = Process(target=submit, args=(config,))
-p.start()
-p.join()
-
-config.General.requestName = 'HPhiGammaAnalysis_GammaJets40toInf'
-config.Data.unitsPerJob = 5
-config.Data.inputDataset = '/GJet_Pt-40toInf_DoubleEMEnriched_MGG-80toInf_TuneCP5_13TeV_Pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM'
-p = Process(target=submit, args=(config,))
-p.start()
-p.join()
-
-
-config.General.requestName = 'HPhiGammaAnalysis_GammaJetsHT600toInf'
-config.Data.unitsPerJob = 5
-config.Data.inputDataset = '/GJets_HT-600ToInf_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15_ext1-v2/MINIAODSIM'
-p = Process(target=submit, args=(config,))
-p.start()
-p.join()
-
-config.General.requestName = 'HPhiGammaAnalysis_GammaJetsHT40to100'
-config.Data.unitsPerJob = 5
-config.Data.inputDataset = '/GJets_HT-40To100_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM'
-p = Process(target=submit, args=(config,))
-p.start()
-p.join()
-
-config.General.requestName = 'HPhiGammaAnalysis_GammaJetsHT400to600'
-config.Data.unitsPerJob = 5
-config.Data.inputDataset = '/GJets_HT-400To600_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM'
+#config.Data.inputDataset = '/WWTo4Q_NNPDF31_TuneCP5_13TeV-powheg-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM'#OLD
+config.Data.inputDataset = '/WWTo4Q_4f_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v2/MINIAODSIM'#NEW
 p = Process(target=submit, args=(config,))
 p.start()
 p.join()
 
 config.General.requestName = 'HPhiGammaAnalysis_GammaJetsHT100to200'
 config.Data.unitsPerJob = 5
-config.Data.inputDataset = '/GJets_HT-100To200_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18MiniAOD-4cores5k_102X_upgrade2018_realistic_v15-v1/MINIAODSIM'
+config.Data.inputDataset = '/GJets_DR-0p4_HT-100To200_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v1/MINIAODSIM' #NEW
 p = Process(target=submit, args=(config,))
 p.start()
 p.join()
 
 config.General.requestName = 'HPhiGammaAnalysis_GammaJetsHT200to400'
 config.Data.unitsPerJob = 5
-config.Data.inputDataset = '/GJets_HT-200To400_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM'
+config.Data.inputDataset = '/GJets_DR-0p4_HT-200To400_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v1/MINIAODSIM' #NEW
+p = Process(target=submit, args=(config,))
+p.start()
+p.join()
+
+config.General.requestName = 'HPhiGammaAnalysis_GammaJetsHT400to600'
+config.Data.unitsPerJob = 5
+config.Data.inputDataset = '/GJets_DR-0p4_HT-400To600_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v1/MINIAODSIM' #NEW
+p = Process(target=submit, args=(config,))
+p.start()
+p.join()
+
+config.General.requestName = 'HPhiGammaAnalysis_GammaJetsHT600toInf'
+config.Data.unitsPerJob = 5
+config.Data.inputDataset = '/GJets_DR-0p4_HT-600ToInf_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v1/MINIAODSIM' #NEW
+p = Process(target=submit, args=(config,))
+p.start()
+p.join()
+
+
+config.General.requestName = 'HPhiGammaAnalysis_WZ'
+config.Data.unitsPerJob = 5
+#config.Data.inputDataset = '/WZ_TuneCP5_13TeV-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v3/MINIAODSIM'#OLD
+config.Data.inputDataset = '/WZ_TuneCP5_13TeV-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v1/MINIAODSIM' #NEW
 p = Process(target=submit, args=(config,))
 p.start()
 p.join()
 
 config.General.requestName = 'HPhiGammaAnalysis_WJetsToLNu0J'
 config.Data.unitsPerJob = 5
-config.Data.inputDataset = '/WJetsToLNu_0J_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM'
+#config.Data.inputDataset = '/WJetsToLNu_0J_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM'#OLD
+config.Data.inputDataset = '/WJetsToLNu_0J_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v2/MINIAODSIM'#NEW
 p = Process(target=submit, args=(config,))
 p.start()
 p.join()
 
 config.General.requestName = 'HPhiGammaAnalysis_WJetsToLNu1J'
 config.Data.unitsPerJob = 5
-config.Data.inputDataset = '/WJetsToLNu_1J_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM'
+#config.Data.inputDataset = '/WJetsToLNu_1J_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM'#OLD
+config.Data.inputDataset = '/WJetsToLNu_1J_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v1/MINIAODSIM'#NEW
 p = Process(target=submit, args=(config,))
 p.start()
 p.join()
@@ -226,14 +194,23 @@ p.join()
 
 config.General.requestName = 'HPhiGammaAnalysis_WJetsToLNu2J'
 config.Data.unitsPerJob = 5
-config.Data.inputDataset = '/WJetsToLNu_2J_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM'
+#config.Data.inputDataset = '/WJetsToLNu_2J_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM'#OLD
+config.Data.inputDataset = '/WJetsToLNu_2J_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v2/MINIAODSIM'#NEW
 p = Process(target=submit, args=(config,))
 p.start()
 p.join()
 
 config.General.requestName = 'HPhiGammaAnalysis_DiPhotonJets'
 config.Data.unitsPerJob = 5
-config.Data.inputDataset = '/DiPhotonJets_MGG-80toInf_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM'
+#config.Data.inputDataset = '/DiPhotonJets_MGG-80toInf_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM'#OLD
+config.Data.inputDataset = '/DiPhotonJets_MGG-80toInf_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v1/MINIAODSIM'#NEW
+p = Process(target=submit, args=(config,))
+p.start()
+p.join()
+
+config.General.requestName = 'HPhiGammaAnalysis_ZGammaToLLGamma'
+config.Data.unitsPerJob = 5
+config.Data.inputDataset = '/ZGToLLG_01J_5f_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v1/MINIAODSIM'#NEW
 p = Process(target=submit, args=(config,))
 p.start()
 p.join()

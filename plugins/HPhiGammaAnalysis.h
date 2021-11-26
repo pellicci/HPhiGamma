@@ -64,6 +64,8 @@ private:
   int _Nevents_bestCoupleFound;
   int _Nevents_candPtFilter;
   int _Nevents_coupleIsolationFilter;
+  int _nPhotonsWP90;
+  int _nPhotonsNotWP90;
   
   //TTree and TTree variables
   TTree *mytree;
@@ -79,7 +81,7 @@ private:
   float ph_iso_NeutralHadron;
   float ph_iso_Photon;
   float ph_iso_eArho;
-  bool photon_IDbool;
+  bool is_photon_wp90;
   float eTphMax;
 
   float firstCandPx;
