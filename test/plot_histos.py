@@ -3,7 +3,7 @@ import sys
 import copy
 
 debug = False
-#debug = True
+debug = True
 pad2Flag = False
 
 #Supress the opening of many Canvas's
@@ -15,7 +15,8 @@ list_inputfiles = []
 for filename in sys.argv[2:]:
     list_inputfiles.append(filename)
 
-output_dir = "plots/latest_production/"
+output_dir = "~/cernbox/Analysis_plots/latest_production/"
+output_dir = "~/cernbox/www/latest_production/"
 
 hstack  = dict()
 hsignal = dict()
@@ -25,7 +26,7 @@ canvas  = dict()
 histo_container = [] #just for memory management
 
 #rename histos
-list_histos = ["h_InvMass_TwoTrk_Photon","h_phi_InvMass_TwoTrk","h_InvMass_TwoTrk_Photon_NoPhiMassCut","h_firstKCand_pT","h_secondKCand_pT","h_firstKCand_Eta","h_secondKCand_Eta","h_firstKCand_Phi","h_secondKCand_Phi","h_bestCouplePt","h_bestCoupleEta","h_bestJetPt","h_bestJetEta","h_K1_Iso","h_K1_Iso_ch","h_K2_Iso","h_K2_Iso_ch","h_couple_Iso","h_couple_Iso_ch","h_photon_energy","h_photon_eta","h_nJets_25","h_nMuons","h_nElectrons","h_nPhotons"] 
+list_histos = ["h_InvMass_TwoTrk_Photon","h_InvMass_TwoTrk_Photon_NoPhiMassCut","h_phi_InvMass_TwoTrk","h_firstKCand_pT","h_secondKCand_pT","h_firstKCand_Eta","h_secondKCand_Eta","h_firstKCand_Phi","h_secondKCand_Phi","h_bestCouplePt","h_bestCoupleEta","h_bestCoupleDeltaR","h_bestJetPt","h_bestJetEta","h_K1_Iso","h_K1_Iso_ch","h_K2_Iso","h_K2_Iso_ch","h_couple_Iso","h_couple_Iso_ch","h_photon_energy","h_photon_eta","h_nJets_25","h_nMuons","h_nElectrons","h_nPhotons","h_photonWP90"]
 
 for hname in list_histos:
     hstack[hname] = ROOT.THStack("hstack_" + hname,"")
@@ -37,31 +38,25 @@ colors_mask["ttbarlnu"]            = ROOT.kAzure+7
 colors_mask["ttbarToHadronic"]     = ROOT.kAzure+9
 colors_mask["DY10to50"]            = ROOT.kGreen-4
 colors_mask["DY50"]                = ROOT.kGreen-6
-colors_mask["GammaJetsEnriched"]   = ROOT.kOrange+1
-colors_mask["GammaJets20to40"]     = ROOT.kOrange+1
-colors_mask["GammaJets20toInf"]    = ROOT.kOrange+1
-colors_mask["GammaJets40toInf"]    = ROOT.kOrange+1
-colors_mask["GammaJets"]           = ROOT.kYellow+1
-colors_mask["GammaJetsHT40to100"]  = ROOT.kYellow+1
-colors_mask["GammaJetsHT100to200"] = ROOT.kYellow+1
-colors_mask["GammaJetsHT200to400"] = ROOT.kYellow+1
-colors_mask["GammaJetsHT400to600"] = ROOT.kYellow+1
-colors_mask["GammaJetsHT600toInf"] = ROOT.kYellow+1
+colors_mask["GammaJetsHT100to200"] = ROOT.kOrange+1
+colors_mask["GammaJetsHT200to400"] = ROOT.kOrange+1
+colors_mask["GammaJetsHT400to600"] = ROOT.kOrange+1
+colors_mask["GammaJetsHT600toInf"] = ROOT.kOrange+1
+colors_mask["GammaJets"]           = ROOT.kOrange+1
 colors_mask["WZ"]                  = ROOT.kPink+1
 colors_mask["WW"]                  = ROOT.kPink+3
 colors_mask["WJetsToLNu0J"]        = ROOT.kCyan-7
 colors_mask["WJetsToLNu1J"]        = ROOT.kCyan-8
 colors_mask["WJetsToLNu2J"]        = ROOT.kCyan-9
 colors_mask["QCD"]                 = ROOT.kRed+1
-colors_mask["QCDHT100to200"]       = ROOT.kBlue+1
-colors_mask["QCDHT200to300"]       = ROOT.kBlue+1
-colors_mask["QCDHT300to500"]       = ROOT.kBlue+1
-colors_mask["QCDHT500to700"]       = ROOT.kBlue+1
-colors_mask["QCDHT700to1000"]      = ROOT.kBlue+1
-colors_mask["QCDHT1000to1500"]     = ROOT.kBlue+1
-colors_mask["QCDHT1500to2000"]     = ROOT.kBlue+1
-colors_mask["QCDHT2000toInf"]      = ROOT.kBlue+1
+colors_mask["QCDpT30to50"]         = ROOT.kRed+1
+colors_mask["QCDpT50to80"]         = ROOT.kRed+1
+colors_mask["QCDpT80to120"]        = ROOT.kRed+1
+colors_mask["QCDpT120to170"]       = ROOT.kRed+1
+colors_mask["QCDpT170to300"]       = ROOT.kRed+1
+colors_mask["QCDpT300toInf"]       = ROOT.kRed+1
 colors_mask["DiPhotonJets"]        = ROOT.kGreen+1
+colors_mask["ZGammaToLLGamma"]     = ROOT.kBlue+1
 
 
 # leg1 = ROOT.TLegend(0.15,0.6120093,0.34,0.9491917) #left positioning
@@ -78,16 +73,16 @@ leg1.SetFillStyle(1001)
 for filename in list_inputfiles:
     fileIn = ROOT.TFile(filename)
 
-    sample_name = (filename.split("_")[2])[:-5] #retireve the samplename (QCD, DY, Data, etc...)
+    sample_name = (filename.split("_")[3])[:-5] #retireve the samplename (QCD, DY, Data, etc...)
     if(debug):
         print "========="+sample_name+"========"
 
     #LOOP ON HISTOS (for each sample)
     for histo_name in list_histos:
         histo = fileIn.Get(histo_name)
-       
+
         #REBIN
-        if histo_name == "h_phi_InvMass_TwoTrk":
+        if histo_name   == "h_phi_InvMass_TwoTrk":
             histo.Rebin(5) 
         elif histo_name == "h_couple_Iso":
             histo.Rebin(5) 
@@ -127,7 +122,7 @@ for filename in list_inputfiles:
     #fill legend
     #if histo_name == "nMuons": #Add the legend only once (nMuons is just a random variable)
 
-    if histo.Integral() > float(signal_magnify)/20. or sample_name == "Signal": #Only plot in the legend those samples which have some contribution
+    if histo.Integral() > float(signal_magnify)/500. or sample_name == "Signal": #Only plot in the legend those samples which have some contribution
         if not sample_name == "Data" and not sample_name == "Signal":
             leg1.AddEntry(histo_container[-1],sample_name,"f")
         elif sample_name == "Data":
@@ -503,3 +498,4 @@ for histo_name in list_histos:
         ################################################
 
     canvas[histo_name].SaveAs(output_dir + histo_name + ".pdf")
+    canvas[histo_name].SaveAs(output_dir + histo_name + ".png")

@@ -8,14 +8,19 @@ pdf_flag=False
 debug=True
 doSelection=False
 tightSelection = False
-isDataBlind = False
+isDataBlind = True
+
+#Supress the opening of many Canvas's
+ROOT.gROOT.SetBatch(True)   
 
 #PARSER and INPUT
 p = argparse.ArgumentParser(description='Select rootfile to plot')
 p.add_argument('CR_option', help='Type <<0>> for SR, >0 for CR') #ABCD Method: choose the region
 p.add_argument('rootfile_name', help='Type rootfile name')
+p.add_argument('outputfile_option', help='Provide output file name')
 args = p.parse_args()
 fInput = ROOT.TFile(args.rootfile_name)
+output_filename = args.outputfile_option
 mytree = fInput.Get("HPhiGammaAnalysis/mytree")
 
 #ABCD Method
@@ -62,6 +67,7 @@ ph_pixVeto_scale_histo_2018 = ROOT.TH1F()
 ph_pixVeto_scale_histo_2018 = ph_pixVeto_scale_file_2018.Get("eleVeto_SF")
 
 #HISTOS
+
 histo_map = dict()
 list_histos = ["h_InvMass_TwoTrk_Photon","h_InvMass_TwoTrk_Photon_NoPhiMassCut","h_phi_InvMass_TwoTrk","h_firstKCand_pT","h_secondKCand_pT","h_firstKCand_Eta","h_secondKCand_Eta","h_firstKCand_Phi","h_secondKCand_Phi","h_bestCouplePt","h_bestCoupleEta","h_bestCoupleDeltaR","h_bestJetPt","h_bestJetEta","h_K1_Iso","h_K1_Iso_ch","h_K2_Iso","h_K2_Iso_ch","h_couple_Iso","h_couple_Iso_ch","h_photon_energy","h_photon_eta","h_nJets_25","h_nMuons","h_nElectrons","h_nPhotons","h_efficiency","h_photonWP90"]
 
@@ -95,9 +101,14 @@ histo_map[list_histos[26]] = ROOT.TH1F(list_histos[26],"Efficiency steps", 7, 0.
 histo_map[list_histos[27]] = ROOT.TH1F(list_histos[27],"Photon wp90 steps", 2, -0.5,1.5)
 
 
+
 #CREATE OUTPUT ROOTFILE
-fOutput = ROOT.TFile("histos/latest_production/histos_"+samplename+".root","RECREATE")
-fOutput.cd()
+fOut = ROOT.TFile(output_filename,"RECREATE")
+fOut.cd()
+
+#CREATE OUTPUT ROOTFILE
+#fOutput = ROOT.TFile("histos/latest_production/histos_"+samplename+".root","RECREATE")
+#fOutput.cd()
 
 #Variables to go in the tree
 mass_KKg      = np.zeros(1, dtype=float)
@@ -269,21 +280,18 @@ for jentry in xrange(nentries):
     else:
         photonId_false += 1
     
-    if debug:
-        print "photon WP90 bool = ",photonWP90
-    
-
+   
     #ABCD Method: discard events except ones within the chosen region 
-    if CRflag == 0 and not (photonWP90 and PhiIso < 0.2)  :
+    if CRflag == 0 and not (photonWP90 and PhiIsoCh < 0.3)  :
         continue
 
-    if CRflag == 1 and not (photonWP90 and not PhiIso < 0.2)  :
+    if CRflag == 1 and not (photonWP90 and not PhiIsoCh < 0.3)  :
         continue
 
-    if CRflag == 2 and not (not photonWP90 and PhiIso < 0.2)  :
+    if CRflag == 2 and not (not photonWP90 and PhiIsoCh < 0.3)  :
         continue
 
-    if CRflag == 3 and (photonWP90 or PhiIso < 0.2)  :
+    if CRflag == 3 and (photonWP90 or PhiIsoCh < 0.3)  :
         continue
 
     #phi angle folding
@@ -449,53 +457,60 @@ tree_output.Write()
 #tree_output.Scan()
 
 #EFFICIENCY STEP PLOT MANAGEMENT
-bin1content  = h_Events.GetBinContent(1)
-bin2content  = h_Events.GetBinContent(2)
-bin3content  = h_Events.GetBinContent(3)
-bin4content  = h_Events.GetBinContent(4)
-bin5content  = h_Events.GetBinContent(5)
-bin6content  = h_Events.GetBinContent(6)
-bin7content  = nEventsOverCuts
-nSignal      = bin1content
-scale_factor = 100/nSignal
+if not samplename == "Data":
 
-histo_map["h_efficiency"].Fill(0.5,bin1content*scale_factor)
-histo_map["h_efficiency"].Fill(1.5,bin2content*scale_factor)
-histo_map["h_efficiency"].Fill(2.5,bin3content*scale_factor)
-histo_map["h_efficiency"].Fill(3.5,bin4content*scale_factor)
-histo_map["h_efficiency"].Fill(4.5,bin5content*scale_factor)
-histo_map["h_efficiency"].Fill(5.5,bin6content*scale_factor)
-histo_map["h_efficiency"].Fill(6.5,bin7content*scale_factor)
-histo_map["h_efficiency"].GetXaxis().SetBinLabel(1,"Events processed")
-histo_map["h_efficiency"].GetXaxis().SetBinLabel(2,"Events triggered")
-histo_map["h_efficiency"].GetXaxis().SetBinLabel(3,"Photon requested")
-histo_map["h_efficiency"].GetXaxis().SetBinLabel(4,"Best couple found")
-histo_map["h_efficiency"].GetXaxis().SetBinLabel(5,"K-cand pT selection")
-histo_map["h_efficiency"].GetXaxis().SetBinLabel(6,"KK iso selection")
-histo_map["h_efficiency"].GetXaxis().SetBinLabel(7,"Tight selections")
+    bin1content  = h_Events.GetBinContent(1)
+    bin2content  = h_Events.GetBinContent(2)
+    bin3content  = h_Events.GetBinContent(3)
+    bin4content  = h_Events.GetBinContent(4)
+    bin5content  = h_Events.GetBinContent(5)
+    bin6content  = h_Events.GetBinContent(6)
+    bin7content  = nEventsOverCuts
+    nSignal      = bin1content
+    scale_factor = 100/nSignal
 
-c11 = ROOT.TCanvas()
-c11.cd()
-histo_map["h_efficiency"].SetFillColor(1) 
-histo_map["h_efficiency"].SetFillStyle(3003)
-ROOT.gStyle.SetPaintTextFormat("4.2f %")
-ROOT.gStyle.SetOptStat(0)
-histo_map["h_efficiency"].SetMarkerSize(1.4)
-histo_map["h_efficiency"].GetXaxis().SetRangeUser(1.,7.1)
-histo_map["h_efficiency"].GetYaxis().SetRangeUser(0.,30.)
-#histo_map["h_efficiency"].SetMaximum(max(histo_map["h_efficiency"].GetHistogram().GetMaximum(),30.))
-histo_map["h_efficiency"].Draw("HIST TEXT0")
-c11.SaveAs("plots/h_efficiency.pdf")
+    histo_map["h_efficiency"].Fill(0.5,bin1content*scale_factor)
+    histo_map["h_efficiency"].Fill(1.5,bin2content*scale_factor)
+    histo_map["h_efficiency"].Fill(2.5,bin3content*scale_factor)
+    histo_map["h_efficiency"].Fill(3.5,bin4content*scale_factor)
+    histo_map["h_efficiency"].Fill(4.5,bin5content*scale_factor)
+    histo_map["h_efficiency"].Fill(5.5,bin6content*scale_factor)
+    histo_map["h_efficiency"].Fill(6.5,bin7content*scale_factor)
+    histo_map["h_efficiency"].GetXaxis().SetBinLabel(1,"Events processed")
+    histo_map["h_efficiency"].GetXaxis().SetBinLabel(2,"Events triggered")
+    histo_map["h_efficiency"].GetXaxis().SetBinLabel(3,"Photon requested")
+    histo_map["h_efficiency"].GetXaxis().SetBinLabel(4,"Best couple found")
+    histo_map["h_efficiency"].GetXaxis().SetBinLabel(5,"K-cand pT selection")
+    histo_map["h_efficiency"].GetXaxis().SetBinLabel(6,"KK iso selection")
+    histo_map["h_efficiency"].GetXaxis().SetBinLabel(7,"Tight selections")
+
+    c11 = ROOT.TCanvas()
+    c11.cd()
+    histo_map["h_efficiency"].SetFillColor(1) 
+    histo_map["h_efficiency"].SetFillStyle(3003)
+    ROOT.gStyle.SetPaintTextFormat("4.2f %")
+    ROOT.gStyle.SetOptStat(0)
+    histo_map["h_efficiency"].SetMarkerSize(1.4)
+    histo_map["h_efficiency"].GetXaxis().SetRangeUser(1.,7.1)
+    histo_map["h_efficiency"].GetYaxis().SetRangeUser(0.,30.)
+    #histo_map["h_efficiency"].SetMaximum(max(histo_map["h_efficiency"].GetHistogram().GetMaximum(),30.))
+    histo_map["h_efficiency"].Draw("HIST TEXT0")
+    c11.SaveAs("plots/h_efficiency.pdf")
 
 
 #HISTOS WRITING
-for histo in histo_map:
-    histo_map[histo].Write(histo)
-    if pdf_flag: 
-        if samplename == "Signal" or samplename == "Data":
-            canvas = ROOT.TCanvas()
-            canvas.cd()
-            histo_map[histo].Draw("E1")
-            canvas.SaveAs("plots/" + histo +".jpg")
+#for histo in histo_map:
+ #   histo_map[histo].Write(histo)
+  #  if pdf_flag: 
+   #     if samplename == "Signal" or samplename == "Data":
+    #        canvas = ROOT.TCanvas()
+     #       canvas.cd()
+      #      histo_map[histo].Draw("E1")
+       #     canvas.SaveAs("plots/" + histo +".jpg")
 
-fOutput.Close()
+#fOutput.Close()
+
+fOut.cd()
+for hist_name in list_histos:
+    histo_map[hist_name].Write()
+fOut.Close()
