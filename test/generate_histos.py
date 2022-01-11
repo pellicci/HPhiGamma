@@ -16,6 +16,7 @@ ROOT.gROOT.SetBatch(True)
 #PARSER and INPUT
 p = argparse.ArgumentParser(description='Select rootfile to plot')
 p.add_argument('CR_option', help='Type <<0>> for SR, >0 for CR') #ABCD Method: choose the region
+p.add_argument('SecondPass_option', help='Type <<0>> for first, 1 for second') #ABCD Method: if you want to run again to apply the CR tranfer weights
 p.add_argument('rootfile_name', help='Type rootfile name')
 p.add_argument('outputfile_option', help='Provide output file name')
 args = p.parse_args()
@@ -29,6 +30,18 @@ if CRflag > 0 :
     print "Processing the control region ", CRflag
 else :
     print "Processing the signal region"
+
+SecondPass = int(args.SecondPass_option) #ABCD Method: if you want to run again to apply the CR tranfer weights
+
+if SecondPass and not CRflag == 0 :
+    CRfraction_filename = "histos/latest_production/CRfraction.root"
+    fileCRfraction = ROOT.TFile(CRfraction_filename)
+    fileCRfraction.cd()
+    histo_CR1_phot_fraction  = fileCRfraction.Get("CR1_fraction_photET")
+    histo_CR2_phot_fraction  = fileCRfraction.Get("CR2_fraction_photET")
+    histo_CR1_2trkIso_fraction  = fileCRfraction.Get("CR1_fraction_2trkIso")
+    histo_CR2_2trkIso_fraction  = fileCRfraction.Get("CR2_fraction_2trkIso")
+
 
 #SPLIT: I can split a string of chars before and after a split code (that could be a string or a symbol)
 #then I can take the string stands before or after with [0] or [1], respectively. 
@@ -247,6 +260,7 @@ for jentry in xrange(nentries):
             print "eventWeight = ",eventWeight
             print ""
 
+
     #retrieving from the tree
     Hmass        = mytree.Hmass_From2K_Photon
     PhiMass      = mytree.Phimass
@@ -303,6 +317,24 @@ for jentry in xrange(nentries):
     #NO normalization for DATA 
     if samplename == "Data":
         eventWeight = 1.   
+
+    #ABCD Method: weights
+    if CRflag == 3 and SecondPass :
+        CRweight_phot    = histo_CR1_phot_fraction.GetBinContent(histo_CR1_phot_fraction.FindBin(photonEt))
+        CRweight_2trkIso = histo_CR2_2trkIso_fraction.GetBinContent(histo_CR2_2trkIso_fraction.FindBin(PhiIsoCh))
+        CRweight = CRweight_phot*CRweight_2trkIso
+        if CRweight > 0. :  
+            eventWeight = eventWeight * CRweight 
+
+    if CRflag == 1 and SecondPass :
+        CRweight = histo_CR2_2trkIso_fraction.GetBinContent(histo_CR2_2trkIso_fraction.FindBin(PhiIsoCh))
+        if CRweight > 0. :  
+            eventWeight = eventWeight * CRweight 
+
+    if CRflag == 2 and SecondPass :
+        CRweight = histo_CR1_phot_fraction.GetBinContent(histo_CR1_phot_fraction.FindBin(photonEt))
+        if CRweight > 0. :  
+            eventWeight = eventWeight * CRweight 
 
     
     #if DATA -> Blind Analysis on H inv mass plot

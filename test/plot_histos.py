@@ -172,7 +172,7 @@ for histo_name in list_histos:
 
     if histo_name == "h_InvMass_TwoTrk_Photon":
         xMin_mKKg = 100.
-        xMax_mKKg = 170.
+        xMax_mKKg = 150.
         yMin_mKKg = 0.
         if pad2Flag:
             yMax_mKKg = 9000.
@@ -190,7 +190,7 @@ for histo_name in list_histos:
 
     if histo_name == "h_InvMass_TwoTrk_Photon_NoPhiMassCut" :
         hstack[histo_name].GetXaxis().SetTitle("m_{K^{+}K^{-}#gamma} [GeV]")
-        hstack[histo_name].GetXaxis().SetRangeUser(100.,170.)
+        hstack[histo_name].GetXaxis().SetRangeUser(100.,150.)
     
     if histo_name == "h_phi_InvMass_TwoTrk" :
         hstack[histo_name].GetXaxis().SetTitle("m_{K^{+}K^{-}} [GeV]")
