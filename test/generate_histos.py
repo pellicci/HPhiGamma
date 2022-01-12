@@ -4,16 +4,18 @@ import math
 import numpy as np
 import sys
 
-pdf_flag=False
-debug=True
-doSelection=False
+#bools
+debug          = True
+doSelection    = True
+looseSelection = True
 tightSelection = False
-isDataBlind = True
+isDataBlind    = True
+pdf_flag       = False
 
 #Supress the opening of many Canvas's
 ROOT.gROOT.SetBatch(True)   
 
-#PARSER and INPUT
+# PARSER and INPUT #############################################################################################
 p = argparse.ArgumentParser(description='Select rootfile to plot')
 p.add_argument('CR_option', help='Type <<0>> for SR, >0 for CR') #ABCD Method: choose the region
 p.add_argument('SecondPass_option', help='Type <<0>> for first, 1 for second') #ABCD Method: if you want to run again to apply the CR tranfer weights
@@ -24,7 +26,7 @@ fInput = ROOT.TFile(args.rootfile_name)
 output_filename = args.outputfile_option
 mytree = fInput.Get("HPhiGammaAnalysis/mytree")
 
-#ABCD Method
+#ABCD Method: boolean ##########################################################################################
 CRflag = int(args.CR_option)
 if CRflag > 0 :
     print "Processing the control region ", CRflag
@@ -37,19 +39,19 @@ if SecondPass and not CRflag == 0 :
     CRfraction_filename = "histos/latest_production/CRfraction.root"
     fileCRfraction = ROOT.TFile(CRfraction_filename)
     fileCRfraction.cd()
-    histo_CR1_phot_fraction  = fileCRfraction.Get("CR1_fraction_photET")
-    histo_CR2_phot_fraction  = fileCRfraction.Get("CR2_fraction_photET")
+    histo_CR1_phot_fraction     = fileCRfraction.Get("CR1_fraction_photET")
+    histo_CR2_phot_fraction     = fileCRfraction.Get("CR2_fraction_photET")
     histo_CR1_2trkIso_fraction  = fileCRfraction.Get("CR1_fraction_2trkIso")
     histo_CR2_2trkIso_fraction  = fileCRfraction.Get("CR2_fraction_2trkIso")
 
 
 #SPLIT: I can split a string of chars before and after a split code (that could be a string or a symbol)
-#then I can take the string stands before or after with [0] or [1], respectively. 
+#then I can take the string standing before or after with [0] or [1], respectively. 
 #[:-n] is not an emoji, it deletes last n symbols from the string
 samplename =(args.rootfile_name.split("HPhiGammaAnalysis_")[1])[:-5] 
 print "samplename =", samplename
 
-#Normalization for MC dataset
+#Normalization for MC dataset ################################################################################
 if not samplename == "Data":
     normalization_InputFile = open("rootfiles/latest_production/MC/normalizations/Normalizations_table.txt","r")
     h_Events = fInput.Get("HPhiGammaAnalysis/h_Events")
@@ -68,7 +70,7 @@ if not samplename == "Data":
     luminosity      = luminosity2018C #total lumi delivered during the trigger activity: 39.54 #fb^-1
 
 
-#MCfromDATA correction for photons 
+#MCfromDATA correction for photons ###############################################################################
 ph_ID_scale_name_2018  = "scale_factors/2018_PhotonsMVAwp90.root"
 ph_ID_scale_file_2018  = ROOT.TFile(ph_ID_scale_name_2018)
 ph_ID_scale_histo_2018 = ROOT.TH2F()
@@ -79,8 +81,7 @@ ph_pixVeto_scale_file_2018  = ROOT.TFile(ph_pixVeto_scale_name_2018)
 ph_pixVeto_scale_histo_2018 = ROOT.TH1F()
 ph_pixVeto_scale_histo_2018 = ph_pixVeto_scale_file_2018.Get("eleVeto_SF")
 
-#HISTOS
-
+#HISTOS ###########################################################################################################
 histo_map = dict()
 list_histos = ["h_InvMass_TwoTrk_Photon","h_InvMass_TwoTrk_Photon_NoPhiMassCut","h_phi_InvMass_TwoTrk","h_firstKCand_pT","h_secondKCand_pT","h_firstKCand_Eta","h_secondKCand_Eta","h_firstKCand_Phi","h_secondKCand_Phi","h_bestCouplePt","h_bestCoupleEta","h_bestCoupleDeltaR","h_bestJetPt","h_bestJetEta","h_K1_Iso","h_K1_Iso_ch","h_K2_Iso","h_K2_Iso_ch","h_couple_Iso","h_couple_Iso_ch","h_photon_energy","h_photon_eta","h_nJets_25","h_nMuons","h_nElectrons","h_nPhotons","h_efficiency","h_photonWP90"]
 
@@ -114,8 +115,7 @@ histo_map[list_histos[26]] = ROOT.TH1F(list_histos[26],"Efficiency steps", 7, 0.
 histo_map[list_histos[27]] = ROOT.TH1F(list_histos[27],"Photon wp90 steps", 2, -0.5,1.5)
 
 
-
-#CREATE OUTPUT ROOTFILE
+#CREATE OUTPUT ROOTFILE ##################################################################################################
 fOut = ROOT.TFile(output_filename,"RECREATE")
 fOut.cd()
 
@@ -123,7 +123,7 @@ fOut.cd()
 #fOutput = ROOT.TFile("histos/latest_production/histos_"+samplename+".root","RECREATE")
 #fOutput.cd()
 
-#Variables to go in the tree
+#Variables to go in the tree #############################################################################################
 mass_KKg      = np.zeros(1, dtype=float)
 mass_KK       = np.zeros(1, dtype=float)
 _coupleIsoCh  = np.zeros(1, dtype=float)
@@ -145,8 +145,28 @@ tree_output.Branch('_secondCandPt',_secondCandPt,'_secondCandt/D')
 tree_output.Branch('_photonEt',_photonEt,'_photonEt/D')
 tree_output.Branch('_eventWeight',_eventWeight,'_eventWeight/D')
 
+#LOOSE SELECTION ########################################################################################################
+if looseSelection:
+    #Higgs mass
+    higgs_min_invMass = 80.
+    higgs_max_invMass = 170.
+    #Phi mass
+    phi_min_invMass   = 1.0 
+    phi_max_invMass   = 1.04 
+    #Phi iso
+    iso_coupleCh_max  = 1.  
+    #Phi pT
+    phi_pT_min        = 30. 
+    #K1 pT
+    firstCand_pT_min  = 15.
+    #K2 pT
+    secondCand_pT_min = 10.
+    #photon eT
+    photon_eT_min     = 35.
+    #best jet pT
+    bestJet_pT_max    = 150. 
 
-#TIGHT SELECTION
+#TIGHT SELECTION ##########################################################################################################
 if tightSelection:
     #Higgs mass
     higgs_min_invMass = 80.
@@ -155,7 +175,7 @@ if tightSelection:
     phi_min_invMass   = 1.015 
     phi_max_invMass   = 1.027 
     #Phi iso
-    iso_coupleCh_max  = 0.2  
+    iso_coupleCh_max  = 0.2
     #Phi pT
     phi_pT_min        = 42. 
     #K1 pT
@@ -170,6 +190,7 @@ if tightSelection:
 #counters
 nEventsOverCuts = 0
 
+#SELECT ALL BUT ONE FUNCTION ########################################################################################################
 #dictionary: allows to apply all cuts except one related to the plotted variable
 #if it returns FALSE it throws that event away
 def select_all_but_one(h_string):
@@ -198,7 +219,7 @@ def select_all_but_one(h_string):
     return result
 
 
-#Photon scaling function
+#Photon scaling function ###########################################################################################################
 def get_photon_scale(ph_pt, ph_eta):
 
     local_ph_pt = ph_pt
@@ -230,7 +251,7 @@ photonId_true = 0
 photonId_false = 0
 
 
-#EVENTS LOOP
+#EVENTS LOOP ##################################################################################################################### 
 for jentry in xrange(nentries):
     ientry = mytree.LoadTree( jentry )
     if ientry < 0:
@@ -239,29 +260,10 @@ for jentry in xrange(nentries):
     if nb <= 0:
         continue
 
-    #normalization calculation for MC dataset
-    if not samplename == "Data":
+    if debug:
+        print "Processing EVENT n.",jentry+1,"================"
 
-        if debug:
-            print "EVENT n.",jentry+1,"================"
-
-        PUWeight          = mytree.PU_Weight
-        weight_sign       = mytree.MC_Weight/abs(mytree.MC_Weight)
-        photonScaleFactor = get_photon_scale(mytree.photon_eT, mytree.photon_eta)
-        eventWeight       = weight_sign * luminosity * normalization_weight * PUWeight * photonScaleFactor
-        
-        if debug:
-            print "luminosity = ",luminosity
-            print "normalization_weight  = ",normalization_weight
-            print "mytree.MC_Weight = ",mytree.MC_Weight
-            print "weight sign = ",weight_sign
-            print "PUWeight = ",PUWeight
-            print "photonScaleFactor = ",photonScaleFactor
-            print "eventWeight = ",eventWeight
-            print ""
-
-
-    #retrieving from the tree
+    #Retrieve variables from the tree 
     Hmass        = mytree.Hmass_From2K_Photon
     PhiMass      = mytree.Phimass
     PhiIsoCh     = mytree.iso_couple_ch
@@ -288,14 +290,12 @@ for jentry in xrange(nentries):
     PhiEta       = mytree.bestCoupleEta
     photonWP90   = mytree.is_photon_wp90
 
-    
     if photonWP90:
         photonId_true += 1
     else:
         photonId_false += 1
-    
-   
-    #ABCD Method: discard events except ones within the chosen region 
+
+    #ABCD Method: discard events except ones within the control region passed in input
     if CRflag == 0 and not (photonWP90 and PhiIsoCh < 0.3)  :
         continue
 
@@ -306,37 +306,67 @@ for jentry in xrange(nentries):
         continue
 
     if CRflag == 3 and (photonWP90 or PhiIsoCh < 0.3)  :
-        continue
+        continue 
+
+    #NORMALIZATION -------------------------------------------------------------------
+    #normalization for MC
+    if not samplename == "Data":
+        
+        PUWeight          = mytree.PU_Weight
+        weight_sign       = mytree.MC_Weight/abs(mytree.MC_Weight)
+        photonScaleFactor = get_photon_scale(mytree.photon_eT, mytree.photon_eta)
+        eventWeight       = weight_sign * luminosity * normalization_weight * PUWeight * photonScaleFactor
+        
+        if debug:
+            print "luminosity = ",luminosity
+            print "normalization_weight  = ",normalization_weight
+            print "mytree.MC_Weight = ",mytree.MC_Weight
+            print "weight sign = ",weight_sign
+            print "PUWeight = ",PUWeight
+            print "photonScaleFactor = ",photonScaleFactor
+            print "eventWeight = ",eventWeight
+            print ""
+
+
+    #normalization for DATA 
+    if samplename == "Data":
+        eventWeight = 1.  
+
+        #ABCD Method: weights for the data driven bkg estimation
+        if CRflag == 3 and SecondPass :
+            CRweight_phot    = histo_CR1_phot_fraction.GetBinContent(histo_CR1_phot_fraction.FindBin(photonEt))
+            CRweight_2trkIso = histo_CR2_2trkIso_fraction.GetBinContent(histo_CR2_2trkIso_fraction.FindBin(PhiIsoCh))
+            CRweight = CRweight_phot * CRweight_2trkIso #apply the two transfer factors simultaneously
+            if CRweight > 0. :  
+                eventWeight = eventWeight * CRweight 
+                print "CRweight_2trkIso = ",CRweight_2trkIso
+                print "CRweight_phot = ",CRweight_phot
+                print "CRweight = ", CRweight
+                print "eventWeight = ", eventWeight
+
+        if CRflag == 1 and SecondPass :
+            CRweight = histo_CR2_2trkIso_fraction.GetBinContent(histo_CR2_2trkIso_fraction.FindBin(PhiIsoCh))
+            if CRweight > 0. :  
+                eventWeight = eventWeight * CRweight 
+
+        if CRflag == 2 and SecondPass :
+            CRweight = histo_CR1_phot_fraction.GetBinContent(histo_CR1_phot_fraction.FindBin(photonEt))
+            if CRweight > 0. :  
+                eventWeight = eventWeight * CRweight 
+
+        if SecondPass and debug:
+            print "nPhotons = ", nPhotons
+        
+    #--------------------------------------------------------------------------------------
 
     #phi angle folding
     coupleDeltaPhi = math.fabs(mytree.firstCandPhi - mytree.secondCandPhi)
     if coupleDeltaPhi > 3.14:
         coupleDeltaPhi = 6.28 - coupleDeltaPhi
     deltaR = math.sqrt((mytree.firstCandEta - mytree.secondCandEta)**2 + (coupleDeltaPhi)**2)
+   
 
-    #NO normalization for DATA 
-    if samplename == "Data":
-        eventWeight = 1.   
-
-    #ABCD Method: weights
-    if CRflag == 3 and SecondPass :
-        CRweight_phot    = histo_CR1_phot_fraction.GetBinContent(histo_CR1_phot_fraction.FindBin(photonEt))
-        CRweight_2trkIso = histo_CR2_2trkIso_fraction.GetBinContent(histo_CR2_2trkIso_fraction.FindBin(PhiIsoCh))
-        CRweight = CRweight_phot*CRweight_2trkIso
-        if CRweight > 0. :  
-            eventWeight = eventWeight * CRweight 
-
-    if CRflag == 1 and SecondPass :
-        CRweight = histo_CR2_2trkIso_fraction.GetBinContent(histo_CR2_2trkIso_fraction.FindBin(PhiIsoCh))
-        if CRweight > 0. :  
-            eventWeight = eventWeight * CRweight 
-
-    if CRflag == 2 and SecondPass :
-        CRweight = histo_CR1_phot_fraction.GetBinContent(histo_CR1_phot_fraction.FindBin(photonEt))
-        if CRweight > 0. :  
-            eventWeight = eventWeight * CRweight 
-
-    
+    #FILL HISTOS --------------------------------------------------------------------------
     #if DATA -> Blind Analysis on H inv mass plot
     if select_all_but_one("h_InvMass_TwoTrk_Photon"):
         if samplename == "Data":
@@ -359,6 +389,8 @@ for jentry in xrange(nentries):
             histo_map["h_InvMass_TwoTrk_Photon_NoPhiMassCut"].Fill(Hmass, eventWeight)
             
     if select_all_but_one("h_phi_InvMass_TwoTrk"):
+        print "PhiMass = ",PhiMass
+        print "eventWeight phi = ",eventWeight
         histo_map["h_phi_InvMass_TwoTrk"].Fill(PhiMass, eventWeight)        
     if select_all_but_one("h_couple_Iso_ch"):    
         histo_map["h_couple_Iso_ch"].Fill(PhiIsoCh, eventWeight)
@@ -370,7 +402,9 @@ for jentry in xrange(nentries):
         histo_map["h_firstKCand_pT"].Fill(firstKpT, eventWeight)
     if select_all_but_one("h_secondKCand_pT"):    
         histo_map["h_secondKCand_pT"].Fill(secondKpT, eventWeight)
-    if select_all_but_one("h_photon_energy"):    
+    if select_all_but_one("h_photon_energy"): 
+        print "photonEt = ",photonEt   
+        print "eventWeight photon = ",eventWeight
         histo_map["h_photon_energy"].Fill(photonEt, eventWeight)
       
         
@@ -394,7 +428,9 @@ for jentry in xrange(nentries):
         histo_map["h_bestCoupleEta"].Fill(PhiEta, eventWeight)
         histo_map["h_photonWP90"].Fill(photonWP90, eventWeight)
 
-
+    #------------------------------------------------------------------------------------
+    
+    #FILL TREE
     if select_all_but_one(""):    
         mass_KKg[0]      = Hmass
         mass_KK[0]       = PhiMass
@@ -406,15 +442,15 @@ for jentry in xrange(nentries):
         _photonEt[0]     = photonEt        
         _eventWeight[0]  = eventWeight
         tree_output.Fill()
-        
-        if samplename == "Data":
-            print "event n.",jentry
+    
+        if debug:
             print "tree filled"
 
 
     #counters
     if select_all_but_one(""):
         nEventsOverCuts += 1
+
 
 if debug:        
     print "#############################"
@@ -423,7 +459,7 @@ if debug:
     print "#############################"
 
 
-#LABELS
+#HISTO LABELS
 histo_map["h_InvMass_TwoTrk_Photon"].GetXaxis().SetTitle("m_{K^{+}K^{-}#gamma} [GeV/c^2]")
 histo_map["h_InvMass_TwoTrk_Photon"].SetTitle("Tracks+Photon invariant mass (Cut on phi inv. mass)")
 histo_map["h_InvMass_TwoTrk_Photon_NoPhiMassCut"].GetXaxis().SetTitle("m_{K^{+}K^{-}}#gamma} [GeV/c^2]")

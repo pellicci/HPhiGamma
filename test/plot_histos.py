@@ -57,6 +57,10 @@ colors_mask["QCDpT170to300"]       = ROOT.kRed+1
 colors_mask["QCDpT300toInf"]       = ROOT.kRed+1
 colors_mask["DiPhotonJets"]        = ROOT.kGreen+1
 colors_mask["ZGammaToLLGamma"]     = ROOT.kBlue+1
+colors_mask["bkgEstimationCR1"]    = ROOT.kYellow-1
+colors_mask["bkgEstimationCR2"]    = ROOT.kYellow+0
+colors_mask["bkgEstimationCR3"]    = ROOT.kYellow+1
+
 
 
 # leg1 = ROOT.TLegend(0.15,0.6120093,0.34,0.9491917) #left positioning
