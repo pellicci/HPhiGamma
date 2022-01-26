@@ -39,8 +39,8 @@ if SecondPass and not CRflag == 0 :
     CRfraction_filename = "histos/latest_production/CRfraction.root"
     fileCRfraction = ROOT.TFile(CRfraction_filename)
     fileCRfraction.cd()
-    histo_CR1_phot_fraction     = fileCRfraction.Get("CR1_fraction_photET")
-    histo_CR2_phot_fraction     = fileCRfraction.Get("CR2_fraction_photET")
+    histo_CR1_phot_fraction     = fileCRfraction.Get("CR1_fraction_photWP")
+    histo_CR2_phot_fraction     = fileCRfraction.Get("CR2_fraction_photWP")
     histo_CR1_2trkIso_fraction  = fileCRfraction.Get("CR1_fraction_2trkIso")
     histo_CR2_2trkIso_fraction  = fileCRfraction.Get("CR2_fraction_2trkIso")
 
@@ -83,7 +83,7 @@ ph_pixVeto_scale_histo_2018 = ph_pixVeto_scale_file_2018.Get("eleVeto_SF")
 
 #HISTOS ###########################################################################################################
 histo_map = dict()
-list_histos = ["h_InvMass_TwoTrk_Photon","h_InvMass_TwoTrk_Photon_NoPhiMassCut","h_phi_InvMass_TwoTrk","h_firstKCand_pT","h_secondKCand_pT","h_firstKCand_Eta","h_secondKCand_Eta","h_firstKCand_Phi","h_secondKCand_Phi","h_bestCouplePt","h_bestCoupleEta","h_bestCoupleDeltaR","h_bestJetPt","h_bestJetEta","h_K1_Iso","h_K1_Iso_ch","h_K2_Iso","h_K2_Iso_ch","h_couple_Iso","h_couple_Iso_ch","h_photon_energy","h_photon_eta","h_nJets_25","h_nMuons","h_nElectrons","h_nPhotons","h_efficiency","h_photonWP90"]
+list_histos = ["h_InvMass_TwoTrk_Photon","h_InvMass_TwoTrk_Photon_NoPhiMassCut","h_phi_InvMass_TwoTrk","h_firstKCand_pT","h_secondKCand_pT","h_firstKCand_Eta","h_secondKCand_Eta","h_firstKCand_Phi","h_secondKCand_Phi","h_bestCouplePt","h_bestCoupleEta","h_bestCoupleDeltaR","h_bestJetPt","h_bestJetEta","h_K1_Iso","h_K1_Iso_ch","h_K2_Iso","h_K2_Iso_ch","h_couple_Iso","h_couple_Iso_ch","h_photon_energy","h_photon_eta","h_nJets_25","h_nMuons","h_nElectrons","h_nPhotons","h_efficiency","h_photonWP90","h_couple_AbsIsoCh"]
 
 histo_map[list_histos[0]]  = ROOT.TH1F(list_histos[0],"M_{H}",90,80.,170.) 
 histo_map[list_histos[1]]  = ROOT.TH1F(list_histos[1],"M_{H} (no cut on phi mass)",90,80.,170.) 
@@ -113,6 +113,8 @@ histo_map[list_histos[24]] = ROOT.TH1F(list_histos[24],"n. of electrons", 6, -0.
 histo_map[list_histos[25]] = ROOT.TH1F(list_histos[25],"n. of #gamma", 6, -0.5,5.5)
 histo_map[list_histos[26]] = ROOT.TH1F(list_histos[26],"Efficiency steps", 7, 0.,7.)
 histo_map[list_histos[27]] = ROOT.TH1F(list_histos[27],"Photon wp90 steps", 2, -0.5,1.5)
+histo_map[list_histos[28]] = ROOT.TH1F(list_histos[28],"Absolute iso_ch of KK", 100, 0.,30.)
+
 
 
 #CREATE OUTPUT ROOTFILE ##################################################################################################
@@ -289,6 +291,8 @@ for jentry in xrange(nentries):
     nPhotons     = mytree.nPhotonsOverSelection
     PhiEta       = mytree.bestCoupleEta
     photonWP90   = mytree.is_photon_wp90
+    PhiAbsIsoCh  = PhiIsoCh * PhiPt
+
 
     if photonWP90:
         photonId_true += 1
@@ -296,17 +300,18 @@ for jentry in xrange(nentries):
         photonId_false += 1
 
     #ABCD Method: discard events except ones within the control region passed in input
-    if CRflag == 0 and not (photonWP90 and PhiIsoCh < 0.3)  :
+    if CRflag == 0 and not (photonWP90 and PhiAbsIsoCh < 10.)  :
         continue
 
-    if CRflag == 1 and not (photonWP90 and not PhiIsoCh < 0.3)  :
+    if CRflag == 1 and not (photonWP90 and not PhiAbsIsoCh < 10.)  :
         continue
 
-    if CRflag == 2 and not (not photonWP90 and PhiIsoCh < 0.3)  :
+    if CRflag == 2 and not (not photonWP90 and PhiAbsIsoCh < 10.)  :
         continue
 
-    if CRflag == 3 and (photonWP90 or PhiIsoCh < 0.3)  :
+    if CRflag == 3 and (photonWP90 or PhiAbsIsoCh < 10.)  :
         continue 
+
 
     #NORMALIZATION -------------------------------------------------------------------
     #normalization for MC
@@ -334,8 +339,8 @@ for jentry in xrange(nentries):
 
         #ABCD Method: weights for the data driven bkg estimation
         if CRflag == 3 and SecondPass :
-            CRweight_phot    = histo_CR1_phot_fraction.GetBinContent(histo_CR1_phot_fraction.FindBin(photonEt))
-            CRweight_2trkIso = histo_CR2_2trkIso_fraction.GetBinContent(histo_CR2_2trkIso_fraction.FindBin(PhiIsoCh))
+            CRweight_phot    = histo_CR1_phot_fraction.GetBinContent(histo_CR1_phot_fraction.FindBin(photonWP90))
+            CRweight_2trkIso = histo_CR2_2trkIso_fraction.GetBinContent(histo_CR2_2trkIso_fraction.FindBin(PhiAbsIsoCh))
             CRweight = CRweight_phot * CRweight_2trkIso #apply the two transfer factors simultaneously
             if CRweight > 0. :  
                 eventWeight = eventWeight * CRweight 
@@ -345,14 +350,18 @@ for jentry in xrange(nentries):
                 print "eventWeight = ", eventWeight
 
         if CRflag == 1 and SecondPass :
-            CRweight = histo_CR2_2trkIso_fraction.GetBinContent(histo_CR2_2trkIso_fraction.FindBin(PhiIsoCh))
+            CRweight = histo_CR2_2trkIso_fraction.GetBinContent(histo_CR2_2trkIso_fraction.FindBin(PhiAbsIsoCh))
             if CRweight > 0. :  
                 eventWeight = eventWeight * CRweight 
+                print "CRweight = ", CRweight
+                print "eventWeight = ", eventWeight
 
         if CRflag == 2 and SecondPass :
-            CRweight = histo_CR1_phot_fraction.GetBinContent(histo_CR1_phot_fraction.FindBin(photonEt))
+            CRweight = histo_CR1_phot_fraction.GetBinContent(histo_CR1_phot_fraction.FindBin(photonWP90))
             if CRweight > 0. :  
                 eventWeight = eventWeight * CRweight 
+                print "CRweight = ", CRweight
+                print "eventWeight = ", eventWeight
 
         if SecondPass and debug:
             print "nPhotons = ", nPhotons
@@ -389,8 +398,6 @@ for jentry in xrange(nentries):
             histo_map["h_InvMass_TwoTrk_Photon_NoPhiMassCut"].Fill(Hmass, eventWeight)
             
     if select_all_but_one("h_phi_InvMass_TwoTrk"):
-        print "PhiMass = ",PhiMass
-        print "eventWeight phi = ",eventWeight
         histo_map["h_phi_InvMass_TwoTrk"].Fill(PhiMass, eventWeight)        
     if select_all_but_one("h_couple_Iso_ch"):    
         histo_map["h_couple_Iso_ch"].Fill(PhiIsoCh, eventWeight)
@@ -403,8 +410,6 @@ for jentry in xrange(nentries):
     if select_all_but_one("h_secondKCand_pT"):    
         histo_map["h_secondKCand_pT"].Fill(secondKpT, eventWeight)
     if select_all_but_one("h_photon_energy"): 
-        print "photonEt = ",photonEt   
-        print "eventWeight photon = ",eventWeight
         histo_map["h_photon_energy"].Fill(photonEt, eventWeight)
       
         
@@ -427,6 +432,8 @@ for jentry in xrange(nentries):
         histo_map["h_nPhotons"].Fill(nPhotons, eventWeight)
         histo_map["h_bestCoupleEta"].Fill(PhiEta, eventWeight)
         histo_map["h_photonWP90"].Fill(photonWP90, eventWeight)
+        histo_map["h_couple_AbsIsoCh"].Fill(PhiAbsIsoCh, eventWeight)
+
 
     #------------------------------------------------------------------------------------
     
@@ -512,7 +519,8 @@ histo_map["h_efficiency"].GetXaxis().SetTitle("")
 histo_map["h_efficiency"].GetYaxis().SetTitle("#epsilon (%)")
 histo_map["h_photonWP90"].GetXaxis().SetTitle("#gamma wp90 bool")
 histo_map["h_photonWP90"].GetYaxis().SetTitle("")
-
+histo_map["h_couple_AbsIsoCh"].GetXaxis().SetTitle("sum pT_{2K}")
+histo_map["h_couple_AbsIsoCh"].SetTitle("absolute iso_ch of the couple candidate")
 
 #if samplename == "Signal":
 print "n. events after cuts: " , nEventsOverCuts

@@ -26,10 +26,11 @@ canvas  = dict()
 histo_container = [] #just for memory management
 
 #rename histos
-list_histos = ["h_InvMass_TwoTrk_Photon","h_InvMass_TwoTrk_Photon_NoPhiMassCut","h_phi_InvMass_TwoTrk","h_firstKCand_pT","h_secondKCand_pT","h_firstKCand_Eta","h_secondKCand_Eta","h_firstKCand_Phi","h_secondKCand_Phi","h_bestCouplePt","h_bestCoupleEta","h_bestCoupleDeltaR","h_bestJetPt","h_bestJetEta","h_K1_Iso","h_K1_Iso_ch","h_K2_Iso","h_K2_Iso_ch","h_couple_Iso","h_couple_Iso_ch","h_photon_energy","h_photon_eta","h_nJets_25","h_nMuons","h_nElectrons","h_nPhotons","h_photonWP90"]
+list_histos = ["h_InvMass_TwoTrk_Photon","h_InvMass_TwoTrk_Photon_NoPhiMassCut","h_phi_InvMass_TwoTrk","h_firstKCand_pT","h_secondKCand_pT","h_firstKCand_Eta","h_secondKCand_Eta","h_firstKCand_Phi","h_secondKCand_Phi","h_bestCouplePt","h_bestCoupleEta","h_bestCoupleDeltaR","h_bestJetPt","h_bestJetEta","h_K1_Iso","h_K1_Iso_ch","h_K2_Iso","h_K2_Iso_ch","h_couple_Iso","h_couple_Iso_ch","h_photon_energy","h_photon_eta","h_nJets_25","h_nMuons","h_nElectrons","h_nPhotons","h_photonWP90","h_couple_AbsIsoCh"]
 
 for hname in list_histos:
     hstack[hname] = ROOT.THStack("hstack_" + hname,"")
+
 
 # Color mask must have the same number of entries as non-QCD backgrounds + 1 (that is the cumulative QCD background)
 colors_mask = dict()
@@ -58,9 +59,10 @@ colors_mask["QCDpT300toInf"]       = ROOT.kRed+1
 colors_mask["DiPhotonJets"]        = ROOT.kGreen+1
 colors_mask["ZGammaToLLGamma"]     = ROOT.kBlue+1
 colors_mask["bkgEstimationCR1"]    = ROOT.kYellow-1
-colors_mask["bkgEstimationCR2"]    = ROOT.kYellow+0
+colors_mask["bkgEstimationCR2"]    = ROOT.kRed+1
 colors_mask["bkgEstimationCR3"]    = ROOT.kYellow+1
-
+colors_mask["bkgEstimationCR"]     = ROOT.kRed+1
+colors_mask["SidebandsNorm"]     = ROOT.kRed+1
 
 
 # leg1 = ROOT.TLegend(0.15,0.6120093,0.34,0.9491917) #left positioning
@@ -94,7 +96,7 @@ for filename in list_inputfiles:
             histo.Rebin(5) 
         elif histo_name == "h_nJets_25" or histo_name == "h_nMuons" or histo_name == "h_nElectrons" or histo_name == "h_nPhotons" :
             histo.Rebin(1) 
-        elif histo_name == "h_photon_eta" or histo_name == "h_firstKCand_Eta" or histo_name == "h_secondKCand_Eta" or histo_name == "h_bestJetEta" or histo_name == "h_bestCoupleEta" :
+        elif histo_name == "h_photon_eta" or histo_name == "h_firstKCand_Eta" or histo_name == "h_secondKCand_Eta" or histo_name == "h_bestJetEta" or histo_name == "h_bestCoupleEta" or histo_name == "h_K1_Iso" or histo_name == "h_K1_Iso_ch" or histo_name == "h_K2_Iso" or histo_name == "h_K2_Iso_ch" or histo_name == "h_bestCoupleDeltaR" or histo_name == "h_couple_AbsIsoCh" or histo_name == "h_firstKCand_Phi" or histo_name == "h_secondKCand_Phi":
             histo.Rebin(4)
         else:
             histo.Rebin(2) 
@@ -174,6 +176,26 @@ for histo_name in list_histos:
         hstack[histo_name].GetXaxis().SetLabelOffset(999)
     ##########################################
 
+    #if hdata[histo_name].GetMaximum() > hstack[histo_name].GetMaximum() :
+     #   print "hstack max = ",hstack[histo_name].GetMaximum()
+      #  print "hdata max = ",hdata[histo_name].GetMaximum()
+
+       # hstack[histo_name].SetMaximum(1.5 * hdata[histo_name].GetMaximum())
+
+        #print "hstack max AFTER = ",hstack[histo_name].GetMaximum()
+        #print ""
+    #else:
+     #   print "hstack max = ",hstack[histo_name].GetMaximum()
+      #  print "hdata max = ",hdata[histo_name].GetMaximum()
+
+       # hstack[histo_name].SetMaximum(hstack[histo_name].GetMaximum() + 200)
+
+        #print "hstack max AFTER = ",hstack[histo_name].GetMaximum()
+        #print ""
+
+    hstack[histo_name].SetMaximum(1.5 * hdata[histo_name].GetMaximum())
+    
+
     if histo_name == "h_InvMass_TwoTrk_Photon":
         xMin_mKKg = 100.
         xMax_mKKg = 150.
@@ -185,11 +207,11 @@ for histo_name in list_histos:
 
         hstack[histo_name].GetXaxis().SetTitle("m_{K^{+}K^{-}#gamma} [GeV]")
         hstack[histo_name].GetXaxis().SetRangeUser(xMin_mKKg,xMax_mKKg)
-        hstack[histo_name].SetMaximum(max(hstack[histo_name].GetHistogram().GetMaximum(),yMax_mKKg))
+        #hstack[histo_name].SetMaximum(max(hstack[histo_name].GetHistogram().GetMaximum(),yMax_mKKg))
 
     if histo_name == "h_nJets_25":
         hstack[histo_name].GetXaxis().SetTitle("nJets")
-        hstack[histo_name].SetMaximum(max(hstack[histo_name].GetHistogram().GetMaximum(),2500.))
+        #hstack[histo_name].SetMaximum(max(hstack[histo_name].GetHistogram().GetMaximum(),2500.))
         hstack[histo_name].GetXaxis().SetRangeUser(0.,6.)
 
     if histo_name == "h_InvMass_TwoTrk_Photon_NoPhiMassCut" :
@@ -206,7 +228,7 @@ for histo_name in list_histos:
         else:
             yMax_mKK = 600.
         hstack[histo_name].GetXaxis().SetRangeUser(xMin_mKK,xMax_mKK)
-        hstack[histo_name].SetMaximum(max(hstack[histo_name].GetHistogram().GetMaximum(),yMax_mKK))
+        #hstack[histo_name].SetMaximum(max(hstack[histo_name].GetHistogram().GetMaximum(),yMax_mKK))
 
     if histo_name == "h_firstKCand_pT" :
         hstack[histo_name].GetXaxis().SetTitle("p_{T}^{K_{1}} [GeV]")
@@ -218,7 +240,7 @@ for histo_name in list_histos:
         else:
             yMax_pTK1 = 1000.
         hstack[histo_name].GetXaxis().SetRangeUser(xMin_pTK1,xMax_pTK1)
-        hstack[histo_name].SetMaximum(max(hstack[histo_name].GetHistogram().GetMaximum(),yMax_pTK1))
+        #hstack[histo_name].SetMaximum(max(hstack[histo_name].GetHistogram().GetMaximum(),yMax_pTK1))
 
     if histo_name == "h_secondKCand_pT" :
         hstack[histo_name].GetXaxis().SetTitle("p_{T}^{K_2} [GeV]")
@@ -230,7 +252,7 @@ for histo_name in list_histos:
         else:
             yMax_pTK2 = 1000.
         hstack[histo_name].GetXaxis().SetRangeUser(xMin_pTK2,xMax_pTK2)
-        hstack[histo_name].SetMaximum(max(hstack[histo_name].GetHistogram().GetMaximum(),yMax_pTK2))
+        #hstack[histo_name].SetMaximum(max(hstack[histo_name].GetHistogram().GetMaximum(),yMax_pTK2))
 
     if histo_name == "h_firstKCand_Eta" :
         hstack[histo_name].GetXaxis().SetTitle("#eta_{K_1}")
@@ -242,7 +264,7 @@ for histo_name in list_histos:
         else:
             yMax_etaK1 = 600.
         hstack[histo_name].GetXaxis().SetRangeUser(xMin_etaK1,xMax_etaK1)
-        hstack[histo_name].SetMaximum(max(hstack[histo_name].GetHistogram().GetMaximum(),yMax_etaK1))
+        #hstack[histo_name].SetMaximum(max(hstack[histo_name].GetHistogram().GetMaximum(),yMax_etaK1))
 
 
     if histo_name == "h_secondKCand_Eta" :
@@ -255,7 +277,7 @@ for histo_name in list_histos:
         else:
             yMax_etaK2 = 600.
         hstack[histo_name].GetXaxis().SetRangeUser(xMin_etaK2,xMax_etaK2)
-        hstack[histo_name].SetMaximum(max(hstack[histo_name].GetHistogram().GetMaximum(),yMax_etaK2))
+        #hstack[histo_name].SetMaximum(max(hstack[histo_name].GetHistogram().GetMaximum(),yMax_etaK2))
 
     if histo_name == "h_firstKCand_Phi" :
         hstack[histo_name].GetXaxis().SetTitle("#phi [rad]")
@@ -275,7 +297,7 @@ for histo_name in list_histos:
             xMax_pTKK = 120.
             yMax_pTKK = 450.
         hstack[histo_name].GetXaxis().SetRangeUser(xMin_pTKK,xMax_pTKK)
-        hstack[histo_name].SetMaximum(max(hstack[histo_name].GetHistogram().GetMaximum(),yMax_pTKK))
+        #hstack[histo_name].SetMaximum(max(hstack[histo_name].GetHistogram().GetMaximum(),yMax_pTKK))
 
     if histo_name == "h_bestCoupleEta" :
         hstack[histo_name].GetXaxis().SetTitle("#eta_{KK}")
@@ -289,7 +311,7 @@ for histo_name in list_histos:
         else:
             yMax_etaKK = 600.
         hstack[histo_name].GetXaxis().SetRangeUser(xMin_etaKK,xMax_etaKK)
-        hstack[histo_name].SetMaximum(max(hstack[histo_name].GetHistogram().GetMaximum(),yMax_etaKK))
+        #hstack[histo_name].SetMaximum(max(hstack[histo_name].GetHistogram().GetMaximum(),yMax_etaKK))
 
 
     if histo_name == "h_bestJetPt" :
@@ -304,7 +326,7 @@ for histo_name in list_histos:
         else:
             yMax_jetPt = 600.
         hstack[histo_name].GetXaxis().SetRangeUser(xMin_jetPt,xMax_jetPt)
-        hstack[histo_name].SetMaximum(max(hstack[histo_name].GetHistogram().GetMaximum(),yMax_jetPt))
+        #hstack[histo_name].SetMaximum(max(hstack[histo_name].GetHistogram().GetMaximum(),yMax_jetPt))
 
     if histo_name == "h_bestJetEta" :
         hstack[histo_name].GetXaxis().SetTitle("#eta_{jet}")
@@ -318,7 +340,7 @@ for histo_name in list_histos:
         else:
             yMax_etaJet = 600.
         hstack[histo_name].GetXaxis().SetRangeUser(xMin_etaJet,xMax_etaJet)
-        hstack[histo_name].SetMaximum(max(hstack[histo_name].GetHistogram().GetMaximum(),yMax_etaJet))
+        #hstack[histo_name].SetMaximum(max(hstack[histo_name].GetHistogram().GetMaximum(),yMax_etaJet))
 
 
     if histo_name == "h_K1_Iso" :
@@ -348,7 +370,7 @@ for histo_name in list_histos:
         else:
             yMax_isoKK = 1000.
         hstack[histo_name].GetXaxis().SetRangeUser(xMin_isoKK,xMax_isoKK)
-        hstack[histo_name].SetMaximum(max(hstack[histo_name].GetHistogram().GetMaximum(),yMax_isoKK))
+        #hstack[histo_name].SetMaximum(max(hstack[histo_name].GetHistogram().GetMaximum(),yMax_isoKK))
 
     if histo_name == "h_bestCoupleDeltaR" :
         hstack[histo_name].GetXaxis().SetTitle("#DeltaR_{K^{+}K^{-}}")
@@ -362,7 +384,7 @@ for histo_name in list_histos:
             yMax_etaJet = 220000.
         else:
             yMax_etaJet = 2500.
-        hstack[histo_name].SetMaximum(max(hstack[histo_name].GetHistogram().GetMaximum(),yMax_etaJet))
+        #hstack[histo_name].SetMaximum(max(hstack[histo_name].GetHistogram().GetMaximum(),yMax_etaJet))
 
     if histo_name == "h_photon_energy" :
         hstack[histo_name].GetXaxis().SetTitle("E_{T}^{#gamma}[GeV]")
@@ -376,7 +398,7 @@ for histo_name in list_histos:
         else:
             yMax_eTgamma = 350.
         hstack[histo_name].GetXaxis().SetRangeUser(xMin_eTgamma,xMax_eTgamma)
-        hstack[histo_name].SetMaximum(max(hstack[histo_name].GetHistogram().GetMaximum(),yMax_eTgamma))
+        #hstack[histo_name].SetMaximum(max(hstack[histo_name].GetHistogram().GetMaximum(),yMax_eTgamma))
 
     if histo_name == "h_photon_eta" :
         hstack[histo_name].GetXaxis().SetTitle("#eta_{#gamma}")
@@ -387,16 +409,21 @@ for histo_name in list_histos:
             yMax_etagamma = 30000.
         else:
             yMax_etagamma = 650.
-        hstack[histo_name].SetMaximum(max(hstack[histo_name].GetHistogram().GetMaximum(),yMax_etagamma))
+        #hstack[histo_name].SetMaximum(max(hstack[histo_name].GetHistogram().GetMaximum(),yMax_etagamma))
 
     if histo_name == "h_nElectrons" :
         hstack[histo_name].GetXaxis().SetTitle("n.electrons")
 #        hstack[histo_name].GetXaxis().SetRangeUser(0.,3.)
-        hstack[histo_name].SetMaximum(max(hstack[histo_name].GetHistogram().GetMaximum(),1000000.))
+        #hstack[histo_name].SetMaximum(max(hstack[histo_name].GetHistogram().GetMaximum(),1000000.))
 
     if histo_name == "h_nMuons" :
         hstack[histo_name].GetXaxis().SetTitle("n.muons")
-        hstack[histo_name].SetMaximum(max(hstack[histo_name].GetHistogram().GetMaximum(),10000000.))
+        #hstack[histo_name].SetMaximum(max(hstack[histo_name].GetHistogram().GetMaximum(),10000000.))
+
+    if histo_name == "h_couple_AbsIsoCh" :
+        hstack[histo_name].GetXaxis().SetTitle("absIso_{KK}")
+        hstack[histo_name].GetXaxis().SetRangeUser(0.,30.)
+        #hstack[histo_name].SetMaximum(max(hstack[histo_name].GetHistogram().GetMaximum(),10000000.))
 
 
 
@@ -484,7 +511,7 @@ for histo_name in list_histos:
             line_on_one = ROOT.TLine(xMin_pTK1,1.,xMax_pTK1,1.)
             line_on_one.SetLineColor(38)
         if histo_name == "h_secondKCand_pT" :
-            totalData.GetXaxis().SetTitle("p_{T}^{K_{2}} [GeV]")
+            totalData.GetXaxis().SetTitle("p_{T}^{K_{2}} [GeV]")    
             totalData.GetXaxis().SetRangeUser(xMin_pTK2,xMax_pTK2)
             line_on_one = ROOT.TLine(xMin_pTK2,1.,xMax_pTK2,1.)
             line_on_one.SetLineColor(38)
@@ -492,6 +519,8 @@ for histo_name in list_histos:
             totalData.GetXaxis().SetTitle("n.electrons")
         if histo_name == "h_nMuons" :
             totalData.GetXaxis().SetTitle("n.muons")
+        if histo_name == "h_couple_AbsIsoCh" :
+            totalData.GetXaxis().SetTitle("absIso_{KK}")
 
 
 
