@@ -19,8 +19,7 @@ factory = ROOT.TMVA.Factory("TMVAClassification", fOut,":".join(["!V","Transform
 dataloader = ROOT.TMVA.DataLoader()
 
 #VARIABLES FROM THE TREE
-dataloader.AddVariable("mass_KKg","F") # Both Float and Double variable types must be indicated as F
-dataloader.AddVariable("_coupleIsoCh","F")
+dataloader.AddVariable("_coupleIso","F")  # Both Float and Double variable types must be indicated as F
 dataloader.AddVariable("_bestCouplePt","F")
 dataloader.AddVariable("_firstCandPt","F")
 dataloader.AddVariable("_bestJetPt","F")

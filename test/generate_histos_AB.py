@@ -127,6 +127,7 @@ fOut.cd()
 mass_KKg      = np.zeros(1, dtype=float)
 mass_KK       = np.zeros(1, dtype=float)
 _coupleIsoCh  = np.zeros(1, dtype=float)
+_coupleIso    = np.zeros(1, dtype=float)
 _bestJetPt    = np.zeros(1, dtype=float)
 _bestCouplePt = np.zeros(1, dtype=float)
 _firstCandPt  = np.zeros(1, dtype=float)
@@ -138,6 +139,7 @@ tree_output = ROOT.TTree('tree_output','tree_output')
 tree_output.Branch('mass_KKg',mass_KKg,'mass_KKg/D')
 tree_output.Branch('mass_KK',mass_KK,'mass_KK/D')
 tree_output.Branch('_coupleIsoCh',_coupleIsoCh,'_coupleIsoCh/D')
+tree_output.Branch('_coupleIso',_coupleIso,'_coupleIso/D')
 tree_output.Branch('_bestJetPt',_bestJetPt,'_bestJetPt/D')
 tree_output.Branch('_bestCouplePt',_bestCouplePt,'_bestCouplePt/D')
 tree_output.Branch('_firstCandPt',_firstCandPt,'_firstCandt/D')
@@ -423,6 +425,7 @@ for jentry in xrange(nentries):
         mass_KKg[0]      = Hmass
         mass_KK[0]       = PhiMass
         _coupleIsoCh[0]  = PhiIsoCh
+        _coupleIso[0]    = PhiIso
         _bestJetPt[0]    = jetPt        
         _bestCouplePt[0] = PhiPt        
         _firstCandPt[0]  = firstKpT        
