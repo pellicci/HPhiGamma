@@ -67,6 +67,8 @@ if not samplename == "Data":
     luminosity2018D = 31.93 #fb^-1
     luminosity      = luminosity2018C #total lumi delivered during the trigger activity: 39.54 #fb^-1
 
+if samplename == "Signal":
+    sigWeightSum = 0.
 
 #MCfromDATA correction for photons ###############################################################################
 ph_ID_scale_name_2018  = "scale_factors/2018_PhotonsMVAwp90.root"
@@ -124,16 +126,25 @@ fOut.cd()
 #fOutput.cd()
 
 #Variables to go in the tree #############################################################################################
-mass_KKg      = np.zeros(1, dtype=float)
-mass_KK       = np.zeros(1, dtype=float)
-_coupleIsoCh  = np.zeros(1, dtype=float)
-_coupleIso    = np.zeros(1, dtype=float)
-_bestJetPt    = np.zeros(1, dtype=float)
-_bestCouplePt = np.zeros(1, dtype=float)
-_firstCandPt  = np.zeros(1, dtype=float)
-_secondCandPt = np.zeros(1, dtype=float)
-_photonEt     = np.zeros(1, dtype=float)
-_eventWeight  = np.zeros(1, dtype=float)
+mass_KKg             = np.zeros(1, dtype=float)
+mass_KK              = np.zeros(1, dtype=float)
+_coupleIsoCh         = np.zeros(1, dtype=float)
+_coupleIso           = np.zeros(1, dtype=float)
+_bestJetPt           = np.zeros(1, dtype=float)
+_bestCouplePt        = np.zeros(1, dtype=float)
+_firstCandPt         = np.zeros(1, dtype=float)
+_secondCandPt        = np.zeros(1, dtype=float)
+_photonEt            = np.zeros(1, dtype=float)
+_firstCandIso        = np.zeros(1, dtype=float)  
+_secondCandIso       = np.zeros(1, dtype=float)  
+_firstCandIsoCh      = np.zeros(1, dtype=float)  
+_secondCandIsoCh     = np.zeros(1, dtype=float) 
+_firstCandEta        = np.zeros(1, dtype=float)  
+_secondCandEta       = np.zeros(1, dtype=float)  
+_bestCoupleEta       = np.zeros(1, dtype=float)  
+_bestCoupleDeltaR    = np.zeros(1, dtype=float) 
+_photonEta           = np.zeros(1, dtype=float)  
+_eventWeight         = np.zeros(1, dtype=float)  
 
 tree_output = ROOT.TTree('tree_output','tree_output')
 tree_output.Branch('mass_KKg',mass_KKg,'mass_KKg/D')
@@ -145,6 +156,15 @@ tree_output.Branch('_bestCouplePt',_bestCouplePt,'_bestCouplePt/D')
 tree_output.Branch('_firstCandPt',_firstCandPt,'_firstCandt/D')
 tree_output.Branch('_secondCandPt',_secondCandPt,'_secondCandt/D')
 tree_output.Branch('_photonEt',_photonEt,'_photonEt/D')
+tree_output.Branch('_firstCandIso',_firstCandIso,'_firstCandIso/D')
+tree_output.Branch('_firstCandIsoCh',_firstCandIso,'_firstCandIsoCh/D')
+tree_output.Branch('_secondCandIso',_secondCandIso,'_secondCandIso/D')
+tree_output.Branch('_secondCandIsoCh',_secondCandIso,'_secondCandIsoCh/D')
+tree_output.Branch('_firstCandEta',_firstCandEta,'_firstCandEta/D')
+tree_output.Branch('_secondCandEta',_secondCandEta,'_secondCandEta/D')
+tree_output.Branch('_bestCoupleEta',_bestCoupleEta,'_bestCoupleEta/D')
+tree_output.Branch('_bestCoupleDeltaR',_bestCoupleDeltaR,'_bestCoupleDeltaR/D')
+tree_output.Branch('_photonEta',_photonEta,'_photonEta/D')
 tree_output.Branch('_eventWeight',_eventWeight,'_eventWeight/D')
 
 #LOOSE SELECTION ########################################################################################################
@@ -422,16 +442,25 @@ for jentry in xrange(nentries):
     
     #FILL TREE
     if select_all_but_one(""):    
-        mass_KKg[0]      = Hmass
-        mass_KK[0]       = PhiMass
-        _coupleIsoCh[0]  = PhiIsoCh
-        _coupleIso[0]    = PhiIso
-        _bestJetPt[0]    = jetPt        
-        _bestCouplePt[0] = PhiPt        
-        _firstCandPt[0]  = firstKpT        
-        _secondCandPt[0] = secondKpT           
-        _photonEt[0]     = photonEt        
-        _eventWeight[0]  = eventWeight
+        mass_KKg[0]           = Hmass
+        mass_KK[0]            = PhiMass
+        _coupleIsoCh[0]       = PhiIsoCh
+        _coupleIso[0]         = PhiIso
+        _bestJetPt[0]         = jetPt        
+        _bestCouplePt[0]      = PhiPt        
+        _firstCandPt[0]       = firstKpT        
+        _secondCandPt[0]      = secondKpT           
+        _photonEt[0]          = photonEt
+        _firstCandIso[0]      = firstKiso        
+        _secondCandIso[0]     = secondKiso        
+        _firstCandIsoCh[0]    = firstKisoCh       
+        _secondCandIsoCh[0]   = secondKisoCh
+        _firstCandEta[0]      = firstKeta        
+        _secondCandEta[0]     = secondKeta        
+        _bestCoupleEta[0]     = PhiEta
+        _bestCoupleDeltaR[0]  = coupleDeltaPhi
+        _photonEta[0]         = photonEta  
+        _eventWeight[0]       = eventWeight
         tree_output.Fill()
     
         if debug:
@@ -442,6 +471,8 @@ for jentry in xrange(nentries):
     if select_all_but_one(""):
         nEventsOverCuts += 1
 
+        if samplename == "Signal":
+            sigWeightSum += _eventWeight
 
 if debug:        
     print "#############################"
@@ -510,6 +541,7 @@ histo_map["h_couple_AbsIsoCh"].SetTitle("absolute iso_ch of the couple candidate
 print "n. events after cuts: " , nEventsOverCuts
 print "entries in histos= ", histo_map["h_nPhotons"].GetEntries()
 print "entries in histos= ", histo_map["h_K2_Iso"].GetEntries()
+print "signal weight sum = ",sigWeightSum
 print ""
 
 #Tree writing

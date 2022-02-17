@@ -111,8 +111,8 @@ def BDT_output():
     #arrow_CR.Draw()
     CMS_lumi.CMS_lumi(canvas1, iPeriod, iPos)
 
-    canvas1.SaveAs("~/cernbox/www/MyAnalysis/HPhiGamma/MVA/BDT_output.pdf")
-    canvas1.SaveAs("~/cernbox/www/MyAnalysis/HPhiGamma/MVA/BDT_output.png")
+    canvas1.SaveAs("~/cernbox/www/MyAnalysis/HPhiGamma/MVA/latest_production/h_BDT_output.pdf")
+    canvas1.SaveAs("~/cernbox/www/MyAnalysis/HPhiGamma/MVA/latest_production/h_BDT_output.png")
     
 
     raw_input()
@@ -154,8 +154,8 @@ def rejB_vs_S():
     h_rejB_vs_S_1.Draw("hist")
     leg2.Draw("SAME")
 
-    canvas2.SaveAs("~/cernbox/www/MyAnalysis/HPhiGamma/MVA/rejBvsS.pdf")
-    canvas2.SaveAs("~/cernbox/www/MyAnalysis/HPhiGamma/MVA/rejBvsS.png")
+    canvas2.SaveAs("~/cernbox/www/MyAnalysis/HPhiGamma/MVA/latest_production/h_rejBvsS.pdf")
+    canvas2.SaveAs("~/cernbox/www/MyAnalysis/HPhiGamma/MVA/latest_production/h_rejBvsS.png")
 
     raw_input()
 

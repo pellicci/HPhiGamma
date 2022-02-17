@@ -18,13 +18,33 @@ factory = ROOT.TMVA.Factory("TMVAClassification", fOut,":".join(["!V","Transform
 
 dataloader = ROOT.TMVA.DataLoader()
 
-#VARIABLES FROM THE TREE
-dataloader.AddVariable("_coupleIso","F")  # Both Float and Double variable types must be indicated as F
-dataloader.AddVariable("_bestCouplePt","F")
-dataloader.AddVariable("_firstCandPt","F")
-dataloader.AddVariable("_bestJetPt","F")
-dataloader.AddVariable("_secondCandPt","F")
+#VARIABLES FROM THE TREE -------------------------------------------------------------------------------
+
+#first track 
+#dataloader.AddVariable("_firstCandPt","F") # Both Float and Double variable types must be indicated as F
+dataloader.AddVariable("_firstCandIso","F")
+#dataloader.AddVariable("_firstCandEta","F")
+
+#second track
+#dataloader.AddVariable("_secondCandPt","F")
+dataloader.AddVariable("_secondCandIso","F")
+#dataloader.AddVariable("_secondCandEta","F")
+
+#best pair
+#dataloader.AddVariable("_bestCouplePt","F")
+#dataloader.AddVariable("_coupleIso","F")  
+#dataloader.AddVariable("_bestCoupleEta","F")
+#dataloader.AddVariable("_bestCoupleDeltaR","F")
+#dataloader.AddVariable("mass_KK","F") #using m_kk variable is not correct since you use it to define the bkg estimation, use it only to compute scatter plots to see correlation with other variables
+
+#photon
 dataloader.AddVariable("_photonEt","F")
+#dataloader.AddVariable("_photonEta","F")
+
+#jet
+dataloader.AddVariable("_bestJetPt","F")
+
+#-------------------------------------------------------------------------------------------------------
 
 sig_weight = 1.
 bkg_weight = 1.
@@ -34,8 +54,8 @@ dataloader.AddSignalTree(tree_sig, sig_weight)
 print "before AddBackgroundTree"
 dataloader.AddBackgroundTree(tree_bkg, bkg_weight)
 
-
 dataloader.SetWeightExpression("_eventWeight") #_eventWeight is the weight variable of the tree
+
 
 mycutSig = ROOT.TCut("")
 mycutBkg = ROOT.TCut("")
