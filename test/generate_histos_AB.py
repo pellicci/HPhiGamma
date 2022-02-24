@@ -3,22 +3,21 @@ import argparse
 import math
 import numpy as np
 import sys
+from functions_smuggler import Simplified_Workflow_Handler
 
 #bools
 debug          = True
-doSelection    = True
-looseSelection = True
-tightSelection = False
+doSelection    = False
 isDataBlind    = True
-pdf_flag       = False
+isBDT          = False #don't turn it into true, it is decided by the option input
 
 #Supress the opening of many Canvas's
 ROOT.gROOT.SetBatch(True)   
 
 # PARSER and INPUT #############################################################################################
 p = argparse.ArgumentParser(description='Select rootfile to plot')
-p.add_argument('CR_option', help='Type <<0>> for SR, >0 for CR') #ABCD Method: choose the region
-p.add_argument('SecondPass_option', help='Type <<0>> for first, 1 for second') #ABCD Method: if you want to run again to apply the CR tranfer weights
+p.add_argument('CR_option', help='Type <<0>> for SR, <<1>> for CR') #flag for bkg estimation
+p.add_argument('isBDT_option', help='Type <<preselection>> or <<BDT>>') #flag for loose selection or tight selection (from BDT output)
 p.add_argument('rootfile_name', help='Type rootfile name')
 p.add_argument('outputfile_option', help='Provide output file name')
 args = p.parse_args()
@@ -33,14 +32,12 @@ if CRflag > 0 :
 else :
     print "Processing the signal region"
 
-SecondPass = int(args.SecondPass_option) #ABCD Method: if you want to run again to apply the CR tranfer weights
 
-if SecondPass and not CRflag == 0 :
-    CRfraction_filename = "histos/latest_production/CRfraction_AB.root"
-    fileCRfraction = ROOT.TFile(CRfraction_filename)
-    fileCRfraction.cd()
-    histo_SR_fraction     = fileCRfraction.Get("SR_fraction")
-    histo_CR_fraction     = fileCRfraction.Get("CR_fraction")
+#BDT Flag ######################################################################################################
+if args.isBDT_option == "BDT":
+    isBDT = True
+
+BDT_OUT = 0.23108174505 #take this number running MVA/BDT_significance.py: this is the BDT output value which maximizes the significance
 
 
 #SPLIT: I can split a string of chars before and after a split code (that could be a string or a symbol)
@@ -48,6 +45,10 @@ if SecondPass and not CRflag == 0 :
 #[:-n] is not an emoji, it deletes last n symbols from the string
 samplename =(args.rootfile_name.split("HPhiGammaAnalysis_")[1])[:-5] 
 print "samplename =", samplename
+
+
+################################################################################################################
+myWF = Simplified_Workflow_Handler("Signal","Data",isBDT)
 
 #Normalization for MC dataset ################################################################################
 if not samplename == "Data":
@@ -83,7 +84,7 @@ ph_pixVeto_scale_histo_2018 = ph_pixVeto_scale_file_2018.Get("eleVeto_SF")
 
 #HISTOS ###########################################################################################################
 histo_map = dict()
-list_histos = ["h_InvMass_TwoTrk_Photon","h_InvMass_TwoTrk_Photon_NoPhiMassCut","h_phi_InvMass_TwoTrk","h_firstKCand_pT","h_secondKCand_pT","h_firstKCand_Eta","h_secondKCand_Eta","h_firstKCand_Phi","h_secondKCand_Phi","h_bestCouplePt","h_bestCoupleEta","h_bestCoupleDeltaR","h_bestJetPt","h_bestJetEta","h_K1_Iso","h_K1_Iso_ch","h_K2_Iso","h_K2_Iso_ch","h_couple_Iso","h_couple_Iso_ch","h_photon_energy","h_photon_eta","h_nJets_25","h_nMuons","h_nElectrons","h_nPhotons","h_efficiency","h_photonWP90","h_couple_AbsIsoCh"]
+list_histos = ["h_InvMass_TwoTrk_Photon","h_InvMass_TwoTrk_Photon_NoPhiMassCut","h_phi_InvMass_TwoTrk","h_firstKCand_pT","h_secondKCand_pT","h_firstKCand_Eta","h_secondKCand_Eta","h_firstKCand_Phi","h_secondKCand_Phi","h_bestCouplePt","h_bestCoupleEta","h_bestCoupleDeltaR","h_bestJetPt","h_bestJetEta","h_K1_Iso","h_K1_Iso_ch","h_K2_Iso","h_K2_Iso_ch","h_couple_Iso","h_couple_Iso_ch","h_photon_energy","h_photon_eta","h_nJets_25","h_nMuons","h_nElectrons","h_nPhotons","h_efficiency","h_photonWP90","h_couple_AbsIsoCh","h_BDT_out"]
 
 histo_map[list_histos[0]]  = ROOT.TH1F(list_histos[0],"M_{H}",100,100.,150.) 
 histo_map[list_histos[1]]  = ROOT.TH1F(list_histos[1],"M_{H} (no cut on phi mass)",100,100.,150.) 
@@ -114,6 +115,7 @@ histo_map[list_histos[25]] = ROOT.TH1F(list_histos[25],"n. of #gamma", 6, -0.5,5
 histo_map[list_histos[26]] = ROOT.TH1F(list_histos[26],"Efficiency steps", 7, 0.,7.)
 histo_map[list_histos[27]] = ROOT.TH1F(list_histos[27],"Photon wp90 steps", 2, -0.5,1.5)
 histo_map[list_histos[28]] = ROOT.TH1F(list_histos[28],"Absolute iso_ch of KK", 100, 0.,30.)
+histo_map[list_histos[29]] = ROOT.TH1F(list_histos[29],"BDT output", 40, -1.,1.)
 
 
 
@@ -144,7 +146,7 @@ _secondCandEta       = np.zeros(1, dtype=float)
 _bestCoupleEta       = np.zeros(1, dtype=float)  
 _bestCoupleDeltaR    = np.zeros(1, dtype=float) 
 _photonEta           = np.zeros(1, dtype=float)  
-_eventWeight         = np.zeros(1, dtype=float)  
+_eventWeight         = np.zeros(1, dtype=float)
 
 tree_output = ROOT.TTree('tree_output','tree_output')
 tree_output.Branch('mass_KKg',mass_KKg,'mass_KKg/D')
@@ -166,52 +168,31 @@ tree_output.Branch('_bestCoupleEta',_bestCoupleEta,'_bestCoupleEta/D')
 tree_output.Branch('_bestCoupleDeltaR',_bestCoupleDeltaR,'_bestCoupleDeltaR/D')
 tree_output.Branch('_photonEta',_photonEta,'_photonEta/D')
 tree_output.Branch('_eventWeight',_eventWeight,'_eventWeight/D')
+        
 
 #LOOSE SELECTION ########################################################################################################
-if looseSelection:
-    #Higgs mass
-    higgs_min_invMass = 100.
-    higgs_max_invMass = 150.
-    #Phi mass
-    phi_min_invMass   = 1.0 
-    phi_max_invMass   = 1.04 
-    #Phi iso
-    iso_coupleCh_max  = 1.  
-    #Phi pT
-    phi_pT_min        = 30. 
-    #K1 pT
-    firstCand_pT_min  = 15.
-    #K2 pT
-    secondCand_pT_min = 10.
-    #photon eT
-    photon_eT_min     = 35.
-    #best jet pT
-    bestJet_pT_max    = 150.
-    #photon WP90
-    photonWP90bool    = 1.
 
-#TIGHT SELECTION ##########################################################################################################
-if tightSelection:
-    #Higgs mass
-    higgs_min_invMass = 100.
-    higgs_max_invMass = 150.
-    #Phi mass
-    phi_min_invMass   = 1.015 
-    phi_max_invMass   = 1.027 
-    #Phi iso
-    iso_coupleCh_max  = 0.2
-    #Phi pT
-    phi_pT_min        = 42. 
-    #K1 pT
-    firstCand_pT_min  = 27.
-    #K2 pT
-    secondCand_pT_min = 20.
-    #photon eT
-    photon_eT_min     = 35.
-    #best jet pT
-    bestJet_pT_max    = 120. 
-    #photon WP90
-    photonWP90bool    = 1.
+#Higgs mass
+higgs_min_invMass = 100.
+higgs_max_invMass = 150.
+#Phi mass
+phi_min_invMass   = 1.0 
+phi_max_invMass   = 1.04 
+#Phi iso
+iso_coupleCh_max  = 1.  
+#Phi pT
+phi_pT_min        = 30. 
+#K1 pT
+firstCand_pT_min  = 15.
+#K2 pT
+secondCand_pT_min = 10.
+#photon eT
+photon_eT_min     = 35.
+#best jet pT
+bestJet_pT_max    = 150.
+#photon WP90
+photonWP90bool    = 1.
+
     
 #counters
 nEventsOverCuts = 0
@@ -331,6 +312,16 @@ for jentry in xrange(nentries):
     if CRflag == 1 and (PhiMass > 1.005 and PhiMass < 1.037)  :
         continue
 
+    #TIGHT SELECTION from BDT output -------------------------------------------------  
+    if isBDT:
+        BDT_out = myWF.get_BDT_output(firstKiso,secondKiso,photonEt,jetPt)
+        histo_map["h_BDT_out"].Fill(BDT_out)
+
+        print "BDT value before selection = ", BDT_out
+        if BDT_out < BDT_OUT: #Cut on BDT output
+            print "BDT cut NOT passed"
+            continue
+
 
     #NORMALIZATION -------------------------------------------------------------------
     #normalization for MC
@@ -355,17 +346,6 @@ for jentry in xrange(nentries):
     #normalization for DATA 
     if samplename == "Data":
         eventWeight = 1.  
-
-        #ABCD Method: weights for the data driven bkg estimation
-        if CRflag == 1 and SecondPass :
-            CRweight = histo_SR_fraction.GetBinContent(histo_SR_fraction.FindBin(PhiMass))
-            if CRweight > 0. :  
-                eventWeight = eventWeight * CRweight 
-                print "CRweight = ", CRweight
-                print "eventWeight = ", eventWeight
-
-        if SecondPass and debug:
-            print "nPhotons = ", nPhotons
         
     #--------------------------------------------------------------------------------------
 
@@ -474,6 +454,7 @@ for jentry in xrange(nentries):
         if samplename == "Signal":
             sigWeightSum += _eventWeight
 
+
 if debug:        
     print "#############################"
     print "wp90 photons = ",photonId_true
@@ -541,7 +522,8 @@ histo_map["h_couple_AbsIsoCh"].SetTitle("absolute iso_ch of the couple candidate
 print "n. events after cuts: " , nEventsOverCuts
 print "entries in histos= ", histo_map["h_nPhotons"].GetEntries()
 print "entries in histos= ", histo_map["h_K2_Iso"].GetEntries()
-print "signal weight sum = ",sigWeightSum
+if samplename == "Signal":
+    print "signal weight sum = ",float(sigWeightSum)
 print ""
 
 #Tree writing
@@ -588,20 +570,10 @@ if not samplename == "Data":
     #histo_map["h_efficiency"].SetMaximum(max(histo_map["h_efficiency"].GetHistogram().GetMaximum(),30.))
     histo_map["h_efficiency"].Draw("HIST TEXT0")
     c11.SaveAs("plots/h_efficiency.pdf")
+    c11.SaveAs("plots/h_efficiency.png")    
 
 
 #HISTOS WRITING
-#for histo in histo_map:
- #   histo_map[histo].Write(histo)
-  #  if pdf_flag: 
-   #     if samplename == "Signal" or samplename == "Data":
-    #        canvas = ROOT.TCanvas()
-     #       canvas.cd()
-      #      histo_map[histo].Draw("E1")
-       #     canvas.SaveAs("plots/" + histo +".jpg")
-
-#fOutput.Close()
-
 fOut.cd()
 for hist_name in list_histos:
     histo_map[hist_name].Write()

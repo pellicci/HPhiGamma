@@ -11,6 +11,7 @@ signal_magnify = int(sys.argv[1])
 CR_magnify = 1. #2079./1179.
 
 plotOnlyData = False
+isTightSelection = True
 
 inputnames = ["Signal","Data","SidebandsNorm"]
 
@@ -51,7 +52,7 @@ for hname in list_histos:
 colors_mask = dict()
 #colors_mask["bkgEstimationCR"]   = ROOT.kRed-7
 #colors_mask["Sidebands"]          = ROOT.kRed-7
-colors_mask["SidebandsNorm"]      = ROOT.kTeal+0
+colors_mask["SidebandsNorm"]      = ROOT.kTeal-9
 
 
 #LEGEND
@@ -84,7 +85,6 @@ for filename in list_inputfiles:
     for histo_name in list_histos:
         histo = fileIn.Get(histo_name)
 
-
         # Set to 0 the bins containing negative values, due to negative weights
         hsize = histo.GetSize() - 2 # GetSize() returns the number of bins +2 (that is + overflow + underflow) 
         for bin in range(1,hsize+1): # The +1 is in order to get the last bin
@@ -96,7 +96,10 @@ for filename in list_inputfiles:
         
         if not histo_name == "h_nMuons" and not histo_name == "h_nPhotons" and not histo_name == "h_nJets_25" and not histo_name == "h_nElectrons" and not histo_name == "h_photonWP90":
             print histo_name
-            histo_container[-1].Rebin(5)
+            if isTightSelection and histo_name == "h_K1_Iso" or histo_name == "h_K1_Iso_ch" or histo_name == "h_K2_Iso" or histo_name == "h_K2_Iso_ch" or histo_name == "h_couple_AbsIsoCh" or histo_name == "h_couple_Iso" or histo_name == "h_couple_Iso_ch":
+                histo_container[-1].Rebin(2)
+            else:
+                histo_container[-1].Rebin(5)
 
         if "Signal" in sample_name:
             histo_container[-1].SetLineStyle(2)   #dashed
@@ -184,7 +187,7 @@ for histo_name in list_histos:
     
         if histo_name == "h_phi_InvMass_TwoTrk" :
             hstack[histo_name].GetXaxis().SetTitle("m_{K^{+}K^{-}} [GeV]")
-            hstack[histo_name].GetXaxis().SetLimits(1.,1.04)
+            hstack[histo_name].GetXaxis().SetLimits(1.006,1.034)
 
         if histo_name == "h_firstKCand_pT" :
             hstack[histo_name].GetXaxis().SetTitle("p_{T}^{K_{1}} [GeV]")
@@ -219,6 +222,8 @@ for histo_name in list_histos:
         if histo_name == "h_bestJetPt" :
             hstack[histo_name].GetXaxis().SetTitle("p_{T}^{jet} [GeV]")
             hstack[histo_name].GetXaxis().SetLimits(45.,250.)
+            if isTightSelection:
+                hstack[histo_name].GetXaxis().SetLimits(45.,220.)
 
         if histo_name == "h_bestJetEta" :
             hstack[histo_name].GetXaxis().SetTitle("#eta_{jet}")
@@ -226,22 +231,34 @@ for histo_name in list_histos:
 
         if histo_name == "h_K1_Iso" :
             hstack[histo_name].GetXaxis().SetTitle("#SigmapT_{K_{1}}/pT_{K_{1}}")
+            if isTightSelection:
+                hstack[histo_name].GetXaxis().SetLimits(0.,0.4)
 
         if histo_name == "h_K2_Iso" :
             hstack[histo_name].GetXaxis().SetTitle("#SigmapT_{K_{2}}/pT_{K_{2}}")
+            if isTightSelection:
+                hstack[histo_name].GetXaxis().SetLimits(0.,0.52)
 
         if histo_name == "h_K1_Iso_ch" :
             hstack[histo_name].GetXaxis().SetTitle("#SigmapT_{K_{1}}/pT_{K_{1}}")
+            if isTightSelection:
+                hstack[histo_name].GetXaxis().SetLimits(0.,0.3)        
 
         if histo_name == "h_K2_Iso_ch" :
             hstack[histo_name].GetXaxis().SetTitle("#SigmapT_{K_{2}}/pT_{K_{2}}")
+            if isTightSelection:
+                hstack[histo_name].GetXaxis().SetLimits(0.,0.42)
 
         if histo_name == "h_couple_Iso" :
             hstack[histo_name].GetXaxis().SetTitle("#SigmapT_{K_{2}}/pT_{K_{2}}")
+            if isTightSelection:
+                hstack[histo_name].GetXaxis().SetLimits(0.,0.25)
 
         if histo_name == "h_couple_Iso_ch" :
             hstack[histo_name].GetXaxis().SetTitle("#Sigmap_{T}^{ch}/p_{T}^{K^{+}K^{-}}")
             hstack[histo_name].GetXaxis().SetLimits(0.,1.)
+            if isTightSelection:
+                hstack[histo_name].GetXaxis().SetLimits(0.,0.22)
 
         if histo_name == "h_bestCoupleDeltaR" :
             hstack[histo_name].GetXaxis().SetTitle("#DeltaR_{K^{+}K^{-}}")
@@ -253,6 +270,8 @@ for histo_name in list_histos:
         if histo_name == "h_photon_energy" :
             hstack[histo_name].GetXaxis().SetTitle("E_{T}^{#gamma}[GeV]")
             hstack[histo_name].GetXaxis().SetLimits(30.,160.)
+            if isTightSelection:
+                hstack[histo_name].GetXaxis().SetLimits(30.,150)
 
         if histo_name == "h_photon_eta" :
             hstack[histo_name].GetXaxis().SetTitle("#eta_{#gamma}")
@@ -268,11 +287,15 @@ for histo_name in list_histos:
         if histo_name == "h_couple_AbsIsoCh" :
             hstack[histo_name].GetXaxis().SetTitle("absIso_{KK}")
             hstack[histo_name].GetXaxis().SetLimits(0.,30.)
+            if isTightSelection:
+                hstack[histo_name].GetXaxis().SetLimits(0.,12.)
+
 
         hstack[histo_name].Draw("SAME,histo")
 
     if signal_magnify != 1:
-        hsignal[histo_name].Scale(signal_magnify)      
+        hsignal[histo_name].Scale(signal_magnify)   
+  
 
     hdata[histo_name].Draw("SAME,E1,X0")
     hsignal[histo_name].Draw("SAME,hist")

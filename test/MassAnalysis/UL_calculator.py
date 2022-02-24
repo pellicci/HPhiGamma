@@ -1,6 +1,6 @@
 import ROOT
 
-fInputData = ROOT.TFile("histos/latest_production/histos_Data.root")
+fInputData = ROOT.TFile("histos/latest_production/histos_SR_Data.root")
 fInputData.cd()
 mytree = fInputData.Get("tree_output")
 

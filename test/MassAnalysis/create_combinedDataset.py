@@ -2,6 +2,9 @@ import ROOT
 import argparse
 import os
 
+#Supress the opening of many Canvas's
+ROOT.gROOT.SetBatch(True)   
+
 debug = True
 
 p = argparse.ArgumentParser(description='Select directory')
@@ -11,7 +14,7 @@ args = p.parse_args()
 #INPUT SETTINGS-------------------------------------------------------------
 fInput1 = ROOT.TFile("workspaces/ws_signal.root")
 fInput2 = ROOT.TFile("workspaces/ws_data.root")
-fInput3 = ROOT.TFile(args.dir_path + "histos_Signal.root")
+fInput3 = ROOT.TFile(args.dir_path + "histos_SR_Signal.root")
 
 #TREE RETRIEVING------------------------------------------------------------
 Signal_tree = fInput3.Get("tree_output")
@@ -32,15 +35,15 @@ backgroundPDF = workspaceData.pdf("bkgPDF")
 
 #N. OF EVENTS
 signal_amplifier = 1.
-signalWeight = 0.692480078053*signal_amplifier
-Ndata = 789
+signalWeight = 0.227113240117*signal_amplifier
+Ndata = 4149
 Nsig = ROOT.RooRealVar("Signal_events","N of signal events",signalWeight,-0.1,signalWeight+0.5*signalWeight) 
 Nbkg = ROOT.RooRealVar("Bkg events", "N of bkg events",Ndata,Ndata-0.5*Ndata,Ndata+0.5*Ndata)
 
 #ARGLISTs and VARs
 argListPDFs = ROOT.RooArgList(sigPDF,backgroundPDF)
 argListN = ROOT.RooArgList(Nsig,Nbkg)
-mass_KKg = ROOT.RooRealVar("mass_KKg","The invariant mass_KKg",125.,100.,160.,"GeV/c^2")
+mass_KKg = ROOT.RooRealVar("mass_KKg","The invariant mass_KKg",125.,100.,150.,"GeV/c^2")
 
 #ADD PDFs
 totPDF = ROOT.RooAddPdf("totPDF","The total PDF",argListPDFs,argListN)
@@ -60,7 +63,8 @@ print "totpdf plotted!"
 canvas = ROOT.TCanvas()
 canvas.cd()
 mass_KKgplot.Draw()
-canvas.SaveAs("PDFtot.pdf")
+canvas.SaveAs("/eos/user/g/gumoret/www/MyAnalysis/HPhiGamma/MassAnalysis/latest_production/PDFtot.pdf")
+canvas.SaveAs("/eos/user/g/gumoret/www/MyAnalysis/HPhiGamma/MassAnalysis/latest_production/PDFtot.png")
 
 #SAVE DATACOMBINED
 workspace = ROOT.RooWorkspace("myworkspace")

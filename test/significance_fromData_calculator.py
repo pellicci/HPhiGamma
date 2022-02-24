@@ -12,8 +12,8 @@ p.add_argument('dir_path', help='Type directory path')
 args = p.parse_args()
 
 #INPUT SETTINGS-------------------------------------------------------------
-fInput1 = ROOT.TFile(args.dir_path + "histos_Data.root")
-fInput2 = ROOT.TFile(args.dir_path + "histos_Signal.root")
+fInput1 = ROOT.TFile(args.dir_path + "histos_SR_Data.root")
+fInput2 = ROOT.TFile(args.dir_path + "histos_SR_Signal.root")
 
 #OUTPUT SETTINGS-----------------------------------------------------------
 fOutput = ROOT.TFile("nEvents_Container.root","RECREATE")
