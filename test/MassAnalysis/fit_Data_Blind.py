@@ -3,7 +3,7 @@ import ROOT
 #Supress the opening of many Canvas's
 ROOT.gROOT.SetBatch(True) 
 
-#INPUT
+#INPUT from workspaces
 fInput1 = ROOT.TFile("workspaces/ws_signal.root")
 fInput1.cd()
 workspaceSignal = fInput1.Get("myworkspace")
@@ -28,10 +28,11 @@ workspaceSignal.var("alpha").setConstant(1)
 workspaceSignal.var("sigma").setConstant(1)
 workspaceSignal.var("enne").setConstant(1)
 
+#Number of events
 Ndata = 3617 #number of events in the sidebands of m_KKg #mytree.nEvents_BKG
 signalWeight = 0.227113240117 #mytree.nEvents_Signal
-print "Ndata = ",Ndata
-print "Nsig = ",signalWeight
+print "Ndata = ", Ndata
+print "Nsig = ", signalWeight
 
 Nbkg = ROOT.RooRealVar("Nbkg", "N of bkg events",Ndata, 0.1, 5000)
 mass = ROOT.RooRealVar("mass_KKg","mass_KKg",100.,150.,"GeV")
@@ -50,6 +51,7 @@ Nsig = ROOT.RooFormulaVar("Nsig","@0*@1*@2*@3*@4",ROOT.RooArgList(cross_sig,lumi
 #SIGNAL PDF
 sigPDF = workspaceSignal.pdf("signalPDF")
 
+#Retrieve dataset from the tree, insert the variable also
 dataset = ROOT.RooDataSet("dataset","dataset",ROOT.RooArgSet(mass),ROOT.RooFit.Import(tree))
 nEntries = dataset.numEntries() 
 
