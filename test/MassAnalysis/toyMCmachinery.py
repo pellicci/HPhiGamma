@@ -20,7 +20,7 @@ totPDF = workspace.pdf("totPDF")
 print "pdf retrieved"
 mcstudy = ROOT.RooMCStudy(totPDF, ROOT.RooArgSet(mass_KKg), ROOT.RooFit.Silence(), ROOT.RooFit.Extended(), ROOT.RooFit.FitOptions(ROOT.RooFit.Save(1), ROOT.RooFit.PrintEvalErrors(0)))
 print "mcstudy set"
-mcstudy.generateAndFit(10000)
+mcstudy.generateAndFit(1000)
 print "toy generated"
 
 #Plot the distributions of the fitted parameter, the error and the pull

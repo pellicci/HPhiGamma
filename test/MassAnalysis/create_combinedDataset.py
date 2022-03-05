@@ -4,6 +4,8 @@ import os
 
 #Supress the opening of many Canvas's
 ROOT.gROOT.SetBatch(True)   
+ROOT.gROOT.ProcessLineSync(".L MassAnalysis/dCB/RooDoubleCBFast.cc+") #import the Doube Crystal Ball PDF
+
 
 debug = True
 
@@ -13,7 +15,7 @@ args = p.parse_args()
 
 #INPUT SETTINGS-------------------------------------------------------------
 fInput1 = ROOT.TFile("workspaces/ws_signal.root")
-fInput2 = ROOT.TFile("workspaces/ws_data.root")
+fInput2 = ROOT.TFile("workspaces/ws_sidebands.root")
 fInput3 = ROOT.TFile(args.dir_path + "histos_SR_Signal.root")
 
 #TREE RETRIEVING------------------------------------------------------------

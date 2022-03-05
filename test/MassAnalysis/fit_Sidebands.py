@@ -31,7 +31,7 @@ bkgPDF.fitTo(dataset,ROOT.RooFit.Range("LowSideband,HighSideband"))
 data_blinded = dataset.reduce("mass_KKg < 120. || mass_KKg > 130.")
 
 #Plot
-xframe = mass.frame(50)
+xframe = mass.frame(40)
 data_blinded.plotOn(xframe)
 bkgPDF.plotOn(xframe,ROOT.RooFit.Range("LowSideband,HighSideband"))
 xframe.SetTitle("#sqrt{s} = 13 TeV       lumi = 39.54/fb")
