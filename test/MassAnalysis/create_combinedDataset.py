@@ -6,7 +6,6 @@ import os
 ROOT.gROOT.SetBatch(True)   
 ROOT.gROOT.ProcessLineSync(".L MassAnalysis/dCB/RooDoubleCBFast.cc+") #import the Doube Crystal Ball PDF
 
-
 debug = True
 
 p = argparse.ArgumentParser(description='Select directory')

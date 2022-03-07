@@ -20,7 +20,7 @@ signif = []
 _effS = 0
 
 for jbin in range(1,h_BDT_effB_effS.GetNbinsX()+1):
-    if h_BDT_effB_effS.GetBinCenter(jbin) > 0.01:
+    if h_BDT_effB_effS.GetBinCenter(jbin) > 0.42: #insert the number before whom the function fluctuates too much to estimate the maximum
         sig_eff.append(h_BDT_effB_effS.GetBinCenter(jbin))
         if h_BDT_effB_effS.GetBinContent(jbin) < 0.:
             bkg_eff.append(0.)

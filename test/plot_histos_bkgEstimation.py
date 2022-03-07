@@ -11,12 +11,12 @@ signal_magnify = int(sys.argv[1])
 CR_magnify = 1. #2079./1179.
 
 plotOnlyData = False
-isTightSelection = True
+isTightSelection = int(sys.argv[2])
 
 inputnames = ["Signal","Data","SidebandsNorm"]
 
 list_inputfiles = []
-for filename in sys.argv[2:]:
+for filename in sys.argv[3:]:
     list_inputfiles.append(filename)
 
 #CMS-style plotting 
@@ -96,7 +96,7 @@ for filename in list_inputfiles:
         
         if not histo_name == "h_nMuons" and not histo_name == "h_nPhotons" and not histo_name == "h_nJets_25" and not histo_name == "h_nElectrons" and not histo_name == "h_photonWP90":
             print histo_name
-            if isTightSelection and histo_name == "h_K1_Iso" or histo_name == "h_K1_Iso_ch" or histo_name == "h_K2_Iso" or histo_name == "h_K2_Iso_ch" or histo_name == "h_couple_AbsIsoCh" or histo_name == "h_couple_Iso" or histo_name == "h_couple_Iso_ch":
+            if isTightSelection and (histo_name == "h_K1_Iso" or histo_name == "h_K1_Iso_ch" or histo_name == "h_K2_Iso" or histo_name == "h_K2_Iso_ch" or histo_name == "h_couple_AbsIsoCh" or histo_name == "h_couple_Iso" or histo_name == "h_couple_Iso_ch"):
                 histo_container[-1].Rebin(2)
             else:
                 histo_container[-1].Rebin(5)
@@ -170,7 +170,7 @@ for histo_name in list_histos:
         if histo_name == "h_nJets_25" or histo_name == "h_nMuons" or histo_name == "h_nElectrons" or histo_name == "h_nPhotons":
             hstack[histo_name].SetMaximum(10 * hdata[histo_name].GetMaximum())
         else:
-            hstack[histo_name].SetMaximum(1.9 * hdata[histo_name].GetMaximum())
+            hstack[histo_name].SetMaximum(2.5 * hdata[histo_name].GetMaximum())
 
 
         if histo_name == "h_InvMass_TwoTrk_Photon":            
@@ -180,10 +180,6 @@ for histo_name in list_histos:
         if histo_name == "h_nJets_25":
             hstack[histo_name].GetXaxis().SetTitle("nJets")
             hstack[histo_name].GetXaxis().SetLimits(-0.5,6.5)
-
-        if histo_name == "h_InvMass_TwoTrk_Photon_NoPhiMassCut" :
-            hstack[histo_name].GetXaxis().SetTitle("m_{K^{+}K^{-}#gamma} [GeV]")
-            hstack[histo_name].GetXaxis().SetLimits(100.,150.)
     
         if histo_name == "h_phi_InvMass_TwoTrk" :
             hstack[histo_name].GetXaxis().SetTitle("m_{K^{+}K^{-}} [GeV]")

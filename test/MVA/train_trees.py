@@ -22,12 +22,12 @@ dataloader = ROOT.TMVA.DataLoader()
 
 #first track 
 #dataloader.AddVariable("_firstCandPt","F") # Both Float and Double variable types must be indicated as F
-dataloader.AddVariable("_firstCandIso","F")
+#dataloader.AddVariable("_firstCandIso","F")
 #dataloader.AddVariable("_firstCandEta","F")
 
 #second track
 #dataloader.AddVariable("_secondCandPt","F")
-dataloader.AddVariable("_secondCandIso","F")
+#dataloader.AddVariable("_secondCandIso","F")
 #dataloader.AddVariable("_secondCandEta","F")
 
 #best pair
@@ -38,11 +38,17 @@ dataloader.AddVariable("_secondCandIso","F")
 #dataloader.AddVariable("mass_KK","F") #using m_kk variable is not correct since you use it to define the bkg estimation, use it only to compute scatter plots to see correlation with other variables
 
 #photon
-dataloader.AddVariable("_photonEt","F")
+#dataloader.AddVariable("_photonEt","F")
 #dataloader.AddVariable("_photonEta","F")
 
 #jet
-dataloader.AddVariable("_bestJetPt","F")
+#dataloader.AddVariable("_bestJetPt","F")
+
+#Pay attention to the order, it must be the same in the function_smuggler.py
+dataloader.AddVariable("_firstCandPt","F")
+#dataloader.AddVariable("_secondCandPt","F")
+dataloader.AddVariable("_coupleIso","F")
+dataloader.AddVariable("_photonEt","F")
 
 #-------------------------------------------------------------------------------------------------------
 

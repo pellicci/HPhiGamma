@@ -1,0 +1,7 @@
+
+# DO NOT DELETE
+
+./MassAnalysis/dCB/GBRMath_cc.so: /afs/cern.ch/work/g/gumoret/HMesonGamma/CMSSW_10_6_27/src/HiggsAnalysis/HPhiGamma/test/./MassAnalysis/dCB/GBRMath.h
+./MassAnalysis/dCB/GBRMath_cc.so: /cvmfs/cms.cern.ch/slc7_amd64_gcc820/lcg/root/6.14.09-pafccj5/include/RVersion.h
+./MassAnalysis/dCB/GBRMath_cc.so: /cvmfs/cms.cern.ch/slc7_amd64_gcc820/lcg/root/6.14.09-pafccj5/include/RVersion.h /cvmfs/cms.cern.ch/slc7_amd64_gcc820/lcg/root/6.14.09-pafccj5/include/RConfig.h /cvmfs/cms.cern.ch/slc7_amd64_gcc820/lcg/root/6.14.09-pafccj5/include/TClass.h /cvmfs/cms.cern.ch/slc7_amd64_gcc820/lcg/root/6.14.09-pafccj5/include/TDictAttributeMap.h /cvmfs/cms.cern.ch/slc7_amd64_gcc820/lcg/root/6.14.09-pafccj5/include/TInterpreter.h /cvmfs/cms.cern.ch/slc7_amd64_gcc820/lcg/root/6.14.09-pafccj5/include/TROOT.h /cvmfs/cms.cern.ch/slc7_amd64_gcc820/lcg/root/6.14.09-pafccj5/include/TBuffer.h /cvmfs/cms.cern.ch/slc7_amd64_gcc820/lcg/root/6.14.09-pafccj5/include/TMemberInspector.h /cvmfs/cms.cern.ch/slc7_amd64_gcc820/lcg/root/6.14.09-pafccj5/include/TError.h /cvmfs/cms.cern.ch/slc7_amd64_gcc820/lcg/root/6.14.09-pafccj5/include/RtypesImp.h /cvmfs/cms.cern.ch/slc7_amd64_gcc820/lcg/root/6.14.09-pafccj5/include/TIsAProxy.h /cvmfs/cms.cern.ch/slc7_amd64_gcc820/lcg/root/6.14.09-pafccj5/include/TFileMergeInfo.h /cvmfs/cms.cern.ch/slc7_amd64_gcc820/lcg/root/6.14.09-pafccj5/include/TCollectionProxyInfo.h /cvmfs/cms.cern.ch/slc7_amd64_gcc820/cms/cmssw/CMSSW_10_6_27/external/slc7_amd64_gcc820/bin/rootcling
+GBRMath_cc__ROOTBUILDVERSION= 6.14/09

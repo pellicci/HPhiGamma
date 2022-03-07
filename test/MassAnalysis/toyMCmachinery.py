@@ -2,14 +2,17 @@ import ROOT
 
 #Supress the opening of many Canvas's
 ROOT.gROOT.SetBatch(True)   
+ROOT.gROOT.ProcessLineSync(".L MassAnalysis/dCB/RooDoubleCBFast.cc+") #import the Doube Crystal Ball PDF
+
 
 #INPUT SETTINGS
 fInput = ROOT.TFile("workspaces/ws_data_blind.root") 
 fInput.cd()
 workspace = fInput.Get("myworkspace")
-
+workspace.Print()
 #VAR and CONSTANTS SETTINGS
 mass_KKg = workspace.var("mass_KKg")
+
 B_R_ = workspace.var("B_R_")
 
 #RETRIEVE total PDF
