@@ -20,35 +20,17 @@ dataloader = ROOT.TMVA.DataLoader()
 
 #VARIABLES FROM THE TREE -------------------------------------------------------------------------------
 
-#first track 
-#dataloader.AddVariable("_firstCandPt","F") # Both Float and Double variable types must be indicated as F
-#dataloader.AddVariable("_firstCandIso","F")
-#dataloader.AddVariable("_firstCandEta","F")
-
-#second track
-#dataloader.AddVariable("_secondCandPt","F")
-#dataloader.AddVariable("_secondCandIso","F")
-#dataloader.AddVariable("_secondCandEta","F")
-
-#best pair
-#dataloader.AddVariable("_bestCouplePt","F")
-#dataloader.AddVariable("_coupleIso","F")  
-#dataloader.AddVariable("_bestCoupleEta","F")
-#dataloader.AddVariable("_bestCoupleDeltaR","F")
-#dataloader.AddVariable("mass_KK","F") #using m_kk variable is not correct since you use it to define the bkg estimation, use it only to compute scatter plots to see correlation with other variables
-
-#photon
-#dataloader.AddVariable("_photonEt","F")
-#dataloader.AddVariable("_photonEta","F")
-
-#jet
-#dataloader.AddVariable("_bestJetPt","F")
+#first track:  _firstCandPt    _firstCandIso    _firstCandEta
+#second track: _secondCandPt   _secondCandIso   _secondCandEta
+#best pair:   _bestCouplePt   _coupleIso   _bestCoupleEta   _bestCoupleDeltaR  mass_KK (using m_kk variable is not correct since you use it to define the bkg estimation, use it only to compute scatter plots to see correlation with other variables)
+#photon:   _photonEt  _photonEta
+#jet: _bestJetPt
+#invariant mass: mass_KKg
 
 #Pay attention to the order, it must be the same in the function_smuggler.py
-dataloader.AddVariable("_firstCandPt","F")
-#dataloader.AddVariable("_secondCandPt","F")
-dataloader.AddVariable("_coupleIso","F")
-dataloader.AddVariable("_photonEt","F")
+dataloader.AddVariable("_firstCandIso","F")
+dataloader.AddVariable("_bestCouplePt/mass_KKg","F")
+dataloader.AddVariable("_photonEt/mass_KKg","F")
 
 #-------------------------------------------------------------------------------------------------------
 
@@ -61,7 +43,6 @@ print "before AddBackgroundTree"
 dataloader.AddBackgroundTree(tree_bkg, bkg_weight)
 
 dataloader.SetWeightExpression("_eventWeight") #_eventWeight is the weight variable of the tree
-
 
 mycutSig = ROOT.TCut("")
 mycutBkg = ROOT.TCut("")

@@ -6,10 +6,10 @@ import sys
 from functions_smuggler import Simplified_Workflow_Handler
 
 #bools
-debug          = True
-doSelection    = True
-isDataBlind    = True
-isBDT          = False #don't turn it into true, it is decided by the option input
+debug          = True #Bool for verbose
+doSelection    = True #if you turn this to False disable select_all_but_one
+isDataBlind    = True #Bool for blind analysis
+isBDT          = False #don't turn it into True, it is decided by the option input
 
 #Supress the opening of many Canvas's
 ROOT.gROOT.SetBatch(True)   
@@ -37,7 +37,7 @@ else :
 if args.isBDT_option == "BDT":
     isBDT = True
 
-BDT_OUT = 0.194953569135 #take this number running MVA/BDT_significance.py: this is the BDT output value which maximizes the significance
+BDT_OUT = 0.248162819814 #take this number running MVA/BDT_significance.py: this is the BDT output value which maximizes the significance
 
 
 #SPLIT: I can split a string of chars before and after a split code (that could be a string or a symbol)
@@ -127,7 +127,7 @@ fOut.cd()
 #fOutput = ROOT.TFile("histos/latest_production/histos_"+samplename+".root","RECREATE")
 #fOutput.cd()
 
-#Variables to go in the tree #############################################################################################
+#Variables to go in the output tree #############################################################################################
 mass_KKg             = np.zeros(1, dtype=float)
 mass_KK              = np.zeros(1, dtype=float)
 _coupleIsoCh         = np.zeros(1, dtype=float)
@@ -314,7 +314,7 @@ for jentry in xrange(nentries):
 
     #TIGHT SELECTION from BDT output -------------------------------------------------  
     if isBDT:
-        BDT_out = myWF.get_BDT_output(firstKpT,PhiIso,photonEt)
+        BDT_out = myWF.get_BDT_output(firstKiso,PhiPt,photonEt,Hmass)
         #histo_map["h_BDT_out"].Fill(BDT_out)
 
         print "BDT value before selection = ", BDT_out

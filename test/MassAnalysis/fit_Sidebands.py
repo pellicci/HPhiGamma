@@ -10,11 +10,11 @@ mass.setRange("HighSideband",130.,150.)
 
 a_bkg = ROOT.RooRealVar("a_bkg","a_bkg",0.1,-10.,10.)
 b_bkg = ROOT.RooRealVar("b_bkg","b_bkg",0.,-10.,10.)
-c_bkg = ROOT.RooRealVar("c_bkg","c_bkg",0.,-10.,10.)
+#c_bkg = ROOT.RooRealVar("c_bkg","c_bkg",0.,-10.,10.)
 #d_bkg = ROOT.RooRealVar("d_bkg","d_bkg",0.,-10.,10.)
 
 #Initialize a Chebychev pdf
-bkgPDF = ROOT.RooChebychev("bkgPDF","bkgPDF",mass,ROOT.RooArgList(a_bkg,b_bkg,c_bkg))
+bkgPDF = ROOT.RooChebychev("bkgPDF","bkgPDF",mass,ROOT.RooArgList(a_bkg,b_bkg))
 
 #Input file and tree
 fileInput = ROOT.TFile("histos/latest_production/histos_SR_Data.root")

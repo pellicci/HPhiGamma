@@ -1,25 +1,22 @@
 import ROOT
 
-fInputData = ROOT.TFile("histos/latest_production/histos_SR_Data.root")
-fInputData.cd()
-mytree = fInputData.Get("tree_output")
+#Some useful things before starting --------------------------------------------------------------------
+ROOT.gROOT.SetBatch(True) #Supress the opening of many Canvas's
+ROOT.gROOT.ProcessLineSync(".L MassAnalysis/dCB/RooDoubleCBFast.cc+") #import the Doube Crystal Ball PDF
 
-fInputPDF = ROOT.TFile("workspaces/ws_data.root")
-ws = fInputPDF.Get("myworkspace")
-ws.Print()
+#Import from workspaces --------------------------------------------------------------------
+fInput = ROOT.TFile("workspaces/ws_data_blind.root")
+fInput.cd()
+ws = fInput.Get("myworkspace")
+ws.Print() #print some info of the workspace content
 
 B_R_ = ws.var("B_R_")
 poi_list = ROOT.RooArgSet(B_R_)
 mass_KKg = ws.var("mass_KKg")
 obs_list = ROOT.RooArgSet(ws.var("mass_KKg"))
-data = ROOT.RooDataSet("dataset","dataset",ROOT.RooArgSet(mass_KKg),ROOT.RooFit.Import(mytree))
-#data_binned = data.binnedClone("data_binned","data_binned")
-#getattr(ws,'import')(data_binned)
 
-ws.Print()
-
-#glb_list = ROOT.RooArgSet()
-#glb_list.add(ws.var("global_eff"))
+#Retrieve the generated dataset in fit_Data_Blind.py
+data = ws.data("totPDFData")
 
 #Set the RooModelConfig and let it know what the content of the workspace is about
 model = ROOT.RooStats.ModelConfig()

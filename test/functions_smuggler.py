@@ -11,8 +11,8 @@ from array import array
 
 #------- Arrays and reader for the BDT -------#
 
-K1pT_array     = array('f', [0.])
-KKIso_array    = array('f', [0.])
+K1iso_array     = array('f', [0.])
+KKpT_array    = array('f', [0.])
 photonEt_array = array('f', [0.])
 
 reader = ROOT.TMVA.Reader("!Color")
@@ -34,20 +34,20 @@ class Simplified_Workflow_Handler:
         #                                                                                 #
         ###################################################################################
 
-        reader.AddVariable("_firstCandPt",K1pT_array)
-        reader.AddVariable("_coupleIso",KKIso_array)
-        reader.AddVariable("_photonEt",photonEt_array)
+        reader.AddVariable("_firstCandIso",K1iso_array)
+        reader.AddVariable("_bestCouplePt/mass_KKg",KKpT_array)
+        reader.AddVariable("_photonEt/mass_KKg",photonEt_array)
 
         if isBDT:
             reader.BookMVA("BDT","MVA/default/weights/TMVAClassification_BDT.weights.xml")
 
     ###############################################################################################################################################
 
-    def get_BDT_output(self,K1pT,KKIso,photonEt):
+    def get_BDT_output(self,K1iso,KKpT,photonEt,mass_KKg):
 
-        K1pT_array[0]     = K1pT
-        KKIso_array[0]    = KKIso
-        photonEt_array[0] = photonEt
+        K1iso_array[0]     = K1iso
+        KKpT_array[0]      = KKpT/mass_KKg
+        photonEt_array[0]  = photonEt/mass_KKg
 
         return reader.EvaluateMVA("BDT")
     

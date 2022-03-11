@@ -12,7 +12,12 @@ mass = ROOT.RooRealVar("mass_KKg","mass_KKg",100.,150.,"GeV")
 #Data input -------------------------------------------------------------
 fileInputData = ROOT.TFile("histos/latest_production/histos_SR_Data.root")
 fileInputData.cd()
-mytree = fileInputData.Get("tree_output")
+mytreeData = fileInputData.Get("tree_output")
+
+#Data input -------------------------------------------------------------
+fileInputSignal = ROOT.TFile("histos/latest_production/histos_SR_Signal.root")
+fileInputSignal.cd()
+mytreeSignal = fileInputSignal.Get("tree_output")
 
 #Import from workspaces --------------------------------------------------------------------
 fInputSignalPDF = ROOT.TFile("workspaces/ws_signal.root")
@@ -40,11 +45,16 @@ workspaceSidebands.Print()
 #Define the POI -------------------------------------------------------------------------------------
 B_R = ROOT.RooRealVar("B_R","branching_ratio",10**(-5),-1,10**(-2)) #parameter of interest
 
-#Number of events
-Ndata = 1618 #number of events in m_KKg
+#Number of events in m_KKg
+Ndata = mytreeData.GetEntriesFast()
+NsigPassed = mytreeSignal.GetEntriesFast()
+totalSigEvents = 49750.
+sigEfficiency = NsigPassed/totalSigEvents
 print "Ndata = ", Ndata
+print "N signal events over tightselection = ", NsigPassed
 
-Nbkg = ROOT.RooRealVar("Nbkg", "N of bkg events",Ndata, 300., 5000.)
+#N bkg estimation
+Nbkg = ROOT.RooRealVar("Nbkg", "N of bkg events",Ndata, 300., 3000.)
 
 #BKG PDF
 bkgPDF = workspaceSidebands.pdf("bkgPDF")
@@ -52,7 +62,7 @@ bkgPDF = workspaceSidebands.pdf("bkgPDF")
 #Define PDFs for the fit --------------------------------------------------------------------------------------------------
 cross_sig = ROOT.RooRealVar("cross_sig","Th e signal cross section",52.36)#52.36pb (gluon fusion + vector boson fusion xsec)
 lumi = ROOT.RooRealVar("lumi","The luminosity",39540)#pb^-1
-eff = ROOT.RooRealVar("eff","efficiency",0.0761608040201) # = 3789/49750
+eff = ROOT.RooRealVar("eff","efficiency",sigEfficiency) # = (n sig over tightselection)/49750
 B_R_phiKK = ROOT.RooRealVar("B_R_phiKK","b_r_phi_KK",0.489) # = BR(phi -> K+K-)
 B_R_ = ROOT.RooRealVar("B_R_","branching_ratio",10**(-5),-1,10**(-2))
 Nsig = ROOT.RooFormulaVar("Nsig","@0*@1*@2*@3*@4",ROOT.RooArgList(cross_sig,lumi,eff,B_R_phiKK,B_R_))
@@ -68,7 +78,7 @@ totPDF = ROOT.RooAddPdf("totPDF","The total PDF",argListPDFs,argListN)
 
 print "PDFs added!"
 
-#Generate dataset for blind analysis --------------------------------------------------------------------------------------------------
+#Generate dataset for blind analysis -----------------------------------------------------------------------------------
 datasetGenerated = totPDF.generate(ROOT.RooArgSet(mass),Ndata)
 
 #FIT
@@ -88,9 +98,19 @@ xframe.Draw()
 c1.SaveAs("~/cernbox/www/MyAnalysis/HPhiGamma/MassAnalysis/latest_production/fit_to_generated_dataset.pdf")
 c1.SaveAs("~/cernbox/www/MyAnalysis/HPhiGamma/MassAnalysis/latest_production/fit_to_generated_dataset.png")
 
+#Final useful information for debugging
+print ""
+print "######################################################"
+print "Ndata = ", Ndata
+print "N signal events over tightselection = ", NsigPassed
+print "Signal efficiency after tightselection = ", sigEfficiency
+print "######################################################"
+print ""
+
 #create Workspace
 workspace = ROOT.RooWorkspace("myworkspace")
 getattr(workspace,'import')(totPDF)
+getattr(workspace,'import')(datasetGenerated)
 
 fOut = ROOT.TFile("workspaces/ws_data_blind.root","RECREATE")
 fOut.cd()
