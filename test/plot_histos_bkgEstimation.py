@@ -166,11 +166,12 @@ for histo_name in list_histos:
         hstack[histo_name].GetYaxis().SetTitle("Events")
         hstack[histo_name].SetTitle("#sqrt{s} = 13 TeV       lumi = 39.54/fb")
         hstack[histo_name].GetXaxis().SetLabelOffset(999)
+        hstack[histo_name].GetYaxis().SetMaxDigits(3)
 
         if histo_name == "h_nJets_25" or histo_name == "h_nMuons" or histo_name == "h_nElectrons" or histo_name == "h_nPhotons":
             hstack[histo_name].SetMaximum(10 * hdata[histo_name].GetMaximum())
         else:
-            hstack[histo_name].SetMaximum(2.5 * hdata[histo_name].GetMaximum())
+            hstack[histo_name].SetMaximum(2.1 * hdata[histo_name].GetMaximum())
 
 
         if histo_name == "h_InvMass_TwoTrk_Photon":            
@@ -190,7 +191,7 @@ for histo_name in list_histos:
             hstack[histo_name].GetXaxis().SetLimits(20.,60.)
 
         if histo_name == "h_secondKCand_pT" :
-            hstack[histo_name].GetXaxis().SetTitle("p_{T}^{K_2} [GeV]")
+            hstack[histo_name].GetXaxis().SetTitle("p_{T}^{K_{2}} [GeV]")
             hstack[histo_name].GetXaxis().SetLimits(12.,50.)
 
         if histo_name == "h_firstKCand_Eta" :
@@ -246,7 +247,7 @@ for histo_name in list_histos:
                 hstack[histo_name].GetXaxis().SetLimits(0.,0.42)
 
         if histo_name == "h_couple_Iso" :
-            hstack[histo_name].GetXaxis().SetTitle("#SigmapT_{K_{2}}/pT_{K_{2}}")
+            hstack[histo_name].GetXaxis().SetTitle("#Sigmap_{T}/p_{T}^{K^{+}K^{-}}")
             if isTightSelection:
                 hstack[histo_name].GetXaxis().SetLimits(0.,0.25)
 

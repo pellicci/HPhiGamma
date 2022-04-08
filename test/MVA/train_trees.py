@@ -31,6 +31,7 @@ dataloader = ROOT.TMVA.DataLoader()
 dataloader.AddVariable("_firstCandIso","F")
 dataloader.AddVariable("_bestCouplePt/mass_KKg","F")
 dataloader.AddVariable("_photonEt/mass_KKg","F")
+#dataloader.AddVariable("_bestJetPt/mass_KKg","F")
 
 #-------------------------------------------------------------------------------------------------------
 

@@ -18,6 +18,7 @@ ROOT.gROOT.SetBatch(True)
 p = argparse.ArgumentParser(description='Select rootfile to plot')
 p.add_argument('CR_option', help='Type <<0>> for SR, <<1>> for CR') #flag for bkg estimation
 p.add_argument('isBDT_option', help='Type <<preselection>> or <<BDT>>') #flag for loose selection or tight selection (from BDT output)
+p.add_argument('isBlindAnalysis', help='Type <<blind>> or <<unblind>>') #flag for loose selection or tight selection (from BDT output)
 p.add_argument('rootfile_name', help='Type rootfile name')
 p.add_argument('outputfile_option', help='Provide output file name')
 args = p.parse_args()
@@ -33,12 +34,14 @@ else :
     print "Processing the signal region"
 
 
-#BDT Flag ######################################################################################################
+#Flags ######################################################################################################
 if args.isBDT_option == "BDT":
     isBDT = True
 
-BDT_OUT = 0.248162819814 #take this number running MVA/BDT_significance.py: this is the BDT output value which maximizes the significance
+if args.isBlindAnalysis == "unblind":
+    isDataBlind = False
 
+BDT_OUT = 0.248162819814 #take this number running MVA/BDT_significance.py: this is the BDT output value which maximizes the significance
 
 #SPLIT: I can split a string of chars before and after a split code (that could be a string or a symbol)
 #then I can take the string standing before or after with [0] or [1], respectively. 

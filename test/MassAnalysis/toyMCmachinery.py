@@ -12,8 +12,20 @@ workspace = fInput.Get("myworkspace")
 workspace.Print()
 #VAR and CONSTANTS SETTINGS
 mass_KKg = workspace.var("mass_KKg")
+#datasetGenerated = workspace.data("totPDFData")
 
 B_R_ = workspace.var("B_R_")
+
+#workspace.var("a_bkg").setConstant(1)
+#workspace.var("b_bkg").setConstant(1)
+
+#workspaceSignal.var("dCB_nL").setConstant(1) 
+#workspaceSignal.var("dCB_nR").setConstant(1)
+#workspaceSignal.var("dCB_aL").setConstant(1)
+#workspaceSignal.var("dCB_aR").setConstant(1)
+#workspaceSignal.var("dCB_pole").setConstant(1)
+#workspaceSignal.var("dCB_width").setConstant(1)
+
 
 #RETRIEVE total PDF
 totPDF = workspace.pdf("totPDF")
@@ -22,8 +34,9 @@ totPDF = workspace.pdf("totPDF")
 #Binned(kTRUE)
 print "pdf retrieved"
 mcstudy = ROOT.RooMCStudy(totPDF, ROOT.RooArgSet(mass_KKg), ROOT.RooFit.Silence(), ROOT.RooFit.Extended(), ROOT.RooFit.FitOptions(ROOT.RooFit.Save(1), ROOT.RooFit.PrintEvalErrors(0)))
+#mcstudy = ROOT.RooMCStudy(totPDF, ROOT.RooArgSet(mass_KKg), ROOT.RooFit.Silence(), ROOT.RooFit.ProtoData(datasetGenerated), ROOT.RooFit.FitOptions(ROOT.RooFit.Save(1), ROOT.RooFit.PrintEvalErrors(0)))
 print "mcstudy set"
-mcstudy.generateAndFit(10000)
+mcstudy.generateAndFit(1000)
 print "toy generated"
 
 #Plot the distributions of the fitted parameter, the error and the pull

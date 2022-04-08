@@ -18,10 +18,19 @@ for histo_name in list_histos:
 	histoSR = DataSR.Get(histo_name)
 	histoCR = Sidebands.Get(histo_name)
 
-	print "histo SR integral = ", histoSR.Integral()		
-	print "histo CR integral = ", histoCR.Integral()		
+	if histo_name == "h_InvMass_TwoTrk_Photon" or histo_name == "h_InvMass_TwoTrk_Photon_NoPhiMassCut":
 
-	histoCR.Scale(histoSR.Integral()/histoCR.Integral())
+		CRintegral = histoCR.Integral() - histoCR.Integral(histoCR.GetXaxis().FindBin(120.),histoCR.GetXaxis().FindBin(130.)) #since in this plot there is the blind window for data in SR, this trick is to make the divide properly. Remember to bypass it for the unblinding
+
+	else:
+		CRintegral = histoCR.Integral()
+
+	SRintegral = histoSR.Integral()	
+	
+	print "histo SR integral = ", SRintegral	
+	print "histo CR integral = ", CRintegral		
+
+	histoCR.Scale(SRintegral/CRintegral)
 	histoCR.Write()
 
 	print "histo CR integral after the normalization = ", histoCR.Integral()		
