@@ -92,6 +92,10 @@ private:
   float secondCandPz;
   float firstCandEnergy;
   float secondCandEnergy;
+  float firstCandEnergy_K;
+  float secondCandEnergy_K;
+  float firstCandEnergy_Pi;
+  float secondCandEnergy_Pi;
   float _firstCandPt;
   float _firstCandEta;
   float _firstCandPhi;
@@ -103,7 +107,7 @@ private:
   float _bestCouplePhi;
 
   float _Jet_Photon_invMass;
-  float _Phimass;
+  float _MesonMass;
   float _Hmass_From2K_Photon;
     
   float K1_sum_pT_05;
@@ -147,12 +151,16 @@ private:
 
   bool is_Kplus_fromPhi;
   bool is_Kminus_fromPhi;
+  bool is_Piplus_fromRho;
+  bool is_Piminus_fromRho;
   bool is_Phi_fromH;
+  bool is_Rho_fromH;
   bool is_Photon_fromH;
   bool is_photon_a_photon;
   bool is_photon_matched;
   bool _isHiggsFound;
-
+  bool _isPhi;
+  bool _isRho;
   //rho for isolation
   float rho_;
 

@@ -41,12 +41,8 @@ private:
   //Counters
   int nPV;
 
-  int nMuons;
-  int nMuMu;
   int nPhotonsChosen;
   int nPhotonsOverSelection;
-  int _Nevents_IsoMu24Triggered;
-  int _Nevents_Photon33Triggered;
   int _Nevents_processed;
   int _Nevents_isPhoton;
   
@@ -73,6 +69,7 @@ private:
   bool isIsoMuTrigger;
   bool isPhotonTrigger;
   bool isBestMuMu_Found;
+  bool cand_photon_found;
 
 //rho for isolation
   float rho_;

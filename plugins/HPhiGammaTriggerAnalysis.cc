@@ -72,12 +72,10 @@ HPhiGammaTriggerAnalysis::HPhiGammaTriggerAnalysis(const edm::ParameterSet& iCon
   h_Events = fs->make<TH1F>("h_Events", "Event counting in different steps", 8, 0., 8.);
 
   _Nevents_processed  = 0;
-  _Nevents_IsoMu24Triggered = 0;
-  _Nevents_Photon33Triggered = 0;
   _Nevents_isPhoton   = 0;
 
   debug=false;  //DEBUG datamember 
-  verbose=true; 
+  verbose=false; 
 
   h_pileup   = fs->make<TH1F>("pileup", "pileup", 75,0,75);
 
@@ -93,8 +91,6 @@ HPhiGammaTriggerAnalysis::~HPhiGammaTriggerAnalysis()
 void HPhiGammaTriggerAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
   
-  if(debug) cout<<"Starting analyze method"<<endl;
-
   edm::Handle<std::vector<pat::PackedCandidate>  > PFCandidates;
   iEvent.getByToken(packedPFCandidatesToken_, PFCandidates);
 
@@ -119,7 +115,7 @@ void HPhiGammaTriggerAnalysis::analyze(const edm::Event& iEvent, const edm::Even
 
   //some prints
   if (verbose){
-    cout<<"############ Event n."<< _Nevents_processed<<"############"<<endl;
+    cout<<"############ Event n."<< _Nevents_processed<<" ############"<<endl;
   } 
 
   //*************************************************************//
@@ -188,7 +184,7 @@ void HPhiGammaTriggerAnalysis::analyze(const edm::Event& iEvent, const edm::Even
   isPhotonTrigger = false;
 
   const edm::TriggerNames &names = iEvent.triggerNames(*triggerBits);
-  for(unsigned int i = 0, n = triggerBits->size(); i < n; ++i){
+  for(unsigned int i = 0, n = triggerBits->size(); i < n; ++i){ //trigger forloop start
     if(!triggerBits->accept(i)) continue;
     std::string tmp_triggername = names.triggerName(i);
 
@@ -197,19 +193,18 @@ void HPhiGammaTriggerAnalysis::analyze(const edm::Event& iEvent, const edm::Even
       if (verbose) cout<<"IsoMu24 triggered"<<endl;
     }
 
-    if( tmp_triggername.find("HLT_Photon33") != std::string::npos ){ //Photon trigger
+    if( tmp_triggername.find("HLT_Mu17_Photon30_IsoCaloId") != std::string::npos ){ //Photon trigger
       isPhotonTrigger = true; 
-      if (verbose) cout<<"Photon33 triggered"<<endl;
-
-
+      if (verbose) cout<<"Mu17_Photon30 triggered"<<endl;
     }
-  }
-    if(!isIsoMuTrigger) return; //Return only if there're not any muons
-    _Nevents_IsoMu24Triggered++; //n. of events triggered
-    if (verbose) cout<<_Nevents_IsoMu24Triggered<<" muon events triggered at least one time"<<endl;
 
-    if(isPhotonTrigger) _Nevents_Photon33Triggered++;
-    if (verbose) cout<<_Nevents_Photon33Triggered<<" photon events triggered"<<endl;
+  } //trigger forloop end
+  
+  //RETURN if muon trigger does not switch on
+  if(!isIsoMuTrigger) {
+  if (verbose) cout<<"RETURN: IsoMu24 not triggered."<<endl<<endl;
+  return; //Return only if there're not any muons
+  }
 
   //*************************************************************//
   //                                                             //
@@ -217,9 +212,6 @@ void HPhiGammaTriggerAnalysis::analyze(const edm::Event& iEvent, const edm::Even
   //                                                             //
   //*************************************************************//
 
-
-  nMuons     = 0;
-  nMuMu = 0;
   isBestMuMu_Found = false;
   float currentMuMuPt = -1.;
   bestMuMuPt = -1.;
@@ -250,42 +242,41 @@ void HPhiGammaTriggerAnalysis::analyze(const edm::Event& iEvent, const edm::Even
   //---------------------------- Muons --------------------------//
   //                                                             //
   //*************************************************************//
-  cout<<"Muons forloop start"<<endl;
-  for(auto firstMu= slimmedMuons->begin(); firstMu!= slimmedMuons->end(); ++firstMu){
-      if(firstMu->pt() < 10. || !firstMu->CutBasedIdMedium || fabs(firstMu->eta()) > 2.4 || fabs(firstMu->muonBestTrack()->dxy((&slimmedPV->at(0))->position())) >= 0.2 || fabs(firstMu->muonBestTrack()->dz((&slimmedPV->at(0))->position())) >= 0.5) continue;
+  if (verbose) cout<<"Muons forloop start"<<endl;
+  for(auto firstMu= slimmedMuons->begin(); firstMu!= slimmedMuons->end(); ++firstMu){ //Muon first forloop start
+      if(firstMu->pt() < 5. || !firstMu->CutBasedIdMedium || fabs(firstMu->eta()) > 2.4 || fabs(firstMu->muonBestTrack()->dxy((&slimmedPV->at(0))->position())) >= 0.2 || fabs(firstMu->muonBestTrack()->dz((&slimmedPV->at(0))->position())) >= 0.5) continue;
       if(!firstMu->PFIsoLoose) continue;
     
-      for(auto secondMu= slimmedMuons->begin(); secondMu!= slimmedMuons->end(); ++secondMu){
+      for(auto secondMu= slimmedMuons->begin(); secondMu!= slimmedMuons->end(); ++secondMu){//Muon second forloop start
           if(secondMu->pt() < 25.) continue;
           if(firstMu->charge()*secondMu->charge() >= 0.) continue; //take only muons with opposite charges
           currentMuMuMass = (firstMu->p4() + secondMu->p4()).M();
-          if(currentMuMuMass < 50. || currentMuMuMass > 120.) continue; //MuMu inv mass for Z
+          if(currentMuMuMass < 20. || currentMuMuMass > 120.) continue; //MuMu inv mass for Z
 
           currentMuMuPt = (firstMu->p4() + secondMu->p4()).pt(); 
           if(currentMuMuPt <= bestMuMuPt) continue; //choose the pair with largest pT
           bestMuMuPt = currentMuMuPt;
           bestMuMuMass = currentMuMuMass;
           isBestMuMu_Found = true;
-      }
+      } //Muon second forloop end
+    }//Muon first forloop end
 
-    if(!isBestMuMu_Found) return;
-    nMuons++;
-    if (debug && isBestMuMu_Found){
-      nMuMu++;
-      if (verbose){
-      cout<<"n events with a mumu pair = "<<nMuMu<<endl;
-      cout<<"Muon pair found, with pT = "<<bestMuMuPt<<" and inv mass = "<<bestMuMuMass<<endl;
-      }
-    } 
+  if(!isBestMuMu_Found) { 
+    if (verbose) cout<<"RETURN: No Z->mumu found."<<endl<<endl;
+    return;
+  }
 
- }
+  if(isBestMuMu_Found && verbose){
+    cout<<"Muon pair found, with pT = "<<bestMuMuPt<<" and inv mass = "<<bestMuMuMass<<endl;
+  } 
+ 
 
   //*************************************************************//
   //                                                             //
   //--------------------------- Photons -------------------------//
   //                                                             //
   //*************************************************************//
-  cout<<"Photons forloop start"<<endl;
+  if (verbose) cout<<"Photons forloop start"<<endl;
 
   // Get rho value
   edm::Handle< double > rhoH;
@@ -295,19 +286,19 @@ void HPhiGammaTriggerAnalysis::analyze(const edm::Event& iEvent, const edm::Even
   bool cand_photon_found = false;
   float corr_et = -1.;
 
-  for(auto photon = slimmedPhotons->begin(); photon != slimmedPhotons->end(); ++photon){
+  for(auto photon = slimmedPhotons->begin(); photon != slimmedPhotons->end(); ++photon){ //Photons forloop start
 
     corr_et = photon->et(); // * photon->userFloat("ecalEnergyPostCorr")/photon->energy();
 
     //std::cout << "photon et " << corr_et << std::endl;
 
     if(corr_et < 35. || fabs(photon->eta()) > 2.5) continue;
-    cout<<"corr_et = "<<corr_et<<endl; //FIXME
+    if(verbose) cout<<"corr_et = "<<corr_et<<endl; //FIXME
     if(photon->hasPixelSeed()) continue;   //electron veto
 
     //std::cout << "photon" << photon->photonID("mvaPhoID-RunIIFall17-v1-wp90") << " " << photon->photonID("mvaPhoID-RunIIFall17-v1p1-wp90") << std::endl;
     if(photon->photonID("mvaPhoID-RunIIFall17-v1p1-wp90") == 0) continue;
-    cout<<"photonID = "<<corr_et<<endl; //FIXME
+    if(verbose) cout<<"photonID = "<<corr_et<<endl; //FIXME
 
     float abseta = fabs(photon->superCluster()->eta());
     float eA = effectiveAreas_ph_.getEffectiveArea(abseta);
@@ -337,24 +328,24 @@ void HPhiGammaTriggerAnalysis::analyze(const edm::Event& iEvent, const edm::Even
     
     cand_photon_found = true;
     nPhotonsChosen++;
-  }
+  } //Photon forloops end
 
   //Do not continue if there are no photons
-  //if(!cand_photon_found) return;
-  if(cand_photon_found && verbose){
+  if(!cand_photon_found) {
+    if (verbose) cout<<"RETURN: No best photon found."<<endl<<endl;
+    return;
+  }
+  if(cand_photon_found){
   cout<<"Photon found, with eT = "<<ph_eT<<endl;
   _Nevents_isPhoton++;
   }
-  if(verbose) cout<<_Nevents_isPhoton<<" photons over offline selection"<<endl;
+  if(verbose) cout<<_Nevents_isPhoton<<" best photons chosen after offline selection"<<endl;
 
   //  std::cout << "Nphotons " << _Nevents_isPhoton << std::endl;
 
-
+  if (verbose) cout<<"endl";
+  if (verbose) cout<<"cand_photon_found = "<<cand_photon_found<<endl;
   mytree->Fill();
-
-  if(debug) cout<<"Ending analyze method"<<endl;
-  if(verbose) cout<<endl;
-
 }
 
 //*************************************************************//
@@ -370,18 +361,16 @@ void HPhiGammaTriggerAnalysis::create_trees()
   mytree->Branch("nPV",&nPV);
   mytree->Branch("isIsoMuTrigger",&isIsoMuTrigger);
   mytree->Branch("isPhotonTrigger",&isPhotonTrigger);
-  mytree->Branch("nEvents_Photon33Triggered",&_Nevents_Photon33Triggered);
 
   //Save run number info when running on data
   if(runningOnData_){
     mytree->Branch("run_number",&run_number);
   }
 
-  mytree->Branch("nMuons",&nMuons);
   mytree->Branch("nPhotonsOverSelection",&nPhotonsOverSelection);
   mytree->Branch("nPhotonsChosen",&nPhotonsChosen);
   mytree->Branch("nEvents_isPhoton",&_Nevents_isPhoton);
-
+  mytree->Branch("cand_photon_found",&cand_photon_found);
 
   mytree->Branch("MuMuPt",&bestMuMuPt);
   mytree->Branch("MuMuMass",&bestMuMuMass);
@@ -414,14 +403,10 @@ void HPhiGammaTriggerAnalysis::beginJob()
 void HPhiGammaTriggerAnalysis::endJob() 
 {
   h_Events->Fill(0.5,_Nevents_processed);
-  h_Events->Fill(1.5,_Nevents_IsoMu24Triggered);
-  h_Events->Fill(2.5,_Nevents_Photon33Triggered);
-  h_Events->Fill(3.5,_Nevents_isPhoton);
+  h_Events->Fill(1.5,_Nevents_isPhoton);
   
   h_Events->GetXaxis()->SetBinLabel(1,"Events processed");
-  h_Events->GetXaxis()->SetBinLabel(2,"Events SingleMuon triggered");
-  h_Events->GetXaxis()->SetBinLabel(3,"Events photon triggered");
-  h_Events->GetXaxis()->SetBinLabel(4,"Best photon selection");
+  h_Events->GetXaxis()->SetBinLabel(2,"Best photon selection");
   
 }
 

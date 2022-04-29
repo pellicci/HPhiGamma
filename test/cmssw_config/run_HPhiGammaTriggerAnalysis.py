@@ -33,11 +33,14 @@ options.parseArguments()
 #Input source
 if options.runningOnData:
    process.GlobalTag = GlobalTag(process.GlobalTag, '102X_dataRun2_Sep2018ABC_v2')
-   inputFiles = {"root://cms-xrd-global.cern.ch//store/data/Run2018B/SingleMuon/MINIAOD/UL2018_MiniAODv2-v2/100000/B29BDCC8-5429-7244-96D9-A5BF6C04BB73.root","/store/data/Run2018B/SingleMuon/MINIAOD/UL2018_MiniAODv2-v2/110000/00A4B13C-EBCD-6C46-93D7-FA721EA4DB41.root","/store/data/Run2018B/SingleMuon/MINIAOD/UL2018_MiniAODv2-v2/110000/012BD380-53E6-4B4E-802B-3F96BF7DA0E5.root","/store/data/Run2018B/SingleMuon/MINIAOD/UL2018_MiniAODv2-v2/110000/027C0A31-BD7E-F04A-99C0-067C4F606BD1.root"}
+   inputFiles = {#"/store/data/Run2018B/SingleMuon/MINIAOD/UL2018_MiniAODv2-v2/100000/B29BDCC8-5429-7244-96D9-A5BF6C04BB73.root",
+                 "/store/data/Run2018B/SingleMuon/MINIAOD/UL2018_MiniAODv2-v2/110000/00A4B13C-EBCD-6C46-93D7-FA721EA4DB41.root"}#,
+                 #"/store/data/Run2018B/SingleMuon/MINIAOD/UL2018_MiniAODv2-v2/110000/012BD380-53E6-4B4E-802B-3F96BF7DA0E5.root",
+                 #"/store/data/Run2018B/SingleMuon/MINIAOD/UL2018_MiniAODv2-v2/110000/027C0A31-BD7E-F04A-99C0-067C4F606BD1.root"}
 
 else:
    process.GlobalTag = GlobalTag(process.GlobalTag, '102X_upgrade2018_realistic_v18')
-   inputFiles = {"root://cms-xrd-global.cern.ch//store/data/Run2018B/SingleMuon/MINIAOD/UL2018_MiniAODv2-v2/100000/B29BDCC8-5429-7244-96D9-A5BF6C04BB73.root","/store/data/Run2018B/SingleMuon/MINIAOD/UL2018_MiniAODv2-v2/110000/00A4B13C-EBCD-6C46-93D7-FA721EA4DB41.root","/store/data/Run2018B/SingleMuon/MINIAOD/UL2018_MiniAODv2-v2/110000/012BD380-53E6-4B4E-802B-3F96BF7DA0E5.root","/store/data/Run2018B/SingleMuon/MINIAOD/UL2018_MiniAODv2-v2/110000/027C0A31-BD7E-F04A-99C0-067C4F606BD1.root"}
+   inputFiles = {"root://cms-xrd-global.cern.ch//store/data/Run2018B/SingleMuon/MINIAOD/UL2018_MiniAODv2-v2/100000/B29BDCC8-5429-7244-96D9-A5BF6C04BB73.root"}#,"/store/data/Run2018B/SingleMuon/MINIAOD/UL2018_MiniAODv2-v2/110000/00A4B13C-EBCD-6C46-93D7-FA721EA4DB41.root","/store/data/Run2018B/SingleMuon/MINIAOD/UL2018_MiniAODv2-v2/110000/012BD380-53E6-4B4E-802B-3F96BF7DA0E5.root","/store/data/Run2018B/SingleMuon/MINIAOD/UL2018_MiniAODv2-v2/110000/027C0A31-BD7E-F04A-99C0-067C4F606BD1.root"}
    
 process.source = cms.Source ("PoolSource",
                              fileNames = cms.untracked.vstring (inputFiles),
