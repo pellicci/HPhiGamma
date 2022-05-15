@@ -168,6 +168,7 @@ for histo_name in list_histos:
     hdata[histo_name].SetTitle("")
     hsignal[histo_name].SetTitle("")
 
+
     if not plotOnlyData :
 
         hstack[histo_name].Draw("histo")
@@ -197,7 +198,7 @@ for histo_name in list_histos:
             if isPhi:
                 hstack[histo_name].GetXaxis().SetLimits(1.006,1.034)
             else:
-                hstack[histo_name].GetXaxis().SetLimits(0.5,1.)
+                hstack[histo_name].GetXaxis().SetLimits(0.56,0.94)
 
         if histo_name == "h_firstTrk_pT" :
             hstack[histo_name].GetXaxis().SetTitle("p_{T}^{Trk_{1}} [GeV]")
@@ -227,7 +228,7 @@ for histo_name in list_histos:
 
         if histo_name == "h_bestCouplePt" :
             hstack[histo_name].GetXaxis().SetTitle("p_{T}^{meson} [GeV]")
-            hstack[histo_name].GetXaxis().SetLimits(30.,82.)
+            hstack[histo_name].GetXaxis().SetLimits(35.,100.)
 
         if histo_name == "h_bestJetPt" :
             hstack[histo_name].GetXaxis().SetTitle("p_{T}^{jet} [GeV]")
@@ -242,7 +243,7 @@ for histo_name in list_histos:
         if histo_name == "h_firstTrk_Iso" :
             hstack[histo_name].GetXaxis().SetTitle("#SigmapT_{Trk_{1}}/pT_{Trk_{1}}")
             if isTightSelection:
-                hstack[histo_name].GetXaxis().SetLimits(0.,0.1)
+                hstack[histo_name].GetXaxis().SetLimits(0.,0.3)
 
         if histo_name == "h_secondTrk_Iso" :
             hstack[histo_name].GetXaxis().SetTitle("#SigmapT_{Trk_{2}}/pT_{Trk_{2}}")
@@ -306,6 +307,25 @@ for histo_name in list_histos:
 
         hstack[histo_name].Draw("SAME,histo")
 
+    if plotOnlyData:
+        hstack[histo_name].Draw("")
+        hstack[histo_name].GetYaxis().SetTitleSize(0.07)
+        hstack[histo_name].GetYaxis().SetTitleOffset(0.7)
+        hstack[histo_name].GetYaxis().SetTitle("Events")
+        hstack[histo_name].SetTitle("#sqrt{s} = 13 TeV       lumi = 39.54/fb")
+        #hstack[histo_name].GetXaxis().SetLabelOffset(999)
+        hstack[histo_name].GetYaxis().SetMaxDigits(2)
+
+        if histo_name == "h_meson_InvMass_TwoTrk" :
+            hstack[histo_name].SetMaximum(2.1 * hdata[histo_name].GetMaximum())
+            if isPhi:
+                hstack[histo_name].GetXaxis().SetLimits(1.,1.04)
+                hstack[histo_name].GetXaxis().SetTitle("m_{KK} [GeV]")
+            else:
+                hstack[histo_name].GetXaxis().SetLimits(0.5,1.)
+                hstack[histo_name].GetXaxis().SetTitle("m_{#pi#pi} [GeV]")
+
+
     if signal_magnify != 1:
         hsignal[histo_name].Scale(signal_magnify)   
   
@@ -324,7 +344,8 @@ for histo_name in list_histos:
 
     leg1.Draw()
 
-    CMS_lumi.CMS_lumi(pad1, iPeriod, iPos) #Print integrated lumi and energy information
+    if not plotOnlyData:
+        CMS_lumi.CMS_lumi(pad1, iPeriod, iPos) #Print integrated lumi and energy information
 
 
     ################################################
@@ -385,7 +406,11 @@ for histo_name in list_histos:
         totalMC.Draw("sameE2")
         line_on_one.Draw("SAME")
     ################################################
+    if isTightSelection:
+        output_dir = "~/cernbox/www/latest_production/tightselection_latest_production/"
+    else:
+        output_dir = "~/cernbox/www/latest_production/preselection_latest_production/"
 
-    output_dir = "~/cernbox/www/testDir/"
+
     canvas[histo_name].SaveAs(output_dir + histo_name + ".pdf")
     canvas[histo_name].SaveAs(output_dir + histo_name + ".png")

@@ -8,8 +8,10 @@ from functions_smuggler import Simplified_Workflow_Handler
 #bools
 debug          = True #Bool for verbose
 doSelection    = True #if you turn this to False disable select_all_but_one
-isDataBlind    = True #Bool for blind analysis
-isBDT          = False #don't turn it into True, it is decided by the option input
+
+#Following bools are given as input
+isDataBlind    = False #Bool for blind analysis
+isBDT          = False #BDT bool
 isPhiAnalysis  = False # for H -> Phi Gamma
 isRhoAnalysis  = False # for H -> Rho Gamma
 
@@ -30,24 +32,31 @@ fInput = ROOT.TFile(args.rootfile_name)
 output_filename = args.outputfile_option
 mytree = fInput.Get("HPhiGammaAnalysis/mytree")
 
-#ABCD Method: boolean ##########################################################################################
+#Bools ######################################################################################################
+print "########################################"
+
+if args.Decay_channel_option == "Phi":
+    isPhiAnalysis = True
+    print "H -> PhiGamma analysis"
+else: 
+    isRhoAnalysis = True
+    print "H -> RhoGamma analysis"
+
+if args.isBlindAnalysis == "blind":
+    isDataBlind = True
+    print "isDataBlind = ",isDataBlind
+
 CRflag = int(args.CR_option)
 if CRflag > 0 :
     print "Processing the control region ", CRflag
 else :
-    print "Processing the signal region"
+    print "Processing the signal region" 
 
-
-#Flags ######################################################################################################
 if args.isBDT_option == "BDT":
     isBDT = True
+    BDT_OUT = 0.280601735274 #take this number running MVA/BDT_significance.py: this is the BDT output value which maximizes the significance
+print "BDT = ",isBDT
 
-if args.Decay_channel_option == "Phi":
-    isPhiAnalysis = True
-else: 
-    isRhoAnalysis = True    
-
-BDT_OUT = 0.248162819814 #take this number running MVA/BDT_significance.py: this is the BDT output value which maximizes the significance
 
 #SPLIT: I can split a string of chars before and after a split code (that could be a string or a symbol)
 #then I can take the string standing before or after with [0] or [1], respectively. 
@@ -55,6 +64,7 @@ BDT_OUT = 0.248162819814 #take this number running MVA/BDT_significance.py: this
 samplename =(args.rootfile_name.split("HPhiGammaAnalysis_")[1])[:-5] 
 print "samplename =", samplename
 
+print "######################################"
 
 ################################################################################################################
 myWF = Simplified_Workflow_Handler("Signal","Data",isBDT)
@@ -109,7 +119,7 @@ histo_map[list_histos[5]]  = ROOT.TH1F(list_histos[5],"#eta of the 1st track", 1
 histo_map[list_histos[6]]  = ROOT.TH1F(list_histos[6],"#eta of the 2nd track", 100, -2.5,2.5)
 histo_map[list_histos[7]]  = ROOT.TH1F(list_histos[7],"#phi of the 1st track", 100, -3.14,3.14)
 histo_map[list_histos[8]]  = ROOT.TH1F(list_histos[8],"#phi of the 2nd track", 100, -3.14,3.14)
-histo_map[list_histos[9]]  = ROOT.TH1F(list_histos[9],"p_{T} of the meson", 100, 30.,82.)
+histo_map[list_histos[9]]  = ROOT.TH1F(list_histos[9],"p_{T} of the meson", 100, 30.,110.)
 histo_map[list_histos[10]] = ROOT.TH1F(list_histos[10],"#eta_{meson}", 100, -2.5,2.5)
 histo_map[list_histos[11]] = ROOT.TH1F(list_histos[11],"#Delta R_{meson}", 100, 0.,0.1)
 histo_map[list_histos[12]] = ROOT.TH1F(list_histos[12],"p_{T} of the jet", 100, 45.,250.)
@@ -171,8 +181,8 @@ tree_output.Branch('_coupleIsoCh',_coupleIsoCh,'_coupleIsoCh/D')
 tree_output.Branch('_coupleIso',_coupleIso,'_coupleIso/D')
 tree_output.Branch('_bestJetPt',_bestJetPt,'_bestJetPt/D')
 tree_output.Branch('_bestCouplePt',_bestCouplePt,'_bestCouplePt/D')
-tree_output.Branch('_firstTrkPt',_firstTrkPt,'_firstTrkt/D')
-tree_output.Branch('_secondTrkPt',_secondTrkPt,'_secondTrkt/D')
+tree_output.Branch('_firstTrkPt',_firstTrkPt,'_firstTrkPt/D')
+tree_output.Branch('_secondTrkPt',_secondTrkPt,'_secondTrkPt/D')
 tree_output.Branch('_photonEt',_photonEt,'_photonEt/D')
 tree_output.Branch('_firstTrkIso',_firstTrkIso,'_firstTrkIso/D')
 tree_output.Branch('_firstTrkIsoCh',_firstTrkIso,'_firstTrkIsoCh/D')
@@ -346,6 +356,7 @@ for jentry in xrange(nentries):
     print "isRhoEvent = ",isRhoEvent
     print "CRflag = ",CRflag
     print "MesonMass = ",MesonMass
+    print "isDataBlind = ",isDataBlind
     print"#################"
 
 

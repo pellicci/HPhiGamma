@@ -1,3 +1,0 @@
-python generate_histos_AB.py 0 BDT unblind rootfiles/latest_production/MC/backgrounds/HPhiGammaAnalysis_Signal.root histos/latest_production/histos_SR_Signal.root
-python generate_histos_AB.py 0 BDT blind rootfiles/latest_production/dataprocess/HPhiGammaAnalysis_Data.root histos/latest_production/histos_SR_Data.root
-python generate_histos_AB.py 1 BDT unblind rootfiles/latest_production/dataprocess/HPhiGammaAnalysis_Data.root histos/latest_production/histos_CR_Sidebands.root

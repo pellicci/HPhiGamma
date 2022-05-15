@@ -6,8 +6,8 @@ import argparse
 #Supress the opening of many Canvas's
 ROOT.gROOT.SetBatch(True)  
 
-Nsig_passed = 2.99704741524 # Number of signal events from the sum of the weights (before applying BDT cuts), take this number running the generate_histos for signal
-Nbkg_passed = 11926 #sidebands events in input to the BDT
+Nsig_passed = 2.71715557117 # Number of signal events from the sum of the weights (before applying BDT cuts), take this number running the generate_histos for signal
+Nbkg_passed = 167215 #sidebands events in input to the BDT
 
 BDT_file = ROOT.TFile("outputs/Nominal_training.root")
 
@@ -20,7 +20,7 @@ signif = []
 _effS = 0
 
 for jbin in range(1,h_BDT_effB_effS.GetNbinsX()+1):
-    if h_BDT_effB_effS.GetBinCenter(jbin) > 0.32    : #insert the number before whom the function fluctuates too much to estimate the maximum
+    if h_BDT_effB_effS.GetBinCenter(jbin) > 0.1    : #insert the number before whom the function fluctuates too much to estimate the maximum
         sig_eff.append(h_BDT_effB_effS.GetBinCenter(jbin))
         if h_BDT_effB_effS.GetBinContent(jbin) < 0.:
             bkg_eff.append(0.)
@@ -38,7 +38,7 @@ sign = ROOT.TGraph(70,sig_eff_array,signif_array)
 sign.SetTitle("")
 sign.GetXaxis().SetTitle("#varepsilon_{S}^{BDT}")
 sign.GetYaxis().SetTitle("Significance")
-sign.SetMaximum(0.2)
+sign.SetMaximum(0.04)
 sign.SetMarkerStyle(8)
 sign.SetMarkerColor(4)
 sign.Draw("AP")
@@ -49,21 +49,22 @@ sign_vs_bkg.SetTitle("")
 sign_vs_bkg.GetXaxis().SetTitle("#varepsilon_{B}^{BDT}")
 sign_vs_bkg.GetYaxis().SetTitle("Significance")
 sign_vs_bkg.GetXaxis().SetRangeUser(0.,0.02)
-sign_vs_bkg.SetMaximum(0.2)
+sign_vs_bkg.SetMaximum(0.04)
 sign_vs_bkg.SetMarkerStyle(8)
 sign_vs_bkg.SetMarkerColor(4)
 sign_vs_bkg.Draw("AP")
 
 
-canvas1.SaveAs("~/cernbox/www/MyAnalysis/HPhiGamma/MVA/latest_production/signif_vs_effS.pdf")
-canvas1.SaveAs("~/cernbox/www/MyAnalysis/HPhiGamma/MVA/latest_production/signif_vs_effS.png")
-canvas2.SaveAs("~/cernbox/www/MyAnalysis/HPhiGamma/MVA/latest_production/signif_vs_effB.pdf")
-canvas2.SaveAs("~/cernbox/www/MyAnalysis/HPhiGamma/MVA/latest_production/signif_vs_effB.png")
+canvas1.SaveAs("/afs/cern.ch/user/g/gumoret/cernbox/www/latest_production/MVA_latest_production/signif_vs_effS.pdf")
+canvas1.SaveAs("/afs/cern.ch/user/g/gumoret/cernbox/www/latest_production/MVA_latest_production/signif_vs_effS.png")
+canvas2.SaveAs("/afs/cern.ch/user/g/gumoret/cernbox/www/latest_production/MVA_latest_production/signif_vs_effB.pdf")
+canvas2.SaveAs("/afs/cern.ch/user/g/gumoret/cernbox/www/latest_production/MVA_latest_production/signif_vs_effB.png")
 
-#----Now find the BDT output corresponding to the highest significance
+#---- Now find the BDT output corresponding to the highest significance
 
 h_BDT_effS = BDT_file.Get("default/Method_BDT/BDT/MVA_BDT_effS")
 signif_maximizing_eff = sig_eff_array[np.argmax(signif_array)]
+print "signif_maximizing_eff = ",signif_maximizing_eff
 BDT_output = 0. 
 
 for entry in xrange(h_BDT_effS.GetNbinsX()):
@@ -71,7 +72,7 @@ for entry in xrange(h_BDT_effS.GetNbinsX()):
     effS = h_BDT_effS.GetBinContent(entry)
     effS = float(format(effS, '.3f'))
     signif_maximizing_eff = float(format(signif_maximizing_eff, '.3f'))
-    #print "effS: ", effS#, "signif_max_eff: ", signif_maximizing_eff
+    #print "effS: ", effS, "signif_max_eff: ", signif_maximizing_eff
     if effS == signif_maximizing_eff:
     #if effS == 0.55:
         BDT_output =  h_BDT_effS.GetBinCenter(entry)

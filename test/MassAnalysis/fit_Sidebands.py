@@ -3,8 +3,10 @@ import ROOT
 #Supress the opening of many Canvas's
 ROOT.gROOT.SetBatch(True)   
 
+isPhiGammaAnalysis = False
+
 #Parameters of the PDF
-mass = ROOT.RooRealVar("mass_KKg","mass_KKg",100.,150.,"GeV")
+mass = ROOT.RooRealVar("mesonGammaMass","mesonGammaMass",100.,150.,"GeV")
 mass.setRange("LowSideband",100.,120.)
 mass.setRange("HighSideband",130.,150.)
 
@@ -29,7 +31,7 @@ nEntries = dataset.numEntries()
 bkgPDF.fitTo(dataset,ROOT.RooFit.Range("LowSideband,HighSideband"))
 
 #Give the blind range
-data_blinded = dataset.reduce("mass_KKg < 120. || mass_KKg > 130.")
+data_blinded = dataset.reduce("mesonGammaMass < 120. || mesonGammaMass > 130.")
 
 #Plot
 xframe = mass.frame(40)
@@ -42,8 +44,13 @@ c1 = ROOT.TCanvas()
 c1.cd()
 c1.SetTitle("")
 xframe.Draw()
-c1.SaveAs("~/cernbox/www/MyAnalysis/HPhiGamma/MassAnalysis/latest_production/fit_sidebands.pdf")
-c1.SaveAs("~/cernbox/www/MyAnalysis/HPhiGamma/MassAnalysis/latest_production/fit_sidebands.png")
+
+if isPhiGammaAnalysis:
+	c1.SaveAs("~/cernbox/www/MyAnalysis/HPhiGamma/MassAnalysis/latest_production/fit_sidebands.pdf")
+	c1.SaveAs("~/cernbox/www/MyAnalysis/HPhiGamma/MassAnalysis/latest_production/fit_sidebands.png")
+else:
+	c1.SaveAs("~/cernbox/www/MyAnalysis/HRhoGamma/MassAnalysis/latest_production/fit_sidebands.pdf")
+	c1.SaveAs("~/cernbox/www/MyAnalysis/HRhoGamma/MassAnalysis/latest_production/fit_sidebands.png")
 
 #create Workspace
 print "**************************************n. events = ",nEntries

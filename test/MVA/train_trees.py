@@ -28,10 +28,10 @@ dataloader = ROOT.TMVA.DataLoader()
 #invariant mass: mass_KKg
 
 #Pay attention to the order, it must be the same in the function_smuggler.py
-dataloader.AddVariable("_firstCandIso","F")
-dataloader.AddVariable("_bestCouplePt/mass_KKg","F")
-dataloader.AddVariable("_photonEt/mass_KKg","F")
-#dataloader.AddVariable("_bestJetPt/mass_KKg","F")
+dataloader.AddVariable("_firstTrkIso","F")
+dataloader.AddVariable("_bestCouplePt/mesonGammaMass","F")
+dataloader.AddVariable("_photonEt/mesonGammaMass","F")
+#dataloader.AddVariable("_bestJetPt/mesonGammaMass","F")
 
 #-------------------------------------------------------------------------------------------------------
 

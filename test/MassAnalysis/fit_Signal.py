@@ -1,5 +1,7 @@
 import ROOT
 
+isPhiGammaAnalysis = False
+
 #import the Doube Crystal Ball PDF
 ROOT.gROOT.ProcessLineSync(".L MassAnalysis/dCB/RooDoubleCBFast.cc+")
 
@@ -7,7 +9,7 @@ ROOT.gROOT.ProcessLineSync(".L MassAnalysis/dCB/RooDoubleCBFast.cc+")
 ROOT.gROOT.SetBatch(True)   
 
 #Define the observable
-mass = ROOT.RooRealVar("mass_KKg","mass_KKg",125.,100.,150.,"GeV/c^2")
+mass = ROOT.RooRealVar("mesonGammaMass","mesonGammaMass",125.,100.,150.,"GeV/c^2")
 
 #Double Crystal Ball definition
 dCB_pole  = ROOT.RooRealVar("dCB_pole", "Double CB pole", 125.,120.,130.)
@@ -42,8 +44,13 @@ c1 = ROOT.TCanvas()
 c1.cd()
 c1.SetTitle("")
 xframe.Draw()
-c1.SaveAs("~/cernbox/www/MyAnalysis/HPhiGamma/MassAnalysis/latest_production/fitsignal.pdf")
-c1.SaveAs("~/cernbox/www/MyAnalysis/HPhiGamma/MassAnalysis/latest_production/fitsignal.png")
+
+if isPhiGammaAnalysis:
+	c1.SaveAs("~/cernbox/www/MyAnalysis/HPhiGamma/MassAnalysis/latest_production/fitsignal.pdf")
+	c1.SaveAs("~/cernbox/www/MyAnalysis/HPhiGamma/MassAnalysis/latest_production/fitsignal.png")
+else:
+	c1.SaveAs("~/cernbox/www/MyAnalysis/HRhoGamma/MassAnalysis/latest_production/fitsignal.pdf")
+	c1.SaveAs("~/cernbox/www/MyAnalysis/HRhoGamma/MassAnalysis/latest_production/fitsignal.png")
 
 #create Workspace
 workspace = ROOT.RooWorkspace("myworkspace")
