@@ -8,7 +8,7 @@ import tdrstyle, CMS_lumi
 
 
 #bools
-debug = False #Bool for verbose
+debug = True #Bool for verbose
 
 #Supress the opening of many Canvas's
 ROOT.gROOT.SetBatch(True)   
@@ -16,12 +16,18 @@ ROOT.gROOT.SetBatch(True)
 #INPUT and OUTPUT #############################################################################################
 #Input
 p = argparse.ArgumentParser(description='Select rootfile to plot')
+p.add_argument('is_Data', help='Type which kind of sample it is')
 p.add_argument('rootfile_name', help='Type rootfile name')
 p.add_argument('outputfile_option', help='Provide output file name')
 
 args = p.parse_args()
 fInput = ROOT.TFile(args.rootfile_name)
 mytree = fInput.Get("HPhiGammaTriggerAnalysis/mytree")
+
+if args.is_Data == "Data":
+    CONST_NAME = "Data"
+else:
+    CONST_NAME = "MC"
 
 #Output
 output_filename = args.outputfile_option
@@ -32,11 +38,11 @@ fOut.cd()
 histo_map = dict()
 list_histos = ["h_mass_mumu","h_gamma_eT","h_nPhotonTriggered_eT","h_nPhotonOffline_eT","h_triggerEff_eT"]
 
-histo_map[list_histos[0]]  = ROOT.TH1F(list_histos[0],"M_{#mu#mu}",100,20.,120.)
-histo_map[list_histos[1]]  = ROOT.TH1F(list_histos[1],"E_{T}^{#gamma}", 100, 30.,160.)
-histo_map[list_histos[2]]  = ROOT.TH1F(list_histos[2],"n. events #gamma triggered as function of E_{#gamma}", 10, 35.,90.)
-histo_map[list_histos[3]]  = ROOT.TH1F(list_histos[3],"n. events #gamma over offline selection as function of E_{#gamma}", 10, 35.,90.)
-histo_map[list_histos[4]]  = ROOT.TH1F(list_histos[4],"Trigger efficiency as function of E_{#gamma}", 10, 35.,90.)
+histo_map[list_histos[0]]  = ROOT.TH1F(list_histos[0],"M_{#mu#mu} in "+CONST_NAME+" (Photon leg)",100,20.,120.)
+histo_map[list_histos[1]]  = ROOT.TH1F(list_histos[1],"E_{T}^{#gamma} in "+CONST_NAME+" (Photon leg)", 100, 30.,160.)
+histo_map[list_histos[2]]  = ROOT.TH1F(list_histos[2],"n. events #gamma triggered as function of E_{#gamma} in "+CONST_NAME+" (Photon leg)", 10, 35.,90.)
+histo_map[list_histos[3]]  = ROOT.TH1F(list_histos[3],"n. events #gamma over offline selection as function of E_{#gamma} in "+CONST_NAME+" (Photon leg)", 10, 35.,90.)
+histo_map[list_histos[4]]  = ROOT.TH1F(list_histos[4],"Trigger efficiency as function of E_{#gamma} in "+CONST_NAME+" (Photon leg)", 10, 35.,90.)
 
 #VARIABLES INITIALIZATION ##################################################################################################
 nEventsIsoMuTrigger  = 0
@@ -112,6 +118,7 @@ print "##########################################"
 
 if debug:
     print "########################################"
+    print CONST_NAME + " sample"
     print "nEventsPhotonTrigger = ",nEventsPhotonTrigger
     print "nEventsOfflinePhoton = ",nEventsOfflinePhoton
     print "Trigger fraction = ",triggerFraction
@@ -129,7 +136,6 @@ histo_map["h_nPhotonOffline_eT"].GetYaxis().SetTitle("n. offline #gamma")
 
 histo_map["h_triggerEff_eT"].GetXaxis().SetTitle("E^{#gamma}_{T} [GeV]")
 histo_map["h_triggerEff_eT"].GetYaxis().SetTitle("Trigger efficiency")
-histo_map["h_triggerEff_eT"].SetTitle("Trigger efficiency as function of E_{#gamma}")
 
 # HISTOS WRITING #########################################################################
 fOut.cd()
@@ -144,8 +150,8 @@ histo_map["h_mass_mumu"].SetMarkerSize(1.4)
 histo_map["h_mass_mumu"].GetXaxis().SetRangeUser(20.,120.)
 #histo_map["h_mass_mumu"].GetYaxis().SetRangeUser(0.,30.)
 histo_map["h_mass_mumu"].Draw("")
-c1.SaveAs("/eos/user/g/gumoret/www/latest_production_trigger/h_mass_mumu.pdf")
-c1.SaveAs("/eos/user/g/gumoret/www/latest_production_trigger/h_mass_mumu.png")  
+c1.SaveAs("/eos/user/g/gumoret/www/latest_production/trigger_efficiency_latest_production/h_photonLeg_mass_mumu_"+CONST_NAME+".pdf")
+c1.SaveAs("/eos/user/g/gumoret/www/latest_production/trigger_efficiency_latest_production/h_photonLeg_mass_mumu_"+CONST_NAME+".png")  
 
 c2 = ROOT.TCanvas()
 c2.cd()
@@ -155,22 +161,22 @@ c2.cd()
 histo_map["h_gamma_eT"].GetXaxis().SetRangeUser(20.,120.)
 #histo_map["h_gamma_eT"].GetYaxis().SetRangeUser(0.,30.)
 histo_map["h_gamma_eT"].Draw("")
-c2.SaveAs("/eos/user/g/gumoret/www/latest_production_trigger/h_gamma_eT.png") 
-c2.SaveAs("/eos/user/g/gumoret/www/latest_production_trigger/h_gamma_eT.pdf") 
+c2.SaveAs("/eos/user/g/gumoret/www/latest_production/trigger_efficiency_latest_production/h_gamma_eT_"+CONST_NAME+".png") 
+c2.SaveAs("/eos/user/g/gumoret/www/latest_production/trigger_efficiency_latest_production/h_gamma_eT_"+CONST_NAME+".pdf") 
 
 c3 = ROOT.TCanvas()
 c3.cd()
 ROOT.gStyle.SetOptStat(0)
 histo_map["h_nPhotonTriggered_eT"].Draw("")
-c3.SaveAs("/eos/user/g/gumoret/www/latest_production_trigger/h_nPhotonTriggered_eT.pdf")
-c3.SaveAs("/eos/user/g/gumoret/www/latest_production_trigger/h_nPhotonTriggered_eT.png") 
+c3.SaveAs("/eos/user/g/gumoret/www/latest_production/trigger_efficiency_latest_production/h_nPhotonTriggered_eT_"+CONST_NAME+".pdf")
+c3.SaveAs("/eos/user/g/gumoret/www/latest_production/trigger_efficiency_latest_production/h_nPhotonTriggered_eT_"+CONST_NAME+".png") 
 
 c4 = ROOT.TCanvas()
 c4.cd()
 ROOT.gStyle.SetOptStat(0)
 histo_map["h_nPhotonOffline_eT"].Draw("")
-c4.SaveAs("/eos/user/g/gumoret/www/latest_production_trigger/h_nPhotonOffline_eT.pdf")
-c4.SaveAs("/eos/user/g/gumoret/www/latest_production_trigger/h_nPhotonOffline_eT.png") 
+c4.SaveAs("/eos/user/g/gumoret/www/latest_production/trigger_efficiency_latest_production/h_nPhotonOffline_eT_"+CONST_NAME+".pdf")
+c4.SaveAs("/eos/user/g/gumoret/www/latest_production/trigger_efficiency_latest_production/h_nPhotonOffline_eT_"+CONST_NAME+".png") 
 
 c3 = ROOT.TCanvas()
 c3.cd()
@@ -178,7 +184,7 @@ ROOT.gStyle.SetOptStat(0)
 #ROOT.gStyle.SetPaintTextFormat("4.2f %")
 histo_map["h_triggerEff_eT"].GetYaxis().SetRangeUser(0.,1.)
 histo_map["h_triggerEff_eT"].Draw("")
-c3.SaveAs("/eos/user/g/gumoret/www/latest_production_trigger/h_triggerEff_eT.pdf")
-c3.SaveAs("/eos/user/g/gumoret/www/latest_production_trigger/h_triggerEff_eT.png") 
+c3.SaveAs("/eos/user/g/gumoret/www/latest_production/trigger_efficiency_latest_production/h_triggerEff_eT_"+CONST_NAME+".pdf")
+c3.SaveAs("/eos/user/g/gumoret/www/latest_production/trigger_efficiency_latest_production/h_triggerEff_eT_"+CONST_NAME+".png") 
 
 fOut.Close()

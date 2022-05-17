@@ -647,7 +647,7 @@ if(verbose) cout<< "JETs loop"<<" --------------------------------"<<endl;
 
           deltaR_K= sqrt(deltaEta*deltaEta + deltaPhi*deltaPhi);
           if(verbose) cout<<"deltaR = "<<deltaR_K<<endl; //fixme
-          if(deltaR_K > 0.4) continue; //FIXME, it was 0.02
+          if(deltaR_K > 0.07) continue; //FIXME, it was 0.02
           if(verbose) cout<<"deltaR cut passed"<<endl; //fixme
 
           //OPPOSITE CHARGE - FILTER ------------------------------------------------------------
@@ -694,7 +694,7 @@ if(verbose) cout<< "JETs loop"<<" --------------------------------"<<endl;
           }
 
           //PT CUT
-          if(couple_p4_K.pt() < 30.) continue;
+          if(couple_p4_K.pt() < 35.) continue;
           if(verbose) cout<<"coupltpT cut passed"<<endl; //fixme
 
           //PT MAX OF THE JET - FILTER

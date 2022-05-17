@@ -51,6 +51,7 @@ private:
   int nPhotonsChosen;
   int nPhotonsOverSelection;
   int _Nevents_processed;
+  int _nEvents_ZmumuFound;
   int _Nevents_isPhoton;
   
   //TTree and TTree variables
@@ -61,6 +62,10 @@ private:
   float currentMuMuPt;
   float bestMuMuPt;
   float bestMuMuMass;
+  float firstMuEta;
+  float secondMuEta;
+  float firstMuPhi;
+  float secondMuPhi;
 
   float firstCandPx;
   float firstCandPy;

@@ -82,6 +82,7 @@ HPhiGammaTwoProngsTriggerAnalysis::HPhiGammaTwoProngsTriggerAnalysis(const edm::
   h_Events = fs->make<TH1F>("h_Events", "Event counting in different steps", 8, 0., 8.);
 
   _Nevents_processed  = 0;
+  _nEvents_ZmumuFound = 0;
 
   debug=false;  //DEBUG datamember 
   verbose=false; 
@@ -246,21 +247,39 @@ void HPhiGammaTwoProngsTriggerAnalysis::analyze(const edm::Event& iEvent, const 
   //                                                             //
   //*************************************************************//
   if (verbose) cout<<"Muons forloop start"<<endl;
-  for(auto firstMu= slimmedMuons->begin(); firstMu!= slimmedMuons->end(); ++firstMu){ //Muon first forloop start
-      if(firstMu->pt() < 5. || !firstMu->CutBasedIdMedium || fabs(firstMu->eta()) > 2.4 || fabs(firstMu->muonBestTrack()->dxy((&slimmedPV->at(0))->position())) >= 0.2 || fabs(firstMu->muonBestTrack()->dz((&slimmedPV->at(0))->position())) >= 0.5) continue;
-      if(!firstMu->PFIsoLoose) continue;
+
+  //First loop over muons
+  for(std::vector<pat::Muon>::size_type firstMuIndex = 0; firstMuIndex < slimmedMuons->size();firstMuIndex ++){ //Muon first forloop start
+      
+      //refuse muons not passing over basic requirements
+      if(slimmedMuons->at(firstMuIndex).pt() < 5. || !slimmedMuons->at(firstMuIndex).CutBasedIdMedium || fabs(slimmedMuons->at(firstMuIndex).eta()) > 2.4 || fabs(slimmedMuons->at(firstMuIndex).muonBestTrack()->dxy((&slimmedPV->at(0))->position())) >= 0.2 || fabs(slimmedMuons->at(firstMuIndex).muonBestTrack()->dz((&slimmedPV->at(0))->position())) >= 0.5) continue;
+      if(!slimmedMuons->at(firstMuIndex).PFIsoLoose) continue;
     
-      for(auto secondMu= slimmedMuons->begin(); secondMu!= slimmedMuons->end(); ++secondMu){//Muon second forloop start
-          if(secondMu->pt() < 25.) continue;
-          if(firstMu->charge()*secondMu->charge() >= 0.) continue; //take only muons with opposite charges
-          currentMuMuMass = (firstMu->p4() + secondMu->p4()).M();
+      //Second loop over muons
+      for(std::vector<pat::Muon> ::size_type secondMuIndex = firstMuIndex + 1; secondMuIndex < slimmedMuons->size();secondMuIndex ++){ //Muon second forloop start
+          
+          //refuse muons not passing over basic requirements
+          if(slimmedMuons->at(firstMuIndex).pt() < 5. || !slimmedMuons->at(firstMuIndex).CutBasedIdMedium || fabs(slimmedMuons->at(firstMuIndex).eta()) > 2.4 || fabs(slimmedMuons->at(firstMuIndex).muonBestTrack()->dxy((&slimmedPV->at(0))->position())) >= 0.2 || fabs(slimmedMuons->at(firstMuIndex).muonBestTrack()->dz((&slimmedPV->at(0))->position())) >= 0.5) continue;
+
+          //at least one of the two muons must have pT > 25 GeV
+          if(slimmedMuons->at(firstMuIndex).pt() < 25. && slimmedMuons->at(secondMuIndex).pt() < 25.) continue; 
+
+          //take only muons with opposite charges
+          if(slimmedMuons->at(firstMuIndex).charge() * slimmedMuons->at(secondMuIndex).charge() >= 0.) continue; 
+
+          //take only muons pairs falling in an invariant mass range
+          currentMuMuMass = (slimmedMuons->at(firstMuIndex).p4() + slimmedMuons->at(secondMuIndex).p4()).M();
           if(currentMuMuMass < 20. || currentMuMuMass > 120.) continue; //MuMu inv mass for Z
 
-          currentMuMuPt = (firstMu->p4() + secondMu->p4()).pt(); 
-          if(currentMuMuPt <= bestMuMuPt) continue; //choose the pair with largest pT
-          bestMuMuPt = currentMuMuPt;
+          //choose the pair with largest pT 
+          currentMuMuPt = (slimmedMuons->at(firstMuIndex).p4() + slimmedMuons->at(secondMuIndex).p4()).pt();
+          if(currentMuMuPt <= bestMuMuPt) continue; 
+
+          //Save the variables of the current pair until a better one doesn't replace it
+          bestMuMuPt   = currentMuMuPt;
           bestMuMuMass = currentMuMuMass;
           isBestMuMu_Found = true;
+
       } //Muon second forloop end
     }//Muon first forloop end
 
@@ -268,6 +287,8 @@ void HPhiGammaTwoProngsTriggerAnalysis::analyze(const edm::Event& iEvent, const 
     if (verbose) cout<<"RETURN: No Z->mumu found."<<endl<<endl;
     return;
   }
+
+  _nEvents_ZmumuFound++;
 
   if(isBestMuMu_Found && verbose){
     cout<<"Muon pair found, with pT = "<<bestMuMuPt<<" and inv mass = "<<bestMuMuMass<<endl;
@@ -338,6 +359,7 @@ _bestCouplePt  = 0.;
 _bestCoupleEta = 0.;
 _bestCouplePhi = 0.;
 
+
 if(verbose) cout<< "JETs loop"<<" --------------------------------"<<endl;
 
   for (auto jet = slimmedJets->begin(); jet != slimmedJets->end(); ++jet) { //JET LOOP START --------------------------------------------------------  
@@ -383,7 +405,7 @@ if(verbose) cout<< "JETs loop"<<" --------------------------------"<<endl;
           if(firstCandPt < 10. && secondCandPt < 10.) continue; 
           if(verbose) cout<<"tracks pT cut passed"<<endl; //fixme
 
-          //third filter on deltaR
+          //third filter on deltaR ------------------------------------------------------------
           float deltaEta= firstCandEta - secondCandEta;
 
           float deltaPhi = fabs(firstCandPhi - secondCandPhi);  //phi folding 
@@ -393,6 +415,7 @@ if(verbose) cout<< "JETs loop"<<" --------------------------------"<<endl;
           if(verbose) cout<<"deltaR = "<<deltaR_K<<endl; //fixme
           if(deltaR_K > 0.4) continue; //FIXME, it was 0.02
           if(verbose) cout<<"deltaR cut passed"<<endl; //fixme
+
 
           //OPPOSITE CHARGE - FILTER ------------------------------------------------------------
           firstCandCharge  = slimmedJets->at(jetIndex).daughter(firstCand_Index)->charge(); //extrapolate firstCand charge
