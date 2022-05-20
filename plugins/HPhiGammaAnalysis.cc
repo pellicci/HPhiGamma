@@ -46,6 +46,8 @@
 #include "DataFormats/EgammaCandidates/interface/Photon.h"
 #include "DataFormats/PatCandidates/interface/Photon.h"
 #include "DataFormats/PatCandidates/interface/VIDCutFlowResult.h"
+#include "RecoEgamma/EgammaTools/interface/ConversionTools.h"
+
 
 typedef math::XYZTLorentzVector LorentzVector;
 
@@ -79,17 +81,17 @@ effectiveAreas_ph_( (iConfig.getParameter<edm::FileInPath>("effAreasConfigFile_p
 
   h_Events = fs->make<TH1F>("h_Events", "Event counting in different steps", 8, 0., 8.);
 
-  _Nevents_processed  = 0;
-  _Nevents_triggered = 0;
-  _Nevents_isTwoKaons   = 0;
-  _Nevents_isPhoton   = 0;
-  _Nevents_HiggsFound = 0;
-  _Nevents_HiggsNotMatched = 0;
-  _Nevents_bestCoupleFound = 0;
-  _Nevents_candPtFilter = 0;
+  _Nevents_processed             = 0;
+  _Nevents_triggered             = 0;
+  _Nevents_isTwoKaons            = 0;
+  _Nevents_isPhoton              = 0;
+  _Nevents_HiggsFound            = 0;
+  _Nevents_HiggsNotMatched       = 0;
+  _Nevents_bestCoupleFound       = 0;
+  _Nevents_candPtFilter          = 0;
   _Nevents_coupleIsolationFilter = 0;
-  _nPhotonsWP90 = 0;
-  _nPhotonsNotWP90 = 0;
+  _nPhotonsWP90                  = 0;
+  _nPhotonsNotWP90               = 0;
 
   debug=false;  //DEBUG datamember 
   verbose=false; 
@@ -439,8 +441,9 @@ for(auto el = slimmedElectrons->begin(); el != slimmedElectrons->end(); ++el){
   for(auto photon = slimmedPhotons->begin(); photon != slimmedPhotons->end(); ++photon){ //PHOTON FORLOOP START --------------------------------
 
     corr_et = photon->et(); 
-    if(corr_et < 35. || fabs(photon->eta()) > 2.5) continue; //
-    if(photon->hasPixelSeed()) continue;   //electron veto
+    if(corr_et < 38. || fabs(photon->eta()) > 2.5) continue; //
+    //if(photon->hasPixelSeed()) continue;   //electron veto
+    if(!photon->passElectronVeto()) continue; 
 
     if (debug) cout<<"Photon WP90 before selection = "<<photon->photonID("mvaPhoID-RunIIFall17-v1p1-wp90")<<endl; //FIXME
     if(photon->photonID("mvaPhoID-RunIIFall17-v1p1-wp90") == 0) continue; //WP90
@@ -461,7 +464,7 @@ for(auto el = slimmedElectrons->begin(); el != slimmedElectrons->end(); ++el){
     ph_iso_ChargedHadron = photon->chargedHadronIso();
     ph_iso_NeutralHadron = photon->neutralHadronIso();
     ph_iso_Photon        = photon->photonIso();
-    ph_iso_eArho         = eA*rho_;
+    ph_iso_eArho         = eA * rho_;
 
     ph_eT     = corr_et;
     ph_eta    = photon->eta();
@@ -622,15 +625,21 @@ if(verbose) cout<< "JETs loop"<<" --------------------------------"<<endl;
 
       for(int firstCand_Index=0; firstCand_Index < nDaughters; firstCand_Index++){ //1ST LOOP STARTS
 
-        firstCandPt= slimmedJets->at(jetIndex).daughter(firstCand_Index)->pt(); //extrapolate firstCand pt
-        firstCandEta= slimmedJets->at(jetIndex).daughter(firstCand_Index)->eta(); //extrapolate firstCand eta
-        firstCandPhi= slimmedJets->at(jetIndex).daughter(firstCand_Index)->phi(); //extrapolate firstCand phi
+        //minimum apporach distance
+       // if ((slimmedJets->at(jetIndex).daughter(firstCand_Index)->dxy((&slimmedPV->at(0))->position())) >= 0.2 || slimmedJets->at(jetIndex).daughter(firstCand_Index)->dz((&slimmedPV->at(0))->position()) >= 0.5 ) continue;
+
+        firstCandPt  = slimmedJets->at(jetIndex).daughter(firstCand_Index)->pt();  //extrapolate firstCand pt
+        firstCandEta = slimmedJets->at(jetIndex).daughter(firstCand_Index)->eta(); //extrapolate firstCand eta
+        firstCandPhi = slimmedJets->at(jetIndex).daughter(firstCand_Index)->phi(); //extrapolate firstCand phi
 
         if(firstCandPt < candPtMin) continue; //firstCand filter if pT < candPtMin
 
         for(int secondCand_Index=firstCand_Index+1; secondCand_Index < nDaughters; secondCand_Index++){ //2ND LOOP STARTS
 
-          secondCandPt  = slimmedJets->at(jetIndex).daughter(secondCand_Index)->pt(); //extrapolate secondCand pt
+          //minimum apporach distance
+          //if ((slimmedJets->at(jetIndex).daughter(secondCand_Index)->dxy((&slimmedPV->at(0))->position())) >= 0.2 || slimmedJets->at(jetIndex).daughter(secondCand_Index)->dz((&slimmedPV->at(0))->position()) >= 0.5 ) continue;
+          
+          secondCandPt  = slimmedJets->at(jetIndex).daughter(secondCand_Index)->pt();  //extrapolate secondCand pt
           secondCandEta = slimmedJets->at(jetIndex).daughter(secondCand_Index)->eta(); //extrapolate secondCand eta
           secondCandPhi = slimmedJets->at(jetIndex).daughter(secondCand_Index)->phi(); //extrapolate secondCand phi
 
@@ -674,9 +683,9 @@ if(verbose) cout<< "JETs loop"<<" --------------------------------"<<endl;
           secondCandEnergy_Pi = sqrt(secondCandPx * secondCandPx + secondCandPy * secondCandPy + secondCandPz * secondCandPz + PiMass * PiMass); //Pion hypothesis energy recalculation
           
           if (verbose) {
-            cout<<"firstCandEnergy_K = "<<firstCandEnergy_K<<endl;
-            cout<<"firstCandEnergy_Pi = "<<firstCandEnergy_Pi<<endl;
-            cout<<"secondCandEnergy_K = "<<secondCandEnergy_K<<endl;
+            cout<<"firstCandEnergy_K   = "<<firstCandEnergy_K<<endl;
+            cout<<"firstCandEnergy_Pi  = "<<firstCandEnergy_Pi<<endl;
+            cout<<"secondCandEnergy_K  = "<<secondCandEnergy_K<<endl;
             cout<<"secondCandEnergy_Pi = "<<secondCandEnergy_Pi<<endl;
           }
 
@@ -694,8 +703,8 @@ if(verbose) cout<< "JETs loop"<<" --------------------------------"<<endl;
           }
 
           //PT CUT
-          if(couple_p4_K.pt() < 35.) continue;
-          if(verbose) cout<<"coupltpT cut passed"<<endl; //fixme
+          if(couple_p4_K.pt() < 38.) continue;
+          if(verbose) cout<<"couplepT cut passed"<<endl; //fixme
 
           //PT MAX OF THE JET - FILTER
 	        if(couple_p4_K.pt() <= bestCoupleOfTheJet_pT) continue; //choose the couple with greatest pt
@@ -782,20 +791,20 @@ _MesonMass = (best_firstCand_p4 + best_secondCand_p4).M();
 _Hmass_From2K_Photon = (best_firstCand_p4 + best_secondCand_p4 + ph_p4).M(); //calculate inv mass of the Higgs candidate
 
 //K-candidates and PHI ISOLATION
-K1_sum_pT_05    = 0.;
-K1_sum_pT_05_ch = 0.;
+K1_sum_pT_05        = 0.;
+K1_sum_pT_05_ch     = 0.;
 
-K2_sum_pT_05    = 0.;
-K2_sum_pT_05_ch = 0.;
+K2_sum_pT_05        = 0.;
+K2_sum_pT_05_ch     = 0.;
 
-couple_sum_pT_05 = 0.;
+couple_sum_pT_05    = 0.;
 couple_sum_pT_05_ch = 0.;
 
-_iso_K1 = 0.;
-_iso_K1_ch = 0.;
-_iso_K2 = 0.;
-_iso_K2_ch = 0.;
-_iso_couple = 0.;
+_iso_K1        = 0.;
+_iso_K1_ch     = 0.;
+_iso_K2        = 0.;
+_iso_K2_ch     = 0.;
+_iso_couple    = 0.;
 _iso_couple_ch = 0.;
 
 //------------- ISOLATION -------------------------------------------------------------------------  
@@ -803,34 +812,40 @@ for(auto cand_iso = PFCandidates->begin(); cand_iso != PFCandidates->end(); ++ca
 
   if(cand_iso->pt() < 0.5) continue; //do not consider tracks with pT < 500MeV
 
+  //calculate the deltaR between the track and the first candidate ---------------------------------------
   float deltaPhi_K1 = fabs(_firstCandPhi-cand_iso->phi());  //phi folding	
   if (deltaPhi_K1 > 3.14) deltaPhi_K1 = 6.28 - deltaPhi_K1;
 
   float deltaR_K1 = sqrt((_firstCandEta-cand_iso->eta())*(_firstCandEta-cand_iso->eta()) + deltaPhi_K1*deltaPhi_K1);
-  if(deltaR_K1 < 0.02) continue;
+  if(deltaR_K1 < 0.002) continue;
 
+  //calculate the deltaR between the track and the second candidate ---------------------------------------
   float deltaPhi_K2 = fabs(_secondCandPhi-cand_iso->phi());  //phi folding	
   if (deltaPhi_K2 > 3.14) deltaPhi_K2 = 6.28 - deltaPhi_K2;
 
   float deltaR_K2 = sqrt((_secondCandEta-cand_iso->eta())*(_secondCandEta-cand_iso->eta()) + deltaPhi_K2*deltaPhi_K2);
-  if(deltaR_K2 < 0.02) continue;
+  if(deltaR_K2 < 0.002) continue;
 
+  //calculate the deltaR between the track and the best pair ---------------------------------------
   float deltaPhi_Couple = fabs(_bestCouplePhi-cand_iso->phi());  //phi folding	
   if (deltaPhi_Couple > 3.14) deltaPhi_Couple = 6.28 - deltaPhi_Couple;
 
   float deltaR_Couple = sqrt((_bestCoupleEta-cand_iso->eta())*(_bestCoupleEta-cand_iso->eta()) + deltaPhi_Couple*deltaPhi_Couple);
 
+  //sum pT of the tracks inside a cone of deltaR = 0.3 ---------------------------------------
   if(deltaR_K1 <= 0.3) K1_sum_pT_05 += cand_iso->pt();
   if(deltaR_K2 <= 0.3) K2_sum_pT_05 += cand_iso->pt();
   if(deltaR_Couple <= 0.3) couple_sum_pT_05 += cand_iso->pt();
 
+  //sum pT of the charged tracks inside a cone of deltaR = 0.3 ---------------------------------------
   if(cand_iso->charge() != 0 && (fabs(cand_iso->dxy()) >= 0.2 || fabs(cand_iso->dz()) >= 0.5) ) continue; // Requesting charged particles to come from PV
   if(deltaR_K1 <= 0.3) K1_sum_pT_05_ch += cand_iso->pt();
   if(deltaR_K2 <= 0.3) K2_sum_pT_05_ch += cand_iso->pt();
   if(deltaR_Couple <= 0.3) couple_sum_pT_05_ch += cand_iso->pt();
 } //ISOLATION FORLOOP END
   
-  //CANDIDATES SORTING
+
+//CANDIDATES SORTING
 if(_firstCandPt < _secondCandPt)  //swap-values loop, in order to fill the tree with the candidate with max pt of the couple in firstCand branches  
   {                               //and one with min pt in secondCand branches
     float a,b,c,d;
@@ -849,22 +864,22 @@ if(_firstCandPt < _secondCandPt)  //swap-values loop, in order to fill the tree 
 }
 
 //CUTS ON CANDIDATES PT
-if(_firstCandPt < 15. || _secondCandPt < 5.) {
+if(_firstCandPt < 20. || _secondCandPt < 5.) {
     cout<<"Final cut on candidates pT not passed, RETURN."<<endl;
     return;
 }
   _Nevents_candPtFilter++;
 
 //ISOLATION DATAMEMBER FOR TREE FILLING 
-_iso_K1        = K1_sum_pT_05/_firstCandPt;
-_iso_K2        = K2_sum_pT_05/_secondCandPt;
-_iso_couple    = couple_sum_pT_05/_bestCouplePt;
-_iso_K1_ch     = K1_sum_pT_05_ch/_firstCandPt;
-_iso_K2_ch     = K2_sum_pT_05_ch/_secondCandPt;
-_iso_couple_ch = couple_sum_pT_05_ch/_bestCouplePt;
+_iso_K1        = _firstCandPt/(K1_sum_pT_05 + _firstCandPt);
+_iso_K2        = _secondCandPt/(K2_sum_pT_05 + _secondCandPt);
+_iso_couple    = _bestCouplePt/(couple_sum_pT_05 + _bestCouplePt);
+_iso_K1_ch     = _firstCandPt/(K1_sum_pT_05_ch + _firstCandPt);
+_iso_K2_ch     = _secondCandPt/(K2_sum_pT_05_ch + _secondCandPt);
+_iso_couple_ch = _bestCouplePt/(couple_sum_pT_05_ch + _bestCouplePt);
 
 //CUT ON PHI ISOLATION
-if(_iso_couple_ch > 1.) {
+if(_iso_couple_ch < 0.9) {
   if(verbose) cout<<"No isolation cut passed, RETURN."<<endl;
   return;
 }

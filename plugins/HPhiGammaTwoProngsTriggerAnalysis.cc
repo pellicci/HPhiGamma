@@ -296,17 +296,10 @@ void HPhiGammaTwoProngsTriggerAnalysis::analyze(const edm::Event& iEvent, const 
  
  //*************************************************************//
   //                                                             //
-  //--------------------------- N-jets --------------------------//
+  //--------------------------- N-tracks --------------------------//
   //                                                             //
   //*************************************************************//
 
-nJets      = 0;
-nJets_25   = 0;
-
-  //int nJet=1;
-int jetIndex=-1;
-int nDaughters = 0;
-  //bool isBestJetFound = false; 
 
   //daughters forloop variable
 int firstCandCharge;
@@ -325,7 +318,7 @@ LorentzVector couple_p4_Pi;
 LorentzVector best_firstCand_p4;
 LorentzVector best_secondCand_p4;
 LorentzVector best_couple_p4;
-float bestCoupleOfTheJet_pT = 0.;
+float bestCoupleOfTheEvent_pT = 0.;
 float deltaR_K = 0.;
 firstCandEnergy_K = 0.;
 secondCandEnergy_K = 0.;
@@ -360,50 +353,35 @@ _bestCoupleEta = 0.;
 _bestCouplePhi = 0.;
 
 
-if(verbose) cout<< "JETs loop"<<" --------------------------------"<<endl;
 
-  for (auto jet = slimmedJets->begin(); jet != slimmedJets->end(); ++jet) { //JET LOOP START --------------------------------------------------------  
-
-    jetIndex++;
-    nDaughters= jet->numberOfDaughters(); //calculate number of daughters
-
-    //----------------------------- Pre-Filters --------------------------------------------------------
-    if(jet->pt() < 40. || abs(jet->eta()) > 2.5) continue;
-    if(((jet->p4()).M()) < 50.) continue; //reject jets with inv mass lower then 60 GeV
-    if(jet->neutralHadronEnergyFraction() > 0.9) continue; //reject if neutralhadron-energy fraction is > 0.9
-    if(jet->neutralEmEnergyFraction() > 0.9) continue; //reject if neutralEm-energy fraction is > 0.9, alias NO-PHOTON FILTER                              
-    if(nDaughters < 2) continue; //reject if number of constituens is less then 1
-    if(jet->muonEnergyFraction() > 0.8) continue; //reject if muon-energy fraction is > 0.8                                             
-    if(jet->chargedHadronEnergyFraction() <= 0.) continue; //reject if chargedHadron-energy fraction is 0                              
-    if(jet->chargedHadronMultiplicity() == 0) continue; //reject if there are NOT charged hadrons                              
-    if(jet->chargedEmEnergyFraction() > 0.8) continue; //reject if chargedEm-energy fraction is > 0.8                              
-     //-------------------------------------------------------------------------------------------------      
-      
-    if (verbose) cout<<"Jet at index = "<<jetIndex<<" passed the cuts:"<<endl; 
-
-
-      //-------------------------------------daughters forloop----------------------------
+      //-------------------------------------tracks forloop----------------------------
       if(verbose)cout<<"TRACKs:"<<endl;
 
 
-      for(int firstCand_Index=0; firstCand_Index < nDaughters; firstCand_Index++){ //1ST LOOP STARTS
+  for(std::vector<pat::PackedCandidate>::size_type firstTrk_Index=0; firstTrk_Index < PFCandidates->size(); firstTrk_Index++){ //1ST LOOP STARTS
 
-        firstCandPt= slimmedJets->at(jetIndex).daughter(firstCand_Index)->pt(); //extrapolate firstCand pt
-        firstCandEta= slimmedJets->at(jetIndex).daughter(firstCand_Index)->eta(); //extrapolate firstCand eta
-        firstCandPhi= slimmedJets->at(jetIndex).daughter(firstCand_Index)->phi(); //extrapolate firstCand phi
+        //minimum apporach distance
+        if ((PFCandidates->at(firstTrk_Index).dxy((&slimmedPV->at(0))->position())) >= 0.2 || PFCandidates->at(firstTrk_Index).dz((&slimmedPV->at(0))->position()) >= 0.5 ) continue;
+
+        firstCandPt  = PFCandidates->at(firstTrk_Index).pt();  //extrapolate firstCand pt
+        firstCandEta = PFCandidates->at(firstTrk_Index).eta(); //extrapolate firstCand eta
+        firstCandPhi = PFCandidates->at(firstTrk_Index).phi(); //extrapolate firstCand phi
 
         if(firstCandPt < candPtMin) continue; //firstCand filter if pT < candPtMin
 
-        for(int secondCand_Index=firstCand_Index+1; secondCand_Index < nDaughters; secondCand_Index++){ //2ND LOOP STARTS
+        for(std::vector<pat::PackedCandidate>::size_type secondTrk_Index=firstTrk_Index+1; secondTrk_Index < PFCandidates->size(); secondTrk_Index++){ //2ND LOOP STARTS
 
-          secondCandPt  = slimmedJets->at(jetIndex).daughter(secondCand_Index)->pt(); //extrapolate secondCand pt
-          secondCandEta = slimmedJets->at(jetIndex).daughter(secondCand_Index)->eta(); //extrapolate secondCand eta
-          secondCandPhi = slimmedJets->at(jetIndex).daughter(secondCand_Index)->phi(); //extrapolate secondCand phi
+          //minimum apporach distance
+          if ((PFCandidates->at(secondTrk_Index).dxy((&slimmedPV->at(0))->position())) >= 0.2 || PFCandidates->at(secondTrk_Index).dz((&slimmedPV->at(0))->position()) >= 0.5 ) continue;
+
+          secondCandPt  = PFCandidates->at(secondTrk_Index).pt();  //extrapolate secondCand pt
+          secondCandEta = PFCandidates->at(secondTrk_Index).eta(); //extrapolate secondCand eta
+          secondCandPhi = PFCandidates->at(secondTrk_Index).phi(); //extrapolate secondCand phi
 
           //secondCand filter if both pT are < 10GeV
           if(secondCandPt < candPtMin) continue;
           if(firstCandPt < 10. && secondCandPt < 10.) continue; 
-          if(verbose) cout<<"tracks pT cut passed"<<endl; //fixme
+          //if(verbose) cout<<"tracks pT cut passed"<<endl; //fixme
 
           //third filter on deltaR ------------------------------------------------------------
           float deltaEta= firstCandEta - secondCandEta;
@@ -412,20 +390,20 @@ if(verbose) cout<< "JETs loop"<<" --------------------------------"<<endl;
           if (deltaPhi > 3.14) deltaPhi = 6.28 - deltaPhi;
 
           deltaR_K= sqrt(deltaEta*deltaEta + deltaPhi*deltaPhi);
-          if(verbose) cout<<"deltaR = "<<deltaR_K<<endl; //fixme
-          if(deltaR_K > 0.4) continue; //FIXME, it was 0.02
-          if(verbose) cout<<"deltaR cut passed"<<endl; //fixme
+          //if(verbose) cout<<"deltaR = "<<deltaR_K<<endl; //fixme
+          if(deltaR_K > 0.07) continue; //FIXME, it was 0.02
+          //if(verbose) cout<<"deltaR cut passed"<<endl; //fixme
 
 
           //OPPOSITE CHARGE - FILTER ------------------------------------------------------------
-          firstCandCharge  = slimmedJets->at(jetIndex).daughter(firstCand_Index)->charge(); //extrapolate firstCand charge
-          secondCandCharge = slimmedJets->at(jetIndex).daughter(secondCand_Index)->charge(); //extrapolate secondCand charge
+          firstCandCharge  = PFCandidates->at(firstTrk_Index).charge(); //extrapolate firstCand charge
+          secondCandCharge = PFCandidates->at(secondTrk_Index).charge(); //extrapolate secondCand charge
           if(firstCandCharge*secondCandCharge >= 0) continue; //choose only opposite charges
           if(verbose) cout<<"opposite charge cut passed"<<endl; //fixme
 
           //QUADRIMOMENTUM CALCULATION ------------------------------------------------------------
-          firstCand_p4  = slimmedJets->at(jetIndex).daughter(firstCand_Index)->p4(); //extrapolate quadrimomentum
-          secondCand_p4 = slimmedJets->at(jetIndex).daughter(secondCand_Index)->p4();
+          firstCand_p4  = PFCandidates->at(firstTrk_Index).p4(); //extrapolate quadrimomentum
+          secondCand_p4 = PFCandidates->at(secondTrk_Index).p4();
 
           firstCandPx   = firstCand_p4.px(); //extrapolate px, py, pz of the first candidate
           firstCandPy   = firstCand_p4.py();
@@ -460,13 +438,9 @@ if(verbose) cout<< "JETs loop"<<" --------------------------------"<<endl;
             cout<<"PiPi pT = "<<couple_p4_Pi.pt()<<endl;
           }
 
-          //PT CUT
-          if(couple_p4_K.pt() < 30.) continue;
-          if(verbose) cout<<"coupltpT cut passed"<<endl; //fixme
-
-          //PT MAX OF THE JET - FILTER
-          if(couple_p4_K.pt() <= bestCoupleOfTheJet_pT) continue; //choose the couple with greatest pt
-          bestCoupleOfTheJet_pT = couple_p4_K.pt();       
+          //PT MAX OF THE EVENT - FILTER
+          if(couple_p4_K.pt() <= bestCoupleOfTheEvent_pT) continue; //choose the couple with greatest pt
+          bestCoupleOfTheEvent_pT = couple_p4_K.pt();       
 
           //PHI INV MASS - FILTER
           isPhi = false;
@@ -482,6 +456,10 @@ if(verbose) cout<< "JETs loop"<<" --------------------------------"<<endl;
 
           if (!isPhi && !isRho) continue; //continue if the pair mass doesn't match any of the two mass hypothesis
           if(verbose) cout<<"mass range if the couple cut passed"<<endl; //fixme
+
+          //PT CUT
+          if(couple_p4_K.pt() < 35.) continue;
+          if(verbose) cout<<"couplepT cut passed"<<endl; //fixme
 
           isBestCoupleOfTheEvent_Found = true;
 
@@ -503,11 +481,6 @@ if(verbose) cout<< "JETs loop"<<" --------------------------------"<<endl;
       } //2ND LOOP ENDS
   } //1ST LOOP ENDS
 
-  if(jet->pt() < 25.) continue;
-  nJets_25++;
-  if(jet->pt() < 30.) continue;
-  nJets++;
-} //JET LOOP END
 
 //DATAMEMBER SAVING
 _firstCandPt   = best_firstCand_p4.pt();
