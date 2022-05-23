@@ -33,7 +33,7 @@ options.parseArguments()
 #Phi input file
 input_path = '/eos/user/p/pellicci/MesonGamma_root/2018/HPhiGamma_ggH/MINI/'                                                                                                                          
 #Rho input file
-input_path = '/afs/cern.ch/user/g/gumoret/work/MesonGamma_root/2018/HRhoGamma_ggH/MINI'
+#input_path = '/afs/cern.ch/user/g/gumoret/work/MesonGamma_root/2018/HRhoGamma_ggH/MINI'
 
 '''                                                                                                                                                                                                   
     For the given path, get the List of all files in the directory tree                                                                                                                               

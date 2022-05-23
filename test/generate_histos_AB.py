@@ -6,8 +6,8 @@ import sys
 from functions_smuggler import Simplified_Workflow_Handler
 
 #bools
-debug          = True #Bool for verbose
-doSelection    = True #if you turn this to False disable select_all_but_one
+debug          = False #Bool for verbose
+doSelection    = False #if you turn this to False disable select_all_but_one
 
 #Following bools are given as input
 isDataBlind    = False #Bool for blind analysis
@@ -103,16 +103,12 @@ ph_pixVeto_scale_histo_2018 = ph_pixVeto_scale_file_2018.Get("eleVeto_SF")
 
 #HISTOS ###########################################################################################################
 histo_map = dict()
-list_histos = ["h_InvMass_TwoTrk_Photon","h_InvMass_TwoTrk_Photon_NoPhiMassCut","h_meson_InvMass_TwoTrk","h_firstTrk_pT","h_secondTrk_pT","h_firstTrk_Eta","h_secondTrk_Eta","h_firstTrk_Phi","h_secondTrk_Phi","h_bestCouplePt","h_bestCoupleEta","h_bestCoupleDeltaR","h_bestJetPt","h_bestJetEta","h_firstTrk_Iso","h_firstTrk_Iso_ch","h_secondTrk_Iso","h_secondTrk_Iso_ch","h_couple_Iso","h_couple_Iso_ch","h_photon_energy","h_photon_eta","h_nJets_25","h_nMuons","h_nElectrons","h_nPhotons","h_efficiency","h_photonWP90","h_couple_AbsIsoCh","h_decayChannel"]#,"h_BDT_out"]
+list_histos = ["h_InvMass_TwoTrk_Photon","h_InvMass_TwoTrk_Photon_NoPhiMassCut","h_meson_InvMass_TwoTrk","h_firstTrk_pT","h_secondTrk_pT","h_firstTrk_Eta","h_secondTrk_Eta","h_firstTrk_Phi","h_secondTrk_Phi","h_bestCouplePt","h_bestCoupleEta","h_bestCoupleDeltaR","h_bestJetPt","h_bestJetEta","h_firstTrk_Iso","h_firstTrk_Iso_ch","h_secondTrk_Iso","h_secondTrk_Iso_ch","h_couple_Iso","h_couple_Iso_ch","h_photon_energy","h_photon_eta","h_nJets_25","h_nMuons","h_nElectrons","h_nPhotons","h_efficiency","h_photonWP90","h_decayChannel"]#,"h_BDT_out"]
 
 histo_map[list_histos[0]]  = ROOT.TH1F(list_histos[0],"M_{H}",100,100.,150.) 
 histo_map[list_histos[1]]  = ROOT.TH1F(list_histos[1],"M_{H} (no cut on phi mass)",100,100.,150.) 
-
-if   isPhiAnalysis:
-    histo_map[list_histos[2]]  = ROOT.TH1F(list_histos[2],"M_{meson}", 100, 1., 1.1) 
-elif isRhoAnalysis:
-    histo_map[list_histos[2]]  = ROOT.TH1F(list_histos[2],"M_{meson}", 100, 0.5, 1.) 
-
+if isPhiAnalysis:   histo_map[list_histos[2]]  = ROOT.TH1F(list_histos[2],"M_{meson}", 100, 1., 1.05) 
+elif isRhoAnalysis: histo_map[list_histos[2]]  = ROOT.TH1F(list_histos[2],"M_{meson}", 100, 0.5, 1.) 
 histo_map[list_histos[3]]  = ROOT.TH1F(list_histos[3],"p_{T} of the 1st track", 100, 15.,60.)
 histo_map[list_histos[4]]  = ROOT.TH1F(list_histos[4],"p_{T} of the 2nd track", 100, 5.,50.)
 histo_map[list_histos[5]]  = ROOT.TH1F(list_histos[5],"#eta of the 1st track", 100, -2.5,2.5)
@@ -121,15 +117,16 @@ histo_map[list_histos[7]]  = ROOT.TH1F(list_histos[7],"#phi of the 1st track", 1
 histo_map[list_histos[8]]  = ROOT.TH1F(list_histos[8],"#phi of the 2nd track", 100, -3.14,3.14)
 histo_map[list_histos[9]]  = ROOT.TH1F(list_histos[9],"p_{T} of the meson", 100, 30.,110.)
 histo_map[list_histos[10]] = ROOT.TH1F(list_histos[10],"#eta_{meson}", 100, -2.5,2.5)
-histo_map[list_histos[11]] = ROOT.TH1F(list_histos[11],"#Delta R_{meson}", 100, 0.,0.1)
+if   isPhiAnalysis: histo_map[list_histos[11]] = ROOT.TH1F(list_histos[11],"#Delta R_{meson}", 100, 0.,0.04)
+elif isRhoAnalysis: histo_map[list_histos[11]] = ROOT.TH1F(list_histos[11],"#Delta R_{meson}", 100, 0.,0.1)
 histo_map[list_histos[12]] = ROOT.TH1F(list_histos[12],"p_{T} of the jet", 100, 45.,250.)
 histo_map[list_histos[13]] = ROOT.TH1F(list_histos[13],"#eta of the jet", 100, -2.5,2.5)
-histo_map[list_histos[14]] = ROOT.TH1F(list_histos[14],"Iso of the 1st track", 100, 0.,1.)
-histo_map[list_histos[15]] = ROOT.TH1F(list_histos[15],"Iso_ch of the 1st track", 100, 0.,1.)
-histo_map[list_histos[16]] = ROOT.TH1F(list_histos[16],"Iso of the 2nd track", 100, 0.,1.)
-histo_map[list_histos[17]] = ROOT.TH1F(list_histos[17],"Iso_ch of the 2nd track", 100, 0.,1.)
-histo_map[list_histos[18]] = ROOT.TH1F(list_histos[18],"Iso of the meson", 100, 0.,1.)
-histo_map[list_histos[19]] = ROOT.TH1F(list_histos[19],"Iso_ch of the meson", 100, 0.,1.)
+histo_map[list_histos[14]] = ROOT.TH1F(list_histos[14],"Iso of the 1st track", 100, 0.45,1.)
+histo_map[list_histos[15]] = ROOT.TH1F(list_histos[15],"Iso_ch of the 1st track", 100, 0.75,1.)
+histo_map[list_histos[16]] = ROOT.TH1F(list_histos[16],"Iso of the 2nd track", 100, 0.15,1.)
+histo_map[list_histos[17]] = ROOT.TH1F(list_histos[17],"Iso_ch of the 2nd track", 100, 0.3,1.)
+histo_map[list_histos[18]] = ROOT.TH1F(list_histos[18],"Iso of the meson", 100, 0.55,1.)
+histo_map[list_histos[19]] = ROOT.TH1F(list_histos[19],"Iso_ch of the meson", 100, 0.85,1.)
 histo_map[list_histos[20]] = ROOT.TH1F(list_histos[20],"E_{T} of the #gamma", 100, 30.,160.)
 histo_map[list_histos[21]] = ROOT.TH1F(list_histos[21],"#eta_{#gamma}", 100, -2.5,2.5)
 histo_map[list_histos[22]] = ROOT.TH1F(list_histos[22],"n. of jets over pre-filters",  7, -0.5,6.5)
@@ -138,8 +135,7 @@ histo_map[list_histos[24]] = ROOT.TH1F(list_histos[24],"n. of electrons", 5, -0.
 histo_map[list_histos[25]] = ROOT.TH1F(list_histos[25],"n. of #gamma", 6, -0.5,5.5)
 histo_map[list_histos[26]] = ROOT.TH1F(list_histos[26],"Efficiency steps", 7, 0.,7.)
 histo_map[list_histos[27]] = ROOT.TH1F(list_histos[27],"Photon wp90 steps", 2, -0.5,1.5)
-histo_map[list_histos[28]] = ROOT.TH1F(list_histos[28],"Absolute iso_ch of KK", 100, 0.,30.)
-histo_map[list_histos[29]] = ROOT.TH1F(list_histos[29],"Phi or Rho channel", 2, -0.5,1.5)
+histo_map[list_histos[28]] = ROOT.TH1F(list_histos[28],"Phi or Rho channel", 2, -0.5,1.5)
 
 #histo_map[list_histos[29]] = ROOT.TH1F(list_histos[29],"BDT output", 40, -1.,1.)
 
@@ -206,7 +202,7 @@ iso_coupleCh_max  = 1.
 #Phi pT
 meson_pT_min      = 30. 
 #firstTrk pT
-firstTrk_pT_min   = 15.
+firstTrk_pT_min   = 20.
 #secondTrk pT
 secondTrk_pT_min  = 5.
 #photon eT
@@ -266,11 +262,11 @@ def get_photon_scale(ph_pt, ph_eta):
     scale_factor_pixVeto = ph_pixVeto_scale_histo_2018.GetBinContent( ph_pixVeto_scale_histo_2018.GetXaxis().FindBin(local_ph_pt), ph_pixVeto_scale_histo_2018.GetYaxis().FindBin(math.fabs(local_ph_eta)) )
     scale_factor         = scale_factor_ID * scale_factor_pixVeto
 
-    if debug:
-        print "local_ph_pt          = ",local_ph_pt
-        print "local_ph_eta         = ",local_ph_eta
-        print "scale_factor_ID      = ",scale_factor_ID
-        print "scale_factor_pixVeto = ",scale_factor_pixVeto
+    #if debug:
+     #   print "local_ph_pt          = ",local_ph_pt
+      #  print "local_ph_eta         = ",local_ph_eta
+       # print "scale_factor_ID      = ",scale_factor_ID
+       # print "scale_factor_pixVeto = ",scale_factor_pixVeto
 
     return scale_factor
     
@@ -290,8 +286,8 @@ for jentry in xrange(nentries):
     if nb <= 0:
         continue
 
-    if debug:
-        print "Processing EVENT n.",jentry+1,"================"
+    
+    print "Processing EVENT n.",jentry+1,"================"
 
     #Retrieve variables from the tree 
     Hmass          = mytree.Hmass_From2K_Photon
@@ -319,7 +315,6 @@ for jentry in xrange(nentries):
     nPhotons       = mytree.nPhotonsOverSelection
     MesonEta       = mytree.bestCoupleEta
     photonWP90     = mytree.is_photon_wp90
-    PhiAbsIsoCh    = MesonIsoCh * MesonPt
     isPhiEvent     = mytree.isPhi
     isRhoEvent     = mytree.isRho
 
@@ -350,7 +345,11 @@ for jentry in xrange(nentries):
 
         if CRflag == 1 and (MesonMass > 0.55 and MesonMass < 0.95) :
             continue
-    
+
+################### line used to take simmetrical sidebands ################
+    if (isPhiAnalysis and MesonMass > 1.042): continue
+############################################################################
+
     print"#################"
     print "isRhoAnalysis = ",isRhoAnalysis
     print "isRhoEvent = ",isRhoEvent
@@ -463,7 +462,6 @@ for jentry in xrange(nentries):
         histo_map["h_nElectrons"].Fill(nEle, eventWeight)
         histo_map["h_nPhotons"].Fill(nPhotons, eventWeight)
         histo_map["h_bestCoupleEta"].Fill(MesonEta, eventWeight)
-        histo_map["h_couple_AbsIsoCh"].Fill(PhiAbsIsoCh, eventWeight)
         histo_map["h_decayChannel"].Fill(isPhiEvent, eventWeight)
 
 
@@ -564,8 +562,6 @@ histo_map["h_efficiency"].GetXaxis().SetTitle("")
 histo_map["h_efficiency"].GetYaxis().SetTitle("#epsilon (%)")
 histo_map["h_photonWP90"].GetXaxis().SetTitle("#gamma wp90 bool")
 histo_map["h_photonWP90"].GetYaxis().SetTitle("")
-histo_map["h_couple_AbsIsoCh"].GetXaxis().SetTitle("sum pT_{2trk}")
-histo_map["h_couple_AbsIsoCh"].SetTitle("absolute iso_ch of the couple candidate")
 histo_map["h_decayChannel"].SetTitle("Decay channel")
 histo_map["h_decayChannel"].GetXaxis().SetBinLabel(1,"Rho events")
 histo_map["h_decayChannel"].GetXaxis().SetBinLabel(2,"Phi events")

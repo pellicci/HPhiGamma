@@ -118,7 +118,6 @@ for filename in list_inputfiles:
         elif "Data" in sample_name:
             histo_container[-1].SetMarkerStyle(20)   #point
             hdata[histo_name] = histo_container[-1]
-            print "################ ",hdata
         else:
             histo_container[-1].SetFillColor(colors_mask[sample_name])
             histo_container[-1].SetLineColor(colors_mask[sample_name])
@@ -196,17 +195,17 @@ for histo_name in list_histos:
         if histo_name == "h_meson_InvMass_TwoTrk" :
             hstack[histo_name].GetXaxis().SetTitle("m_{meson} [GeV]")
             if isPhi:
-                hstack[histo_name].GetXaxis().SetLimits(1.006,1.034)
+                hstack[histo_name].GetXaxis().SetLimits(1.006,1.036)
             else:
                 hstack[histo_name].GetXaxis().SetLimits(0.56,0.94)
 
         if histo_name == "h_firstTrk_pT" :
             hstack[histo_name].GetXaxis().SetTitle("p_{T}^{Trk_{1}} [GeV]")
-            hstack[histo_name].GetXaxis().SetLimits(15.,60.)
+            #hstack[histo_name].GetXaxis().SetLimits(15.,60.)
 
         if histo_name == "h_secondTrk_pT" :
             hstack[histo_name].GetXaxis().SetTitle("p_{T}^{Trk_{2}} [GeV]")
-            hstack[histo_name].GetXaxis().SetLimits(5.,50.)
+            #hstack[histo_name].GetXaxis().SetLimits(5.,50.)
 
         if histo_name == "h_firstTrk_Eta" :
             hstack[histo_name].GetXaxis().SetTitle("#eta_{Trk_1}")
@@ -257,6 +256,7 @@ for histo_name in list_histos:
 
         if histo_name == "h_secondTrk_Iso_ch" :
             hstack[histo_name].GetXaxis().SetTitle("#SigmapT_{Trk_{2}}/pT_{Trk_{2}}")
+            hstack[histo_name].GetXaxis().SetLimits(0.72,1.)
             if isTightSelection:
                 hstack[histo_name].GetXaxis().SetLimits(0.,0.42)
 
@@ -267,12 +267,14 @@ for histo_name in list_histos:
 
         if histo_name == "h_couple_Iso_ch" :
             hstack[histo_name].GetXaxis().SetTitle("#Sigmap_{T}^{ch}/p_{T}^{meson}")
-            hstack[histo_name].GetXaxis().SetLimits(0.,1.)
+            #hstack[histo_name].GetXaxis().SetLimits(0.,1.)
             if isTightSelection:
                 hstack[histo_name].GetXaxis().SetLimits(0.,0.22)
 
         if histo_name == "h_bestCoupleDeltaR" :
             hstack[histo_name].GetXaxis().SetTitle("#DeltaR_{meson}")
+            if isPhi:
+                hstack[histo_name].GetXaxis().SetLimits(0.,0.03)
 
         if histo_name == "h_nPhotons" :
             hstack[histo_name].GetXaxis().SetTitle("n.#gamma")
@@ -294,12 +296,6 @@ for histo_name in list_histos:
         if histo_name == "h_nMuons" :
             hstack[histo_name].GetXaxis().SetTitle("n.muons")
             hstack[histo_name].GetXaxis().SetLimits(-0.5,3.5)
-
-        if histo_name == "h_couple_AbsIsoCh" :
-            hstack[histo_name].GetXaxis().SetTitle("absIso_{meson}")
-            hstack[histo_name].GetXaxis().SetLimits(0.,30.)
-            if isTightSelection:
-                hstack[histo_name].GetXaxis().SetLimits(0.,12.)
 
         if histo_name == "h_decayChannel":
             hstack[histo_name].GetXaxis().SetTitle("decay channel")
