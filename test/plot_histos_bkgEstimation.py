@@ -106,7 +106,7 @@ for filename in list_inputfiles:
         if not histo_name == "h_nMuons" and not histo_name == "h_nPhotons" and not histo_name == "h_nJets_25" and not histo_name == "h_nElectrons" and not histo_name == "h_photonWP90":
             print histo_name
             if isTightSelection and (histo_name == "h_firstTrk_Iso" or histo_name == "h_firstTrk_Iso_ch" or histo_name == "h_secondTrk_Iso" or histo_name == "h_secondTrk_Iso_ch" or histo_name == "h_couple_AbsIsoCh" or histo_name == "h_couple_Iso" or histo_name == "h_couple_Iso_ch"):
-                histo_container[-1].Rebin(2)
+                histo_container[-1].Rebin(4)
             else:
                 histo_container[-1].Rebin(5)
 
@@ -195,9 +195,9 @@ for histo_name in list_histos:
         if histo_name == "h_meson_InvMass_TwoTrk" :
             hstack[histo_name].GetXaxis().SetTitle("m_{meson} [GeV]")
             if isPhi:
-                hstack[histo_name].GetXaxis().SetLimits(1.006,1.036)
+                hstack[histo_name].GetXaxis().SetLimits(1.001,1.039)
             else:
-                hstack[histo_name].GetXaxis().SetLimits(0.56,0.94)
+                hstack[histo_name].GetXaxis().SetLimits(0.501,0.999)
 
         if histo_name == "h_firstTrk_pT" :
             hstack[histo_name].GetXaxis().SetTitle("p_{T}^{Trk_{1}} [GeV]")
@@ -208,11 +208,11 @@ for histo_name in list_histos:
             #hstack[histo_name].GetXaxis().SetLimits(5.,50.)
 
         if histo_name == "h_firstTrk_Eta" :
-            hstack[histo_name].GetXaxis().SetTitle("#eta_{Trk_1}")
+            hstack[histo_name].GetXaxis().SetTitle("#eta_{Trk_{1}}")
             hstack[histo_name].GetXaxis().SetLimits(-2.5,2.5)
 
         if histo_name == "h_secondTrk_Eta" :
-            hstack[histo_name].GetXaxis().SetTitle("#eta_{Trk_2}")
+            hstack[histo_name].GetXaxis().SetTitle("#eta_{Trk_{2}}")
             hstack[histo_name].GetXaxis().SetLimits(-2.5,2.5)
 
         if histo_name == "h_bestCoupleEta" :
@@ -220,18 +220,16 @@ for histo_name in list_histos:
             hstack[histo_name].GetXaxis().SetLimits(-2.5,2.5)
 
         if histo_name == "h_firstTrk_Phi" :
-            hstack[histo_name].GetXaxis().SetTitle("#phi [rad]")
+            hstack[histo_name].GetXaxis().SetTitle("#phi_{Trk_{1}} [rad]")
 
         if histo_name == "h_secondTrk_Phi" :
-            hstack[histo_name].GetXaxis().SetTitle("#phi [rad]")
+            hstack[histo_name].GetXaxis().SetTitle("#phi_{Trk_{2}} [rad]")
 
         if histo_name == "h_bestCouplePt" :
             hstack[histo_name].GetXaxis().SetTitle("p_{T}^{meson} [GeV]")
-            hstack[histo_name].GetXaxis().SetLimits(35.,100.)
 
         if histo_name == "h_bestJetPt" :
             hstack[histo_name].GetXaxis().SetTitle("p_{T}^{jet} [GeV]")
-            hstack[histo_name].GetXaxis().SetLimits(45.,250.)
             if isTightSelection:
                 hstack[histo_name].GetXaxis().SetLimits(45.,220.)
 
@@ -240,41 +238,25 @@ for histo_name in list_histos:
             hstack[histo_name].GetXaxis().SetLimits(-2.5,2.5)
 
         if histo_name == "h_firstTrk_Iso" :
-            hstack[histo_name].GetXaxis().SetTitle("#SigmapT_{Trk_{1}}/pT_{Trk_{1}}")
-            if isTightSelection:
-                hstack[histo_name].GetXaxis().SetLimits(0.,0.3)
+            hstack[histo_name].GetXaxis().SetTitle("p_{T}^{Trk_{1}}/(#Sigmap_{T} + p_{T}^{Trk_{1}})")
 
         if histo_name == "h_secondTrk_Iso" :
-            hstack[histo_name].GetXaxis().SetTitle("#SigmapT_{Trk_{2}}/pT_{Trk_{2}}")
-            if isTightSelection:
-                hstack[histo_name].GetXaxis().SetLimits(0.,0.52)
+            hstack[histo_name].GetXaxis().SetTitle("p_{T}^{Trk_{2}}/(#Sigmap_{T} + p_{T}^{Trk_{2}})")
 
         if histo_name == "h_firstTrk_Iso_ch" :
-            hstack[histo_name].GetXaxis().SetTitle("#SigmapT_{Trk_{1}}/pT_{Trk_{1}}")
-            if isTightSelection:
-                hstack[histo_name].GetXaxis().SetLimits(0.,0.3)        
+            hstack[histo_name].GetXaxis().SetTitle("p_{T}^{Trk_{1}}/(#Sigmap_{T}^{ch} + p_{T}^{Trk_{1}})")      
 
         if histo_name == "h_secondTrk_Iso_ch" :
-            hstack[histo_name].GetXaxis().SetTitle("#SigmapT_{Trk_{2}}/pT_{Trk_{2}}")
-            hstack[histo_name].GetXaxis().SetLimits(0.72,1.)
-            if isTightSelection:
-                hstack[histo_name].GetXaxis().SetLimits(0.,0.42)
+            hstack[histo_name].GetXaxis().SetTitle("p_{T}^{Trk_{2}}/(#Sigmap_{T}^{ch} + p_{T}^{Trk_{2}})")
 
         if histo_name == "h_couple_Iso" :
-            hstack[histo_name].GetXaxis().SetTitle("#Sigmap_{T}/p_{T}^{meson}")
-            if isTightSelection:
-                hstack[histo_name].GetXaxis().SetLimits(0.,0.25)
+            hstack[histo_name].GetXaxis().SetTitle("p_{T}^{meson}/(#Sigmap_{T} + p_{T}^{meson})")
 
         if histo_name == "h_couple_Iso_ch" :
-            hstack[histo_name].GetXaxis().SetTitle("#Sigmap_{T}^{ch}/p_{T}^{meson}")
-            #hstack[histo_name].GetXaxis().SetLimits(0.,1.)
-            if isTightSelection:
-                hstack[histo_name].GetXaxis().SetLimits(0.,0.22)
+            hstack[histo_name].GetXaxis().SetTitle("p_{T}^{meson}/(#Sigmap_{T}^{ch} + p_{T}^{meson})")
 
         if histo_name == "h_bestCoupleDeltaR" :
             hstack[histo_name].GetXaxis().SetTitle("#DeltaR_{meson}")
-            if isPhi:
-                hstack[histo_name].GetXaxis().SetLimits(0.,0.03)
 
         if histo_name == "h_nPhotons" :
             hstack[histo_name].GetXaxis().SetTitle("n.#gamma")
@@ -282,9 +264,7 @@ for histo_name in list_histos:
 
         if histo_name == "h_photon_energy" :
             hstack[histo_name].GetXaxis().SetTitle("E_{T}^{#gamma}[GeV]")
-            hstack[histo_name].GetXaxis().SetLimits(30.,160.)
-            if isTightSelection:
-                hstack[histo_name].GetXaxis().SetLimits(30.,150)
+            hstack[histo_name].GetXaxis().SetLimits(38.,160.)
 
         if histo_name == "h_photon_eta" :
             hstack[histo_name].GetXaxis().SetTitle("#eta_{#gamma}")

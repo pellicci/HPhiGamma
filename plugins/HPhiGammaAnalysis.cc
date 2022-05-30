@@ -106,32 +106,6 @@ HPhiGammaAnalysis::~HPhiGammaAnalysis()
 {
 }
 
-//test method start 
-/* ==========================================================================================
-   countPrimaryVertex
-   ------------------
-   This function returns the number of primary vertex of the event
-   INPUT: slimmedPV
-   OUTPUT: number of valid PV
-   ==========================================================================================
-*/
-/*int HPhiGammaAnalysis::countPrimaryVertex(edm::Handle<std::vector<reco::Vertex > > slimmedPV)
-{
-  int numberOfPV = 0;
-
-  if(slimmedPV->size()<=0) return numberOfPV;
-  for(reco::VertexCollection::const_iterator vtx=slimmedPV->begin();vtx!=slimmedPV->end();++vtx) 
-    {
-      // check that the primary vertex is not a fake one, that is the beamspot (it happens when no primary vertex is reconstructed)
-      if(!vtx->isFake()) {
-	numberOfPV++;
-      }
-    } 
-  return numberOfPV;
-}
-//test method end
-*/
-
 
 // ------------ method called for each event  ------------
 void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
@@ -193,10 +167,6 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
     }
   } 
   
-  //nPV = countPrimaryVertex(slimmedPV);
-  //if(nPV==0)return;  
-  //cout<<"npv="<<nPV<<endl;
-  // std::cout << "slimmedPV size: " << slimmedPV->size() << "   PV: " << &(slimmedPV->at(0))  << std::endl;
 
   //*************************************************************//
   //                                                             //
@@ -254,7 +224,6 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
   }
 
 
-
   //*************************************************************//
   //                                                             //
   //--------------------------- Trigger -------------------------//
@@ -287,12 +256,12 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
   //*************************************************************//
 
 
- nMuons     = 0;
- nElectrons = 0;
+ nMuons                = 0;
+ nElectrons            = 0;
  nPhotonsOverSelection = 0;
- nPhotonsChosen   = 0;
- nJets      = 0;
- nJets_25   = 0;
+ nPhotonsChosen        = 0;
+ nJets                 = 0;
+ nJets_25              = 0;
 
   //These variables will go in the tree
  ph_eT     = 0.;
@@ -300,47 +269,48 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
  ph_etaSC  = 0.;
  ph_phi    = 0.;
  ph_energy = 0.;
+ 
  LorentzVector ph_p4;
 
  ph_iso_ChargedHadron = 0.;
  ph_iso_NeutralHadron = 0.;
- ph_iso_Photon = 0.;
- ph_iso_eArho = 0.;
+ ph_iso_Photon        = 0.;
+ ph_iso_eArho         = 0.;
 
  is_photon_a_photon = false;
  is_photon_matched  = false;
 
  eTphMax  = -1000.;
 
- _Jet_Photon_invMass = -1.;
- _MesonMass = -1.;
+ _Jet_Photon_invMass  = -1.;
+ _MesonMass           = -1.;
  _Hmass_From2K_Photon = -1.;
  
- met_pT = 0.;
+ met_pT      = 0.;
  metpuppi_pT = 0.;
 
- _bestJet_pT=-1.;
- _bestJet_eta=-1.;
- _bestJet_phi=-1.;
- _bestJet_nDaughters=0;
- _bestJet_pTMax=-1.;
- _bestJet_chargedEmEnergy=0.;
- _bestJet_neutralEmEnergy=0.;
- _bestJet_chargedHadEnergy=0.;
- _bestJet_neutralHadEnergy=0.;
- _bestJet_chargedHadMultiplicity=0.;
- _bestJet_invMass=0.;
- _bestJet_Photon_invMass=0.;
+ _bestJet_pT                     =-1.;
+ _bestJet_eta                    =-1.;
+ _bestJet_phi                    =-1.;
+ _bestJet_nDaughters             = 0;
+ _bestJet_pTMax                  =-1.;
+ _bestJet_chargedEmEnergy        = 0.;
+ _bestJet_neutralEmEnergy        = 0.;
+ _bestJet_chargedHadEnergy       = 0.;
+ _bestJet_neutralHadEnergy       = 0.;
+ _bestJet_chargedHadMultiplicity = 0.;
+ _bestJet_invMass                = 0.;
+ _bestJet_Photon_invMass         = 0.;
+ _firstCandPt                    = 0.;
+ _firstCandEta                   = 0.;
+ _firstCandPhi                   = 0.;
+ _secondCandPt                   = 0.;
+ _secondCandEta                  = 0.;
+ _secondCandPhi                  = 0.;
+ _bestCouplePt                   = 0.;
+ _bestCoupleEta                  = 0.;
+ _bestCouplePhi                  = 0.;  
  _isHiggsFound = false;
- _firstCandPt=0.;
- _firstCandEta=0.;
- _firstCandPhi=0.;
- _secondCandPt=0.;
- _secondCandEta=0.;
- _secondCandPhi=0.;
- _bestCouplePt=0.;
- _bestCoupleEta=0.;
- _bestCouplePhi=0.;  
 
 
   //*************************************************************//
@@ -581,7 +551,7 @@ if(verbose) cout<< "JETs loop"<<" --------------------------------"<<endl;
 
     jetIndex++;
     _Jet_Photon_invMass=(jet->p4()+ph_p4).M(); //calculate inv mass
-    if(debug) cout<<"_Jet_Photon_invMass = "<<_Jet_Photon_invMass<<endl; 
+    // if(debug) cout<<"_Jet_Photon_invMass = "<<_Jet_Photon_invMass<<endl; 
     nDaughters= jet->numberOfDaughters(); //calculate number of daughters
 
     //----------------------------- Pre-Filters --------------------------------------------------------
@@ -625,8 +595,17 @@ if(verbose) cout<< "JETs loop"<<" --------------------------------"<<endl;
 
       for(int firstCand_Index=0; firstCand_Index < nDaughters; firstCand_Index++){ //1ST LOOP STARTS
 
+
+        //loop only over charged daughters
+        if (slimmedJets->at(jetIndex).daughter(firstCand_Index)->charge() == 0) continue;
+
         //minimum apporach distance
-       // if ((slimmedJets->at(jetIndex).daughter(firstCand_Index)->dxy((&slimmedPV->at(0))->position())) >= 0.2 || slimmedJets->at(jetIndex).daughter(firstCand_Index)->dz((&slimmedPV->at(0))->position()) >= 0.5 ) continue;
+        //if ((slimmedJets->at(jetIndex).daughter(firstCand_Index)->bestTrack()) == NULL){
+          //cout << endl << "best track NULL!!!"<<endl;
+        //}
+
+        //if (slimmedJets->at(jetIndex).daughter(firstCand_Index)->bestTrack()->dxy((&slimmedPV->at(0))->position()) >= 0.2) continue;
+        //if (slimmedJets->at(jetIndex).daughter(firstCand_Index)->bestTrack()->dz((&slimmedPV->at(0))->position()) >= 0.5) ) continue;
 
         firstCandPt  = slimmedJets->at(jetIndex).daughter(firstCand_Index)->pt();  //extrapolate firstCand pt
         firstCandEta = slimmedJets->at(jetIndex).daughter(firstCand_Index)->eta(); //extrapolate firstCand eta
@@ -637,7 +616,7 @@ if(verbose) cout<< "JETs loop"<<" --------------------------------"<<endl;
         for(int secondCand_Index=firstCand_Index+1; secondCand_Index < nDaughters; secondCand_Index++){ //2ND LOOP STARTS
 
           //minimum apporach distance
-          //if ((slimmedJets->at(jetIndex).daughter(secondCand_Index)->dxy((&slimmedPV->at(0))->position())) >= 0.2 || slimmedJets->at(jetIndex).daughter(secondCand_Index)->dz((&slimmedPV->at(0))->position()) >= 0.5 ) continue;
+          //if ((slimmedJets->at(jetIndex).daughter(secondCand_Index)->bestTrack()->dxy((&slimmedPV->at(0))->position())) >= 0.2 || slimmedJets->at(jetIndex).daughter(secondCand_Index)->bestTrack()->dz((&slimmedPV->at(0))->position()) >= 0.5 ) continue;
           
           secondCandPt  = slimmedJets->at(jetIndex).daughter(secondCand_Index)->pt();  //extrapolate secondCand pt
           secondCandEta = slimmedJets->at(jetIndex).daughter(secondCand_Index)->eta(); //extrapolate secondCand eta
@@ -646,7 +625,7 @@ if(verbose) cout<< "JETs loop"<<" --------------------------------"<<endl;
           //secondCand filter if both pT are < 10GeV
           if(secondCandPt < candPtMin) continue;
           if(firstCandPt < 10. && secondCandPt < 10.) continue; 
-          if(verbose) cout<<"tracks pT cut passed"<<endl; //fixme
+          //if(verbose) cout<<"tracks pT cut passed"<<endl; //fixme
 
           //third filter on deltaR
           float deltaEta= firstCandEta - secondCandEta;
@@ -657,12 +636,12 @@ if(verbose) cout<< "JETs loop"<<" --------------------------------"<<endl;
           deltaR_K= sqrt(deltaEta*deltaEta + deltaPhi*deltaPhi);
           if(verbose) cout<<"deltaR = "<<deltaR_K<<endl; //fixme
           if(deltaR_K > 0.07) continue; //FIXME, it was 0.02
-          if(verbose) cout<<"deltaR cut passed"<<endl; //fixme
+          //if(verbose) cout<<"deltaR cut passed"<<endl; //fixme
 
           //OPPOSITE CHARGE - FILTER ------------------------------------------------------------
           firstCandCharge  = slimmedJets->at(jetIndex).daughter(firstCand_Index)->charge(); //extrapolate firstCand charge
           secondCandCharge = slimmedJets->at(jetIndex).daughter(secondCand_Index)->charge(); //extrapolate secondCand charge
-          if(firstCandCharge*secondCandCharge >= 0) continue; //choose only opposite charges
+          if(firstCandCharge * secondCandCharge >= 0) continue; //choose only opposite charges
           if(verbose) cout<<"opposite charge cut passed"<<endl; //fixme
 
           //QUADRIMOMENTUM CALCULATION ------------------------------------------------------------
@@ -716,14 +695,13 @@ if(verbose) cout<< "JETs loop"<<" --------------------------------"<<endl;
 
           PhiMass = (couple_p4_K).M(); //calculate inv mass of the Phi candidate  
           if (verbose) cout<<"mKK (before the meson mass selection) =  "<<PhiMass<<endl;
-          if(PhiMass > 1. && PhiMass < 1.1) isPhi = true; //filter on Phi invariant mass  
+          if(PhiMass > 1. && PhiMass < 1.05) isPhi = true; //filter on Phi invariant mass  
 
           RhoMass = (couple_p4_Pi).M(); //calculate inv mass of the Rho candidate  
           if (verbose) cout<<"mPiPi (before the meson mass selection) =  "<<RhoMass<<endl;
           if(RhoMass > 0.5 && RhoMass < 1.) isRho = true; //filter on Rho invariant mass   
 
           if (!isPhi && !isRho) continue; //continue if the pair mass doesn't match any of the two mass hypothesis
-          if(verbose) cout<<"mass range if the couple cut passed"<<endl; //fixme
 
           isBestCoupleOfTheEvent_Found = true;
 
@@ -879,7 +857,7 @@ _iso_K2_ch     = _secondCandPt/(K2_sum_pT_05_ch + _secondCandPt);
 _iso_couple_ch = _bestCouplePt/(couple_sum_pT_05_ch + _bestCouplePt);
 
 //CUT ON PHI ISOLATION
-if(_iso_couple_ch < 0.9) {
+if(_iso_couple_ch < 0.7) {
   if(verbose) cout<<"No isolation cut passed, RETURN."<<endl;
   return;
 }

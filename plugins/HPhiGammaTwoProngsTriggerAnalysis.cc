@@ -202,7 +202,7 @@ void HPhiGammaTwoProngsTriggerAnalysis::analyze(const edm::Event& iEvent, const 
   if (verbose) cout<<"Checking triggers..."<<endl;
 
   //Examine the trigger information
-  isIsoMuTrigger = false;
+  isIsoMuTrigger     = false;
   isTwoProngsTrigger = false;
 
   const edm::TriggerNames &names = iEvent.triggerNames(*triggerBits);
@@ -249,17 +249,18 @@ void HPhiGammaTwoProngsTriggerAnalysis::analyze(const edm::Event& iEvent, const 
   if (verbose) cout<<"Muons forloop start"<<endl;
 
   //First loop over muons
-  for(std::vector<pat::Muon>::size_type firstMuIndex = 0; firstMuIndex < slimmedMuons->size();firstMuIndex ++){ //Muon first forloop start
+  for(std::vector<reco::Muon>::size_type firstMuIndex = 0; firstMuIndex < slimmedMuons->size();firstMuIndex ++){ //Muon first forloop start
       
       //refuse muons not passing over basic requirements
-      if(slimmedMuons->at(firstMuIndex).pt() < 5. || !slimmedMuons->at(firstMuIndex).CutBasedIdMedium || fabs(slimmedMuons->at(firstMuIndex).eta()) > 2.4 || fabs(slimmedMuons->at(firstMuIndex).muonBestTrack()->dxy((&slimmedPV->at(0))->position())) >= 0.2 || fabs(slimmedMuons->at(firstMuIndex).muonBestTrack()->dz((&slimmedPV->at(0))->position())) >= 0.5) continue;
+      if(slimmedMuons->at(firstMuIndex).pt() < 5. || !slimmedMuons->at(firstMuIndex).CutBasedIdTight || fabs(slimmedMuons->at(firstMuIndex).eta()) > 2.4 || fabs(slimmedMuons->at(firstMuIndex).muonBestTrack()->dxy((&slimmedPV->at(0))->position())) >= 0.2 || fabs(slimmedMuons->at(firstMuIndex).muonBestTrack()->dz((&slimmedPV->at(0))->position())) >= 0.5) continue;
       if(!slimmedMuons->at(firstMuIndex).PFIsoLoose) continue;
     
       //Second loop over muons
       for(std::vector<pat::Muon> ::size_type secondMuIndex = firstMuIndex + 1; secondMuIndex < slimmedMuons->size();secondMuIndex ++){ //Muon second forloop start
           
           //refuse muons not passing over basic requirements
-          if(slimmedMuons->at(secondMuIndex).pt() < 5. || !slimmedMuons->at(secondMuIndex).CutBasedIdMedium || fabs(slimmedMuons->at(secondMuIndex).eta()) > 2.4 || fabs(slimmedMuons->at(secondMuIndex).muonBestTrack()->dxy((&slimmedPV->at(0))->position())) >= 0.2 || fabs(slimmedMuons->at(secondMuIndex).muonBestTrack()->dz((&slimmedPV->at(0))->position())) >= 0.5) continue;
+          if(slimmedMuons->at(secondMuIndex).pt() < 5. || !slimmedMuons->at(secondMuIndex).CutBasedIdTight || fabs(slimmedMuons->at(secondMuIndex).eta()) > 2.4 || fabs(slimmedMuons->at(secondMuIndex).muonBestTrack()->dxy((&slimmedPV->at(0))->position())) >= 0.2 || fabs(slimmedMuons->at(secondMuIndex).muonBestTrack()->dz((&slimmedPV->at(0))->position())) >= 0.5) continue;
+          if(!slimmedMuons->at(secondMuIndex).PFIsoLoose) continue;
 
           //at least one of the two muons must have pT > 25 GeV
           if(slimmedMuons->at(firstMuIndex).pt() < 25. && slimmedMuons->at(secondMuIndex).pt() < 25.) continue; 
@@ -269,7 +270,7 @@ void HPhiGammaTwoProngsTriggerAnalysis::analyze(const edm::Event& iEvent, const 
 
           //take only muons pairs falling in an invariant mass range
           currentMuMuMass = (slimmedMuons->at(firstMuIndex).p4() + slimmedMuons->at(secondMuIndex).p4()).M();
-          if(currentMuMuMass < 20. || currentMuMuMass > 120.) continue; //MuMu inv mass for Z
+          if(currentMuMuMass < 65. || currentMuMuMass > 115.) continue; //MuMu inv mass for Z
 
           //choose the pair with largest pT 
           currentMuMuPt = (slimmedMuons->at(firstMuIndex).p4() + slimmedMuons->at(secondMuIndex).p4()).pt();
@@ -351,7 +352,7 @@ _secondCandPhi = 0.;
 _bestCouplePt  = 0.;
 _bestCoupleEta = 0.;
 _bestCouplePhi = 0.;
-
+_MesonMass     = -1.;
 
 
       //-------------------------------------tracks forloop----------------------------
@@ -442,13 +443,17 @@ _bestCouplePhi = 0.;
           if(couple_p4_K.pt() <= bestCoupleOfTheEvent_pT) continue; //choose the couple with greatest pt
           bestCoupleOfTheEvent_pT = couple_p4_K.pt();       
 
+         //PT CUT
+          if(couple_p4_K.pt() < 38.) continue;
+          if(verbose) cout<<"couplepT cut passed"<<endl; //fixme
+
           //PHI INV MASS - FILTER
           isPhi = false;
           isRho = false;
 
           PhiMass = (couple_p4_K).M(); //calculate inv mass of the Phi candidate  
           if (verbose) cout<<"mKK (before the meson mass selection) =  "<<PhiMass<<endl;
-          if(PhiMass > 1. && PhiMass < 1.1) isPhi = true; //filter on Phi invariant mass  
+          if(PhiMass > 1. && PhiMass < 1.05) isPhi = true; //filter on Phi invariant mass  
 
           RhoMass = (couple_p4_Pi).M(); //calculate inv mass of the Rho candidate  
           if (verbose) cout<<"mPiPi (before the meson mass selection) =  "<<RhoMass<<endl;
@@ -456,10 +461,6 @@ _bestCouplePhi = 0.;
 
           if (!isPhi && !isRho) continue; //continue if the pair mass doesn't match any of the two mass hypothesis
           if(verbose) cout<<"mass range if the couple cut passed"<<endl; //fixme
-
-          //PT CUT
-          if(couple_p4_K.pt() < 35.) continue;
-          if(verbose) cout<<"couplepT cut passed"<<endl; //fixme
 
           isBestCoupleOfTheEvent_Found = true;
 
@@ -471,11 +472,14 @@ _bestCouplePhi = 0.;
             best_firstCand_p4  = firstCand_p4_K; 
             best_secondCand_p4 = secondCand_p4_K;
             best_couple_p4     = couple_p4_K;
+            _MesonMass         = PhiMass;
           }  
           if(isRho){
             best_firstCand_p4  = firstCand_p4_Pi; 
             best_secondCand_p4 = secondCand_p4_Pi;
             best_couple_p4     = couple_p4_Pi;
+            _MesonMass         = RhoMass;
+
           }      
         
       } //2ND LOOP ENDS
@@ -521,13 +525,13 @@ for(auto cand_iso = PFCandidates->begin(); cand_iso != PFCandidates->end(); ++ca
   if (deltaPhi_K1 > 3.14) deltaPhi_K1 = 6.28 - deltaPhi_K1;
 
   float deltaR_K1 = sqrt((_firstCandEta-cand_iso->eta())*(_firstCandEta-cand_iso->eta()) + deltaPhi_K1*deltaPhi_K1);
-  if(deltaR_K1 < 0.02) continue;
+  if(deltaR_K1 < 0.002) continue;
 
   float deltaPhi_K2 = fabs(_secondCandPhi-cand_iso->phi());  //phi folding  
   if (deltaPhi_K2 > 3.14) deltaPhi_K2 = 6.28 - deltaPhi_K2;
 
   float deltaR_K2 = sqrt((_secondCandEta-cand_iso->eta())*(_secondCandEta-cand_iso->eta()) + deltaPhi_K2*deltaPhi_K2);
-  if(deltaR_K2 < 0.02) continue;
+  if(deltaR_K2 < 0.002) continue;
 
   float deltaPhi_Couple = fabs(_bestCouplePhi-cand_iso->phi());  //phi folding  
   if (deltaPhi_Couple > 3.14) deltaPhi_Couple = 6.28 - deltaPhi_Couple;
@@ -568,7 +572,7 @@ if (verbose) {
 }
 
 //CUTS ON CANDIDATES PT
-if(_firstCandPt < 15. || _secondCandPt < 5.) {
+if(_firstCandPt < 20. || _secondCandPt < 5.) {
     cout<<"Final cut on candidates pT not passed, RETURN."<<endl;
     return;
 }

@@ -54,7 +54,7 @@ else :
 
 if args.isBDT_option == "BDT":
     isBDT = True
-    BDT_OUT = 0.280601735274 #take this number running MVA/BDT_significance.py: this is the BDT output value which maximizes the significance
+    BDT_OUT = 0.0775711324343 #take this number running MVA/BDT_significance.py: this is the BDT output value which maximizes the significance
 print "BDT = ",isBDT
 
 
@@ -107,27 +107,28 @@ list_histos = ["h_InvMass_TwoTrk_Photon","h_InvMass_TwoTrk_Photon_NoPhiMassCut",
 
 histo_map[list_histos[0]]  = ROOT.TH1F(list_histos[0],"M_{H}",100,100.,150.) 
 histo_map[list_histos[1]]  = ROOT.TH1F(list_histos[1],"M_{H} (no cut on phi mass)",100,100.,150.) 
-if isPhiAnalysis:   histo_map[list_histos[2]]  = ROOT.TH1F(list_histos[2],"M_{meson}", 100, 1., 1.05) 
+if   isPhiAnalysis: histo_map[list_histos[2]]  = ROOT.TH1F(list_histos[2],"M_{meson}", 100, 1., 1.04) 
 elif isRhoAnalysis: histo_map[list_histos[2]]  = ROOT.TH1F(list_histos[2],"M_{meson}", 100, 0.5, 1.) 
-histo_map[list_histos[3]]  = ROOT.TH1F(list_histos[3],"p_{T} of the 1st track", 100, 15.,60.)
-histo_map[list_histos[4]]  = ROOT.TH1F(list_histos[4],"p_{T} of the 2nd track", 100, 5.,50.)
+histo_map[list_histos[3]]  = ROOT.TH1F(list_histos[3],"p_{T} of the 1st track", 100, 20.,60.)
+if   isPhiAnalysis: histo_map[list_histos[4]]  = ROOT.TH1F(list_histos[4],"p_{T} of the 2nd track", 100, 11.,55.)
+elif isRhoAnalysis: histo_map[list_histos[4]]  = ROOT.TH1F(list_histos[4],"p_{T} of the 2nd track", 100, 5.,50.)
 histo_map[list_histos[5]]  = ROOT.TH1F(list_histos[5],"#eta of the 1st track", 100, -2.5,2.5)
 histo_map[list_histos[6]]  = ROOT.TH1F(list_histos[6],"#eta of the 2nd track", 100, -2.5,2.5)
 histo_map[list_histos[7]]  = ROOT.TH1F(list_histos[7],"#phi of the 1st track", 100, -3.14,3.14)
 histo_map[list_histos[8]]  = ROOT.TH1F(list_histos[8],"#phi of the 2nd track", 100, -3.14,3.14)
-histo_map[list_histos[9]]  = ROOT.TH1F(list_histos[9],"p_{T} of the meson", 100, 30.,110.)
+histo_map[list_histos[9]]  = ROOT.TH1F(list_histos[9],"p_{T} of the meson", 100, 38.,110.)
 histo_map[list_histos[10]] = ROOT.TH1F(list_histos[10],"#eta_{meson}", 100, -2.5,2.5)
-if   isPhiAnalysis: histo_map[list_histos[11]] = ROOT.TH1F(list_histos[11],"#Delta R_{meson}", 100, 0.,0.04)
-elif isRhoAnalysis: histo_map[list_histos[11]] = ROOT.TH1F(list_histos[11],"#Delta R_{meson}", 100, 0.,0.1)
-histo_map[list_histos[12]] = ROOT.TH1F(list_histos[12],"p_{T} of the jet", 100, 45.,250.)
+if   isPhiAnalysis: histo_map[list_histos[11]] = ROOT.TH1F(list_histos[11],"#Delta R_{meson}", 100, 0.,0.026)
+elif isRhoAnalysis: histo_map[list_histos[11]] = ROOT.TH1F(list_histos[11],"#Delta R_{meson}", 100, 0.,0.07)
+histo_map[list_histos[12]] = ROOT.TH1F(list_histos[12],"p_{T} of the jet", 100, 40.,170.)
 histo_map[list_histos[13]] = ROOT.TH1F(list_histos[13],"#eta of the jet", 100, -2.5,2.5)
 histo_map[list_histos[14]] = ROOT.TH1F(list_histos[14],"Iso of the 1st track", 100, 0.45,1.)
-histo_map[list_histos[15]] = ROOT.TH1F(list_histos[15],"Iso_ch of the 1st track", 100, 0.75,1.)
-histo_map[list_histos[16]] = ROOT.TH1F(list_histos[16],"Iso of the 2nd track", 100, 0.15,1.)
-histo_map[list_histos[17]] = ROOT.TH1F(list_histos[17],"Iso_ch of the 2nd track", 100, 0.3,1.)
-histo_map[list_histos[18]] = ROOT.TH1F(list_histos[18],"Iso of the meson", 100, 0.55,1.)
-histo_map[list_histos[19]] = ROOT.TH1F(list_histos[19],"Iso_ch of the meson", 100, 0.85,1.)
-histo_map[list_histos[20]] = ROOT.TH1F(list_histos[20],"E_{T} of the #gamma", 100, 30.,160.)
+histo_map[list_histos[15]] = ROOT.TH1F(list_histos[15],"Iso_ch of the 1st track", 100, 0.8,1.)
+histo_map[list_histos[16]] = ROOT.TH1F(list_histos[16],"Iso of the 2nd track", 100, 0.3,1.)
+histo_map[list_histos[17]] = ROOT.TH1F(list_histos[17],"Iso_ch of the 2nd track", 100, 0.75,1.)
+histo_map[list_histos[18]] = ROOT.TH1F(list_histos[18],"Iso of the meson", 100, 0.6,1.)
+histo_map[list_histos[19]] = ROOT.TH1F(list_histos[19],"Iso_ch of the meson", 100, 0.9,1.)
+histo_map[list_histos[20]] = ROOT.TH1F(list_histos[20],"E_{T} of the #gamma", 100, 38.,160.)
 histo_map[list_histos[21]] = ROOT.TH1F(list_histos[21],"#eta_{#gamma}", 100, -2.5,2.5)
 histo_map[list_histos[22]] = ROOT.TH1F(list_histos[22],"n. of jets over pre-filters",  7, -0.5,6.5)
 histo_map[list_histos[23]] = ROOT.TH1F(list_histos[23],"n. of muons", 6, -0.5,5.5)
@@ -333,21 +334,21 @@ for jentry in xrange(nentries):
 
     #Define Control and Signal regions: 
     if isPhiAnalysis: #for Phi meson
-        if CRflag == 0 and not (MesonMass > 1.005 and MesonMass < 1.037) :
+        if CRflag == 0 and not (MesonMass > 1.008 and MesonMass < 1.032) :
             continue
 
-        if CRflag == 1 and (MesonMass > 1.005 and MesonMass < 1.037) :
+        if CRflag == 1 and (MesonMass > 1.008 and MesonMass < 1.032) :
             continue
 
     if isRhoAnalysis: #for Rho meson
-        if CRflag == 0 and not (MesonMass > 0.55 and MesonMass < 0.95) :
+        if CRflag == 0 and not (MesonMass > 0.63 and MesonMass < 0.91) :
             continue
 
-        if CRflag == 1 and (MesonMass > 0.55 and MesonMass < 0.95) :
+        if CRflag == 1 and (MesonMass > 0.63 and MesonMass < 0.91) :
             continue
 
 ################### line used to take simmetrical sidebands ################
-    if (isPhiAnalysis and MesonMass > 1.042): continue
+    if (isPhiAnalysis and MesonMass > 1.04): continue
 ############################################################################
 
     print"#################"
