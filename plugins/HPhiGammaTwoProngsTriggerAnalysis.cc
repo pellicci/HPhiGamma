@@ -460,6 +460,12 @@ _MesonMass     = -1.;
           if(RhoMass > 0.5 && RhoMass < 1.) isRho = true; //filter on Rho invariant mass   
 
           if (!isPhi && !isRho) continue; //continue if the pair mass doesn't match any of the two mass hypothesis
+
+          if (isPhi && isRho){ //if both hypothesis are true, mark it as a Phi candidate (this is done because the Phi mass window is tighter)
+            isPhi = true;
+            isRho = false;
+          }
+
           if(verbose) cout<<"mass range if the couple cut passed"<<endl; //fixme
 
           isBestCoupleOfTheEvent_Found = true;
@@ -578,23 +584,24 @@ if(_firstCandPt < 20. || _secondCandPt < 5.) {
 }
 
 //ISOLATION DATAMEMBER FOR TREE FILLING 
-_iso_K1        = K1_sum_pT_05/_firstCandPt;
-_iso_K2        = K2_sum_pT_05/_secondCandPt;
-_iso_couple    = couple_sum_pT_05/_bestCouplePt;
-_iso_K1_ch     = K1_sum_pT_05_ch/_firstCandPt;
-_iso_K2_ch     = K2_sum_pT_05_ch/_secondCandPt;
-_iso_couple_ch = couple_sum_pT_05_ch/_bestCouplePt;
+_iso_K1        = _firstCandPt/(K1_sum_pT_05 + _firstCandPt);
+_iso_K2        = _secondCandPt/(K2_sum_pT_05 + _secondCandPt);
+_iso_couple    = _bestCouplePt/(couple_sum_pT_05 + _bestCouplePt);
+_iso_K1_ch     = _firstCandPt/(K1_sum_pT_05_ch + _firstCandPt);
+_iso_K2_ch     = _secondCandPt/(K2_sum_pT_05_ch + _secondCandPt);
+_iso_couple_ch = _bestCouplePt/(couple_sum_pT_05_ch + _bestCouplePt);
 
 //CUT ON PHI ISOLATION
-if(_iso_couple_ch > 1.) {
+if(_iso_couple_ch < 0.5) {
   if(verbose) cout<<"No isolation cut passed, RETURN."<<endl;
   return;
 }
 
-  if(!isBestCoupleOfTheEvent_Found) {
+
+if(!isBestCoupleOfTheEvent_Found) {
     if (verbose) cout<<"RETURN: No best couple found."<<endl<<endl;
     return;
-  }
+}
  
   mytree->Fill();
 
@@ -640,6 +647,11 @@ void HPhiGammaTwoProngsTriggerAnalysis::create_trees()
   mytree->Branch("secondCandEnergy",&secondCandEnergy);
 
   mytree->Branch("MesonMass",&_MesonMass);
+
+  //Save MC info
+  if(!runningOnData_){ //NO INFO FOR DATA
+    mytree->Branch("PU_Weight",&PU_Weight);
+  }
 }
   
 void HPhiGammaTwoProngsTriggerAnalysis::beginJob()

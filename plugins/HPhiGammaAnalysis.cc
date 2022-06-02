@@ -703,6 +703,11 @@ if(verbose) cout<< "JETs loop"<<" --------------------------------"<<endl;
 
           if (!isPhi && !isRho) continue; //continue if the pair mass doesn't match any of the two mass hypothesis
 
+          if (isPhi && isRho){ //if both hypothesis are true, mark it as a Phi candidate (this is done because the Phi mass window is tighter)
+            isPhi = true;
+            isRho = false;
+          }
+
           isBestCoupleOfTheEvent_Found = true;
 
           //Save if best pair has been found

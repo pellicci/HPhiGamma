@@ -103,7 +103,7 @@ for filename in list_inputfiles:
 
         histo_container.append(copy.copy(histo))
         
-        if not histo_name == "h_nMuons" and not histo_name == "h_nPhotons" and not histo_name == "h_nJets_25" and not histo_name == "h_nElectrons" and not histo_name == "h_photonWP90":
+        if not histo_name == "h_nMuons" and not histo_name == "h_nPhotons" and not histo_name == "h_nJets_25" and not histo_name == "h_nElectrons" and not histo_name == "h_photonWP90" and not histo_name == "h_meson_InvMass_TwoTrk":
             print histo_name
             if isTightSelection and (histo_name == "h_firstTrk_Iso" or histo_name == "h_firstTrk_Iso_ch" or histo_name == "h_secondTrk_Iso" or histo_name == "h_secondTrk_Iso_ch" or histo_name == "h_couple_AbsIsoCh" or histo_name == "h_couple_Iso" or histo_name == "h_couple_Iso_ch"):
                 histo_container[-1].Rebin(4)
@@ -195,7 +195,7 @@ for histo_name in list_histos:
         if histo_name == "h_meson_InvMass_TwoTrk" :
             hstack[histo_name].GetXaxis().SetTitle("m_{meson} [GeV]")
             if isPhi:
-                hstack[histo_name].GetXaxis().SetLimits(1.001,1.039)
+                hstack[histo_name].GetXaxis().SetLimits(1.00,1.042)
             else:
                 hstack[histo_name].GetXaxis().SetLimits(0.501,0.999)
 

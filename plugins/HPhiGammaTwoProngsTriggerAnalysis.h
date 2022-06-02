@@ -113,6 +113,9 @@ private:
   float _iso_couple;
   float _iso_couple_ch;
 
+  //MC truth
+  float PU_Weight;
+
   //Tokens
   edm::EDGetTokenT<std::vector<pat::PackedCandidate> > packedPFCandidatesToken_; 
   edm::EDGetTokenT<std::vector<pat::Muon> > slimmedMuonsToken_; 

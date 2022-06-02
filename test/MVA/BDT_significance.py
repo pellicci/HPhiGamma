@@ -6,8 +6,8 @@ import argparse
 #Supress the opening of many Canvas's
 ROOT.gROOT.SetBatch(True)  
 
-Nsig_passed = 1.66340155007 # Number of signal events from the sum of the weights (before applying BDT cuts), take this number running the generate_histos for signal
-Nbkg_passed = 45093 #sidebands events in input to the BDT
+Nsig_passed = 2.74602865853 # Number of signal events from the sum of the weights (before applying BDT cuts), take this number running the generate_histos for signal
+Nbkg_passed = 11629 #sidebands events in input to the BDT
 
 BDT_file = ROOT.TFile("outputs/Nominal_training.root")
 
@@ -20,7 +20,7 @@ signif = []
 _effS = 0
 
 for jbin in range(1,h_BDT_effB_effS.GetNbinsX()+1):
-    if h_BDT_effB_effS.GetBinCenter(jbin) > 0.42    : #insert the number before whom the function fluctuates too much to estimate the maximum
+    if h_BDT_effB_effS.GetBinCenter(jbin) > 0.1    : #insert the number before whom the function fluctuates too much to estimate the maximum
         sig_eff.append(h_BDT_effB_effS.GetBinCenter(jbin))
         if h_BDT_effB_effS.GetBinContent(jbin) < 0.:
             bkg_eff.append(0.)
@@ -38,7 +38,7 @@ sign = ROOT.TGraph(70,sig_eff_array,signif_array)
 sign.SetTitle("")
 sign.GetXaxis().SetTitle("#varepsilon_{S}^{BDT}")
 sign.GetYaxis().SetTitle("Significance")
-#sign.SetMaximum(0.04)
+sign.SetMaximum(0.12)
 sign.SetMarkerStyle(8)
 sign.SetMarkerColor(4)
 sign.Draw("AP")
@@ -49,7 +49,7 @@ sign_vs_bkg.SetTitle("")
 sign_vs_bkg.GetXaxis().SetTitle("#varepsilon_{B}^{BDT}")
 sign_vs_bkg.GetYaxis().SetTitle("Significance")
 sign_vs_bkg.GetXaxis().SetRangeUser(0.,0.8)
-#sign_vs_bkg.SetMaximum(0.04)
+sign_vs_bkg.SetMaximum(0.12)
 sign_vs_bkg.SetMarkerStyle(8)
 sign_vs_bkg.SetMarkerColor(4)
 sign_vs_bkg.Draw("AP")
