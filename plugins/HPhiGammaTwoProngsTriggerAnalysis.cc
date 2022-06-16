@@ -592,7 +592,7 @@ _iso_K2_ch     = _secondCandPt/(K2_sum_pT_05_ch + _secondCandPt);
 _iso_couple_ch = _bestCouplePt/(couple_sum_pT_05_ch + _bestCouplePt);
 
 //CUT ON PHI ISOLATION
-if(_iso_couple_ch < 0.5) {
+if(_iso_couple_ch < 0.7) {
   if(verbose) cout<<"No isolation cut passed, RETURN."<<endl;
   return;
 }
@@ -643,6 +643,13 @@ void HPhiGammaTwoProngsTriggerAnalysis::create_trees()
   mytree->Branch("isPhi",&_isPhi);
   mytree->Branch("isRho",&_isRho);
 
+  mytree->Branch("iso_K1",&_iso_K1);
+  mytree->Branch("iso_K1_ch",&_iso_K1_ch);
+  mytree->Branch("iso_K2",&_iso_K2);
+  mytree->Branch("iso_K2_ch",&_iso_K2_ch);
+  mytree->Branch("iso_couple",&_iso_couple);
+  mytree->Branch("iso_couple_ch",&_iso_couple_ch);
+
   mytree->Branch("firstCandEnergy",&firstCandEnergy);
   mytree->Branch("secondCandEnergy",&secondCandEnergy);
 
@@ -658,7 +665,7 @@ void HPhiGammaTwoProngsTriggerAnalysis::beginJob()
 {
   //Flag for PileUp reweighting
   if (!runningOnData_){ // PU reweighting for 2017
-   Lumiweights_ = edm::LumiReWeighting("MCpileUp_2018_25ns_JuneProjectionFull18_PoissonOOTPU.root", "MyDataPileupHistogram.root", "pileup", "pileup");
+   Lumiweights_ = edm::LumiReWeighting("MCpileUp_2018_25ns_UltraLegacy_PoissonOOTPU.root", "MyDataPileupHistogram.root", "pileup", "pileup");
   }
 }
 

@@ -93,8 +93,8 @@ effectiveAreas_ph_( (iConfig.getParameter<edm::FileInPath>("effAreasConfigFile_p
   _nPhotonsWP90                  = 0;
   _nPhotonsNotWP90               = 0;
 
-  debug=false;  //DEBUG datamember 
-  verbose=false; 
+  debug=true;  //DEBUG datamember 
+  verbose=true; 
 
   h_pileup   = fs->make<TH1F>("pileup", "pileup", 75,0,75);
 
@@ -1019,7 +1019,7 @@ void HPhiGammaAnalysis::beginJob()
 {
 //Flag for PileUp reweighting
 if (!runningOnData_){ // PU reweighting for 2017
- Lumiweights_ = edm::LumiReWeighting("MCpileUp_2018_25ns_JuneProjectionFull18_PoissonOOTPU.root", "MyDataPileupHistogram.root", "pileup", "pileup");
+ Lumiweights_ = edm::LumiReWeighting("MCpileUp_2018_25ns_UltraLegacy_PoissonOOTPU.root", "MyDataPileupHistogram.root", "pileup", "pileup");
 }
 }
 

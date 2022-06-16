@@ -81,32 +81,22 @@ if not samplename == "Data":
     normalization_weight = norm_map[samplename]
 
     #Combine luminosity
-    luminosity2018A = 14.00 #fb^-1
-    luminosity2018B = 3.41 #fb^-1   
-    luminosity2018C = 6.94 #fb^-1
-    luminosity2018D = 31.93 #fb^-1
-    luminosity      = 39.54 #total lumi delivered during the trigger activity: 39.54 #fb^-1
+    #luminosity2018A = 14.00 #fb^-1
+    #luminosity2018B = 3.41 #fb^-1   
+    #luminosity2018C = 6.94 #fb^-1
+    #luminosity2018D = 31.93 #fb^-1
+    luminosity = 39.54 #total lumi delivered during the trigger activity: 39.54 #fb^-1
 
 if samplename == "Signal":
     sigWeightSum = 0.
 
-#MCfromDATA correction for photons ###############################################################################
-ph_ID_scale_name_2018  = "scale_factors/2018_PhotonsMVAwp90.root"
-ph_ID_scale_file_2018  = ROOT.TFile(ph_ID_scale_name_2018)
-ph_ID_scale_histo_2018 = ROOT.TH2F()
-ph_ID_scale_histo_2018 = ph_ID_scale_file_2018.Get("EGamma_SF2D")
-
-ph_pixVeto_scale_name_2018  = "scale_factors/HasPix_2018.root"
-ph_pixVeto_scale_file_2018  = ROOT.TFile(ph_pixVeto_scale_name_2018)
-ph_pixVeto_scale_histo_2018 = ROOT.TH1F()
-ph_pixVeto_scale_histo_2018 = ph_pixVeto_scale_file_2018.Get("eleVeto_SF")
 
 #HISTOS ###########################################################################################################
 histo_map = dict()
 list_histos = ["h_InvMass_TwoTrk_Photon","h_InvMass_TwoTrk_Photon_NoPhiMassCut","h_meson_InvMass_TwoTrk","h_firstTrk_pT","h_secondTrk_pT","h_firstTrk_Eta","h_secondTrk_Eta","h_firstTrk_Phi","h_secondTrk_Phi","h_bestCouplePt","h_bestCoupleEta","h_bestCoupleDeltaR","h_bestJetPt","h_bestJetEta","h_firstTrk_Iso","h_firstTrk_Iso_ch","h_secondTrk_Iso","h_secondTrk_Iso_ch","h_couple_Iso","h_couple_Iso_ch","h_photon_energy","h_photon_eta","h_nJets_25","h_nMuons","h_nElectrons","h_nPhotons","h_efficiency","h_photonWP90","h_decayChannel"]#,"h_BDT_out"]
 
-histo_map[list_histos[0]]  = ROOT.TH1F(list_histos[0],"M_{H}",100,100.,150.) 
-histo_map[list_histos[1]]  = ROOT.TH1F(list_histos[1],"M_{H} (no cut on phi mass)",100,100.,150.) 
+histo_map[list_histos[0]]  = ROOT.TH1F(list_histos[0],"M_{H}",140,100.,170.) 
+histo_map[list_histos[1]]  = ROOT.TH1F(list_histos[1],"M_{H} (no cut on phi mass)",140,100.,170.) 
 if   isPhiAnalysis: histo_map[list_histos[2]]  = ROOT.TH1F(list_histos[2],"M_{meson}", 100, 1., 1.042) 
 elif isRhoAnalysis: histo_map[list_histos[2]]  = ROOT.TH1F(list_histos[2],"M_{meson}", 100, 0.5, 1.) 
 histo_map[list_histos[3]]  = ROOT.TH1F(list_histos[3],"p_{T} of the 1st track", 100, 20.,60.)
@@ -197,7 +187,7 @@ tree_output.Branch('_eventWeight',_eventWeight,'_eventWeight/D')
 
 #Higgs mass
 higgs_min_invMass = 100.
-higgs_max_invMass = 150.    
+higgs_max_invMass = 170.    
 #Phi iso
 iso_coupleCh_max  = 1.  
 #Phi pT
@@ -214,9 +204,6 @@ bestJet_pT_max    = 150.
 photonWP90bool    = 1.
 
     
-#counters
-nEventsOverCuts = 0
-
 #SELECT ALL BUT ONE FUNCTION ########################################################################################################
 #dictionary: allows to apply all cuts except one related to the plotted variable
 #if it returns FALSE it throws that event away
@@ -245,38 +232,14 @@ def select_all_but_one(h_string):
                
     return result
 
-
-#Photon scaling function ###########################################################################################################
-def get_photon_scale(ph_pt, ph_eta):
-
-    local_ph_pt = ph_pt
-    if local_ph_pt > 499.: # This is because corrections are up to 499 GeV
-        local_ph_pt = 499.
-    
-    local_ph_eta = ph_eta
-    if local_ph_eta >= 2.5:
-        local_ph_eta = 2.49
-    if local_ph_eta < -2.5: # Corrections reach down to eta = -2.5, but only up to eta = 2.49
-        local_ph_eta = -2.5
-
-    scale_factor_ID      = ph_ID_scale_histo_2018.GetBinContent( ph_ID_scale_histo_2018.GetXaxis().FindBin(local_ph_eta), ph_ID_scale_histo_2018.GetYaxis().FindBin(local_ph_pt) )
-    scale_factor_pixVeto = ph_pixVeto_scale_histo_2018.GetBinContent( ph_pixVeto_scale_histo_2018.GetXaxis().FindBin(local_ph_pt), ph_pixVeto_scale_histo_2018.GetYaxis().FindBin(math.fabs(local_ph_eta)) )
-    scale_factor         = scale_factor_ID * scale_factor_pixVeto
-
-    #if debug:
-     #   print "local_ph_pt          = ",local_ph_pt
-      #  print "local_ph_eta         = ",local_ph_eta
-       # print "scale_factor_ID      = ",scale_factor_ID
-       # print "scale_factor_pixVeto = ",scale_factor_pixVeto
-
-    return scale_factor
     
 print "This sample has ", mytree.GetEntriesFast(), " events"
 nentries = mytree.GetEntriesFast()
 
-photonId_true  = 0
-photonId_false = 0
-
+#------------- counters -----------------
+nEventsOverCuts = 0
+nEventsLeftSB   = 0
+nEventsRightSB  = 0
 
 #EVENTS LOOP ##################################################################################################################### 
 for jentry in xrange(nentries):
@@ -288,7 +251,8 @@ for jentry in xrange(nentries):
         continue
 
     
-    print "Processing EVENT n.",jentry+1,"================"
+    if debug: 
+        print "Processing EVENT n.",jentry+1,"================"
 
     #Retrieve variables from the tree 
     Hmass          = mytree.Hmass_From2K_Photon
@@ -318,12 +282,9 @@ for jentry in xrange(nentries):
     photonWP90     = mytree.is_photon_wp90
     isPhiEvent     = mytree.isPhi
     isRhoEvent     = mytree.isRho
+    nElectrons     = mytree.nElectrons
+    nMuons         = mytree.nMuons
 
-
-    if photonWP90:
-        photonId_true += 1
-    else:
-        photonId_false += 1
 
     #If I'm performing a PhiGamma analysis I don't want to choose those events tagged as a RhoGamma events, and viceversa
     if isPhiAnalysis and not isPhiEvent: 
@@ -331,13 +292,16 @@ for jentry in xrange(nentries):
     if isRhoAnalysis and not isRhoEvent: 
         continue
 
+    #Electron and muon veto
+    if nElectrons > 0: continue
+    if nMuons     > 0: continue
 
     #Define Control and Signal regions: 
     if isPhiAnalysis: #for Phi meson
-        if CRflag == 0 and not (MesonMass > 1.008 and MesonMass < 1.032) :
+        if CRflag == 0 and not (MesonMass > 1.005 and MesonMass < 1.037) :
             continue
 
-        if CRflag == 1 and (MesonMass > 1.008 and MesonMass < 1.032) :
+        if CRflag == 1 and (MesonMass > 1.005 and MesonMass < 1.037) :
             continue
 
     if isRhoAnalysis: #for Rho meson
@@ -348,16 +312,17 @@ for jentry in xrange(nentries):
             continue
 
 ################### line used to take simmetrical sidebands ################
-    if (isPhiAnalysis and MesonMass > 1.04): continue
+    if (isPhiAnalysis and MesonMass > 1.042): continue
 ############################################################################
 
-    print"#################"
-    print "isRhoAnalysis = ",isRhoAnalysis
-    print "isRhoEvent = ",isRhoEvent
-    print "CRflag = ",CRflag
-    print "MesonMass = ",MesonMass
-    print "isDataBlind = ",isDataBlind
-    print"#################"
+    if debug:
+        print"#################"
+        print "isRhoAnalysis = ",isRhoAnalysis
+        print "isRhoEvent = ",isRhoEvent
+        print "CRflag = ",CRflag
+        print "MesonMass = ",MesonMass
+        print "isDataBlind = ",isDataBlind
+        print"#################"
 
 
     #TIGHT SELECTION from BDT output -------------------------------------------------  
@@ -377,7 +342,7 @@ for jentry in xrange(nentries):
         
         PUWeight          = mytree.PU_Weight
         weight_sign       = mytree.MC_Weight/abs(mytree.MC_Weight)
-        photonScaleFactor = get_photon_scale(mytree.photon_eT, mytree.photon_eta)
+        photonScaleFactor = myWF.get_photon_scale(mytree.photon_eT,mytree.photon_eta)
         eventWeight       = weight_sign * luminosity * normalization_weight * PUWeight * photonScaleFactor
         
         if debug:
@@ -404,13 +369,21 @@ for jentry in xrange(nentries):
     deltaR = math.sqrt((mytree.firstCandEta - mytree.secondCandEta)**2 + (coupleDeltaPhi)**2)
    
 
+    #-------------- n vents in the sidebands -----------------------------
+    if (Hmass < 100. or Hmass > 170.): continue
+
+    if not samplename == 'Signal':
+         if (CRflag == 0 and Hmass > 100. and Hmass < 115.) : nEventsLeftSB  += 1
+         if (CRflag == 0 and Hmass > 135. and Hmass < 170.) : nEventsRightSB += 1
+
     #FILL HISTOS --------------------------------------------------------------------------
     #if DATA -> Blind Analysis on H inv mass plot
     if select_all_but_one("h_InvMass_TwoTrk_Photon"):
         if samplename == "Data":
             if isDataBlind:
-                if Hmass < 120. or Hmass > 130.:
+                if Hmass < 115. or Hmass > 135.:
                     histo_map["h_InvMass_TwoTrk_Photon"].Fill(Hmass, eventWeight)
+
             else:
                 histo_map["h_InvMass_TwoTrk_Photon"].Fill(Hmass, eventWeight)
         else:
@@ -419,7 +392,7 @@ for jentry in xrange(nentries):
     if select_all_but_one(""): #H inv mass plot without the phi mass cut    
         if samplename == "Data":
             if isDataBlind:
-                if Hmass < 120. or Hmass > 130.:
+                if Hmass < 115. or Hmass > 135.:
                     histo_map["h_InvMass_TwoTrk_Photon_NoPhiMassCut"].Fill(Hmass, eventWeight)
             else:
                     histo_map["h_InvMass_TwoTrk_Photon_NoPhiMassCut"].Fill(Hmass, eventWeight)
@@ -503,13 +476,6 @@ for jentry in xrange(nentries):
             sigWeightSum += _eventWeight
 
 
-if debug:        
-    print "#############################"
-    print "wp90 photons = ",photonId_true
-    print "NOT wp90 photons = ",photonId_false
-    print "#############################"
-
-
 #HISTO LABELS
 histo_map["h_InvMass_TwoTrk_Photon"].GetXaxis().SetTitle("m_{trk^{+}trk^{-}#gamma} [GeV/c^2]")
 histo_map["h_InvMass_TwoTrk_Photon"].SetTitle("Tracks+Photon invariant mass (Cut on phi inv. mass)")
@@ -577,6 +543,11 @@ if samplename == "Signal":
 if isBDT:
     print "n. events after preselection = ",jentry
 print "n. events after cuts = " , nEventsOverCuts
+if not samplename == 'Signal' and CRflag == 0:
+    print "n. events in the left sideband counted = ",nEventsLeftSB
+    print "n. events in the right sideband counted = ",nEventsRightSB
+    print "Total events in the sidebands = ", nEventsRightSB + nEventsLeftSB
+
 if samplename == "Signal":
     print "Signal weight sum = ",float(sigWeightSum)
     if isPhiAnalysis:

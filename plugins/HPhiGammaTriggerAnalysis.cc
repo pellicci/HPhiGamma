@@ -398,7 +398,7 @@ void HPhiGammaTriggerAnalysis::beginJob()
 {
   //Flag for PileUp reweighting
   if (!runningOnData_){ // PU reweighting for 2017
-   Lumiweights_ = edm::LumiReWeighting("MCpileUp_2018_25ns_JuneProjectionFull18_PoissonOOTPU.root", "MyDataPileupHistogram.root", "pileup", "pileup");
+   Lumiweights_ = edm::LumiReWeighting("MCpileUp_2018_25ns_UltraLegacy_PoissonOOTPU.root", "MyDataPileupHistogram.root", "pileup", "pileup");
   }
 }
 

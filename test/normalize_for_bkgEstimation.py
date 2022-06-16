@@ -20,7 +20,7 @@ for histo_name in list_histos:
 
 	if histo_name == "h_InvMass_TwoTrk_Photon" or histo_name == "h_InvMass_TwoTrk_Photon_NoPhiMassCut":
 
-		CRintegral = histoCR.Integral() - histoCR.Integral(histoCR.GetXaxis().FindBin(120.),histoCR.GetXaxis().FindBin(130.)) #since in this plot there is the blind window for data in SR, this trick is to make the divide properly. Remember to bypass it for the unblinding
+		CRintegral = histoCR.Integral() - histoCR.Integral(histoCR.GetXaxis().FindBin(115.),histoCR.GetXaxis().FindBin(135.)) #since in this plot there is the blind window for data in SR, this trick is to make the divide properly. Remember to bypass it for the unblinding
 
 	else:
 		CRintegral = histoCR.Integral()
