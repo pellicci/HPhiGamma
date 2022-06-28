@@ -93,8 +93,8 @@ effectiveAreas_ph_( (iConfig.getParameter<edm::FileInPath>("effAreasConfigFile_p
   _nPhotonsWP90                  = 0;
   _nPhotonsNotWP90               = 0;
 
-  debug=true;  //DEBUG datamember 
-  verbose=true; 
+  debug=false;  //DEBUG datamember 
+  verbose=false; 
 
   h_pileup   = fs->make<TH1F>("pileup", "pileup", 75,0,75);
 
@@ -793,7 +793,7 @@ _iso_couple_ch = 0.;
 //------------- ISOLATION -------------------------------------------------------------------------  
 for(auto cand_iso = PFCandidates->begin(); cand_iso != PFCandidates->end(); ++cand_iso){ //ISOLATION FORLOOP START
 
-  if(cand_iso->pt() < 0.5) continue; //do not consider tracks with pT < 500MeV
+  if(cand_iso->pt() < 0.9) continue; //do not consider tracks with pT < 500MeV
 
   //calculate the deltaR between the track and the first candidate ---------------------------------------
   float deltaPhi_K1 = fabs(_firstCandPhi-cand_iso->phi());  //phi folding	
@@ -819,9 +819,13 @@ for(auto cand_iso = PFCandidates->begin(); cand_iso != PFCandidates->end(); ++ca
   if(deltaR_K1 <= 0.3) K1_sum_pT_05 += cand_iso->pt();
   if(deltaR_K2 <= 0.3) K2_sum_pT_05 += cand_iso->pt();
   if(deltaR_Couple <= 0.3) couple_sum_pT_05 += cand_iso->pt();
+  //cout<< "charge before = "<<cand_iso->charge()<<endl;
 
   //sum pT of the charged tracks inside a cone of deltaR = 0.3 ---------------------------------------
-  if(cand_iso->charge() != 0 && (fabs(cand_iso->dxy()) >= 0.2 || fabs(cand_iso->dz()) >= 0.5) ) continue; // Requesting charged particles to come from PV
+  if(cand_iso->charge() == 0) continue;
+// cout << "particle charge = "<<cand_iso->charge()<<endl;
+  if(fabs(cand_iso->dxy()) >= 0.2 || fabs(cand_iso->dz()) >= 0.5) continue; // Requesting charged particles to come from PV
+  //cout<< "charge after = "<<cand_iso->charge()<<endl;
   if(deltaR_K1 <= 0.3) K1_sum_pT_05_ch += cand_iso->pt();
   if(deltaR_K2 <= 0.3) K2_sum_pT_05_ch += cand_iso->pt();
   if(deltaR_Couple <= 0.3) couple_sum_pT_05_ch += cand_iso->pt();
@@ -862,7 +866,7 @@ _iso_K2_ch     = _secondCandPt/(K2_sum_pT_05_ch + _secondCandPt);
 _iso_couple_ch = _bestCouplePt/(couple_sum_pT_05_ch + _bestCouplePt);
 
 //CUT ON PHI ISOLATION
-if(_iso_couple_ch < 0.7) {
+if(_iso_couple_ch < 0.9) {
   if(verbose) cout<<"No isolation cut passed, RETURN."<<endl;
   return;
 }
@@ -943,9 +947,9 @@ void HPhiGammaAnalysis::create_trees()
   mytree->Branch("photon_etaSC",&ph_etaSC);
   mytree->Branch("photon_phi",&ph_phi);
   mytree->Branch("photon_energy",&ph_energy);
-  mytree->Branch("photon_iso_ChargedHadron",&ph_iso_ChargedHadron);
-  mytree->Branch("photon_iso_NeutralHadron",&ph_iso_NeutralHadron);
-  mytree->Branch("photon_iso_Photon",&ph_iso_Photon);
+  //mytree->Branch("photon_iso_ChargedHadron",&ph_iso_ChargedHadron);
+  //mytree->Branch("photon_iso_NeutralHadron",&ph_iso_NeutralHadron);
+  //mytree->Branch("photon_iso_Photon",&ph_iso_Photon);
   mytree->Branch("photon_iso_eArho",&ph_iso_eArho);
   mytree->Branch("is_photon_wp90",&is_photon_wp90);     //ABCD method update
 
@@ -953,10 +957,10 @@ void HPhiGammaAnalysis::create_trees()
   mytree->Branch("bestJet_eta",&_bestJet_eta);
   mytree->Branch("bestJet_phi",&_bestJet_phi);
   mytree->Branch("bestJet_nDaughters",&_bestJet_nDaughters);
-  mytree->Branch("bestJet_chargedEmEnergy",&_bestJet_chargedEmEnergy);
-  mytree->Branch("bestJet_neutralEmEnergy",&_bestJet_neutralEmEnergy);
-  mytree->Branch("bestJet_chargedHadEnergy",&_bestJet_chargedHadEnergy);
-  mytree->Branch("bestJet_neutralHadEnergy",&_bestJet_neutralHadEnergy);
+  //mytree->Branch("bestJet_chargedEmEnergy",&_bestJet_chargedEmEnergy);
+  //mytree->Branch("bestJet_neutralEmEnergy",&_bestJet_neutralEmEnergy);
+  //mytree->Branch("bestJet_chargedHadEnergy",&_bestJet_chargedHadEnergy);
+  //mytree->Branch("bestJet_neutralHadEnergy",&_bestJet_neutralHadEnergy);
   mytree->Branch("bestJet_invMass",&_bestJet_invMass);
   mytree->Branch("bestJet_Photon_invMass",&_bestJet_Photon_invMass);
 
@@ -978,10 +982,10 @@ void HPhiGammaAnalysis::create_trees()
   mytree->Branch("MesonMass",&_MesonMass);
   mytree->Branch("Hmass_From2K_Photon",&_Hmass_From2K_Photon);
 
-  mytree->Branch("K1_sum_pT_05",&K1_sum_pT_05);
-  mytree->Branch("K1_sum_pT_05_ch",&K1_sum_pT_05_ch);
-  mytree->Branch("K2_sum_pT_05",&K2_sum_pT_05);
-  mytree->Branch("K2_sum_pT_05_ch",&K2_sum_pT_05_ch);
+  //mytree->Branch("K1_sum_pT_05",&K1_sum_pT_05);
+  //mytree->Branch("K1_sum_pT_05_ch",&K1_sum_pT_05_ch);
+  //mytree->Branch("K2_sum_pT_05",&K2_sum_pT_05);
+  //mytree->Branch("K2_sum_pT_05_ch",&K2_sum_pT_05_ch);
   mytree->Branch("Couple_sum_pT_05",&couple_sum_pT_05);
   mytree->Branch("Couple_sum_pT_05_ch",&couple_sum_pT_05_ch);
 
@@ -997,19 +1001,13 @@ void HPhiGammaAnalysis::create_trees()
   if(!runningOnData_){ //NO INFO FOR DATA
     mytree->Branch("PU_Weight",&PU_Weight);
     mytree->Branch("MC_Weight",&MC_Weight);
-    mytree->Branch("isHiggsFound",&_isHiggsFound);
-
-    is_Kplus_fromPhi  = false;
-    is_Kminus_fromPhi = false;
-    is_Phi_fromH      = false;
-    is_Photon_fromH   = false;
-
-    mytree->Branch("isKplusfromPhi",&is_Kplus_fromPhi);
-    mytree->Branch("isKminusfromPhi",&is_Kminus_fromPhi);
-    mytree->Branch("isPhiFromH",&is_Phi_fromH);
-    mytree->Branch("isPhotonFromH",&is_Photon_fromH);
-    mytree->Branch("isPhotonTrue",&is_photon_a_photon);
-    mytree->Branch("isPhotonMatched",&is_photon_matched);
+    //mytree->Branch("isHiggsFound",&_isHiggsFound);
+    //mytree->Branch("isKplusfromPhi",&is_Kplus_fromPhi);
+    //mytree->Branch("isKminusfromPhi",&is_Kminus_fromPhi);
+    //mytree->Branch("isPhiFromH",&is_Phi_fromH);
+    //mytree->Branch("isPhotonFromH",&is_Photon_fromH);
+    //mytree->Branch("isPhotonTrue",&is_photon_a_photon);
+    //mytree->Branch("isPhotonMatched",&is_photon_matched);
 
 }
 

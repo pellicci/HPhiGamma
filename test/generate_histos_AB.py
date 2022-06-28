@@ -54,7 +54,7 @@ else :
 
 if args.isBDT_option == "BDT":
     isBDT = True
-    BDT_OUT = 0.182563702322 #take this number running MVA/BDT_significance.py: this is the BDT output value which maximizes the significance
+    BDT_OUT = 0.149862891418 #take this number running MVA/BDT_significance.py: this is the BDT output value which maximizes the significance
 print "BDT = ",isBDT
 
 
@@ -113,11 +113,11 @@ elif isRhoAnalysis: histo_map[list_histos[11]] = ROOT.TH1F(list_histos[11],"#Del
 histo_map[list_histos[12]] = ROOT.TH1F(list_histos[12],"p_{T} of the jet", 100, 40.,170.)
 histo_map[list_histos[13]] = ROOT.TH1F(list_histos[13],"#eta of the jet", 100, -2.5,2.5)
 histo_map[list_histos[14]] = ROOT.TH1F(list_histos[14],"Iso of the 1st track", 100, 0.45,1.)
-histo_map[list_histos[15]] = ROOT.TH1F(list_histos[15],"Iso_ch of the 1st track", 100, 0.6,1.)
+histo_map[list_histos[15]] = ROOT.TH1F(list_histos[15],"Iso_ch of the 1st track", 100, 0.8,1.)
 histo_map[list_histos[16]] = ROOT.TH1F(list_histos[16],"Iso of the 2nd track", 100, 0.3,1.)
-histo_map[list_histos[17]] = ROOT.TH1F(list_histos[17],"Iso_ch of the 2nd track", 100, 0.6,1.)
+histo_map[list_histos[17]] = ROOT.TH1F(list_histos[17],"Iso_ch of the 2nd track", 100, 0.75,1.)
 histo_map[list_histos[18]] = ROOT.TH1F(list_histos[18],"Iso of the meson", 100, 0.6,1.)
-histo_map[list_histos[19]] = ROOT.TH1F(list_histos[19],"Iso_ch of the meson", 100, 0.7,1.)
+histo_map[list_histos[19]] = ROOT.TH1F(list_histos[19],"Iso_ch of the meson", 100, 0.9,1.)
 histo_map[list_histos[20]] = ROOT.TH1F(list_histos[20],"E_{T} of the #gamma", 100, 38.,160.)
 histo_map[list_histos[21]] = ROOT.TH1F(list_histos[21],"#eta_{#gamma}", 100, -2.5,2.5)
 histo_map[list_histos[22]] = ROOT.TH1F(list_histos[22],"n. of jets over pre-filters",  7, -0.5,6.5)
@@ -327,12 +327,12 @@ for jentry in xrange(nentries):
 
     #TIGHT SELECTION from BDT output -------------------------------------------------  
     if isBDT:
-        BDT_out = myWF.get_BDT_output(firstTrkiso,MesonPt,photonEt,Hmass)
+        BDT_out = myWF.get_BDT_output(firstTrkiso,MesonIsoCh,MesonPt,photonEt,Hmass)
         #histo_map["h_BDT_out"].Fill(BDT_out)
 
-        print "BDT value before selection = ", BDT_out
+        if debug: print "BDT value before selection = ", BDT_out
         if BDT_out < BDT_OUT: #Cut on BDT output
-            print "BDT cut NOT passed"
+            if debug: print "BDT cut NOT passed"
             continue
 
 

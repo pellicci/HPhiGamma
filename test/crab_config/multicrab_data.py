@@ -1,7 +1,8 @@
 from CRABAPI.RawCommand import crabCommand
 from WMCore.Configuration import Configuration
 from CRABClient.UserUtilities import config
-config = Configuration()
+
+config = Configuration() #initialize your configuration
 
 config.section_('General')
 config.General.transferOutputs = True
@@ -18,6 +19,7 @@ config.section_('Data')
 config.Data.inputDBS = 'global'
 config.Data.splitting = 'FileBased'
 config.Data.unitsPerJob = 5
+#config.JobType.maxMemoryMB = 3300
 config.Data.publication = False
 config.Data.lumiMask = 'json/Cert_314472-325175_13TeV_Legacy2018_Collisions18_JSON.txt'
 
@@ -40,11 +42,11 @@ if __name__ == '__main__':
             print "Failed submitting task: %s" % (cle)
 
 
-    config.General.requestName = '2018_HPhiGammaAnalysis_Tau_A'
-    config.Data.inputDataset = '/Tau/Run2018A-12Nov2019_UL2018_rsb-v1/MINIAOD'
-    p = Process(target=submit, args=(config,))
-    p.start()
-    p.join()
+    #config.General.requestName = '2018_HPhiGammaAnalysis_Tau_A'
+    #config.Data.inputDataset = '/Tau/Run2018A-12Nov2019_UL2018_rsb-v1/MINIAOD'
+    #p = Process(target=submit, args=(config,))
+    #p.start()
+    #p.join()
 
     config.General.requestName = '2018_HPhiGammaAnalysis_Tau_B'
     config.Data.inputDataset = '/Tau/Run2018B-12Nov2019_UL2018-v1/MINIAOD'
@@ -58,8 +60,8 @@ if __name__ == '__main__':
     p.start()
     p.join()    
         
-    config.Data.splitting = 'FileBased'
-    config.Data.unitsPerJob = 50
+   # config.Data.splitting = 'FileBased'
+   # config.Data.unitsPerJob = 50
     config.General.requestName = '2018_HPhiGammaAnalysis_Tau_D'
     config.Data.inputDataset = '/Tau/Run2018D-12Nov2019_UL2018-v1/MINIAOD'
     p = Process(target=submit, args=(config,))

@@ -29,6 +29,7 @@ dataloader = ROOT.TMVA.DataLoader()
 
 #Pay attention to the order, it must be the same in the function_smuggler.py
 dataloader.AddVariable("_firstTrkIso","F")
+dataloader.AddVariable("_coupleIsoCh","F")
 dataloader.AddVariable("_bestCouplePt/mesonGammaMass","F")
 dataloader.AddVariable("_photonEt/mesonGammaMass","F")
 #dataloader.AddVariable("_bestJetPt/mesonGammaMass","F")

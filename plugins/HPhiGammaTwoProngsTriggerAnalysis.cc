@@ -168,6 +168,7 @@ void HPhiGammaTwoProngsTriggerAnalysis::analyze(const edm::Event& iEvent, const 
   //                                                             //
   //*************************************************************//
 
+  PU_Weight = -1.;
   float npT = -1.;
 
   if(!runningOnData_){
@@ -179,7 +180,7 @@ void HPhiGammaTwoProngsTriggerAnalysis::analyze(const edm::Event& iEvent, const 
     for(PVI = PupInfo->begin(); PVI != PupInfo->end(); ++PVI) {
       const int BX = PVI->getBunchCrossing();
       if(BX == 0) {
-	npT  = PVI->getTrueNumInteractions();
+	      npT  = PVI->getTrueNumInteractions();
       }
     }
 
@@ -187,6 +188,10 @@ void HPhiGammaTwoProngsTriggerAnalysis::analyze(const edm::Event& iEvent, const 
       std::cout << "!!!! npT = -1 !!!!" << std::endl;
       abort();
     }
+
+    // Calculate weight using above code
+    PU_Weight = Lumiweights_.weight(npT);
+    if (debug) cout << "PU weight = "<<PU_Weight<<endl;
 
     // Fill histogram with PU distribution
     h_pileup->Fill(npT);
@@ -215,7 +220,7 @@ void HPhiGammaTwoProngsTriggerAnalysis::analyze(const edm::Event& iEvent, const 
       if (verbose) cout<<"IsoMu24 triggered"<<endl;
     }
 
-    if( tmp_triggername.find("HLT_IsoMu24_TwoProngs35") != std::string::npos ){ //Photon trigger
+    if( tmp_triggername.find("HLT_IsoMu24_TwoProngs35") != std::string::npos ){ //Two prongs trigger
       isTwoProngsTrigger = true; 
       if (verbose) cout<<"Mu24_TwoProngs35 triggered"<<endl;
     }
@@ -239,6 +244,8 @@ void HPhiGammaTwoProngsTriggerAnalysis::analyze(const edm::Event& iEvent, const 
   bestMuMuPt = -1.;
   float currentMuMuMass = -1.;
   bestMuMuMass = -1.;
+  LorentzVector firstMuP4;
+  LorentzVector secondMuP4;
 
 
   //*************************************************************//
@@ -279,6 +286,12 @@ void HPhiGammaTwoProngsTriggerAnalysis::analyze(const edm::Event& iEvent, const 
           //Save the variables of the current pair until a better one doesn't replace it
           bestMuMuPt   = currentMuMuPt;
           bestMuMuMass = currentMuMuMass;
+          firstMuP4    = slimmedMuons->at(firstMuIndex).p4();
+          secondMuP4   = slimmedMuons->at(secondMuIndex).p4();
+          firstMuEta   = slimmedMuons->at(firstMuIndex).eta();       
+          firstMuPhi   = slimmedMuons->at(firstMuIndex).phi();       
+          secondMuEta  = slimmedMuons->at(secondMuIndex).eta();       
+          secondMuPhi  = slimmedMuons->at(secondMuIndex).phi(); 
           isBestMuMu_Found = true;
 
       } //Muon second forloop end
@@ -295,7 +308,7 @@ void HPhiGammaTwoProngsTriggerAnalysis::analyze(const edm::Event& iEvent, const 
     cout<<"Muon pair found, with pT = "<<bestMuMuPt<<" and inv mass = "<<bestMuMuMass<<endl;
   } 
  
- //*************************************************************//
+  //*************************************************************//
   //                                                             //
   //--------------------------- N-tracks --------------------------//
   //                                                             //
@@ -321,6 +334,10 @@ LorentzVector best_secondCand_p4;
 LorentzVector best_couple_p4;
 float bestCoupleOfTheEvent_pT = 0.;
 float deltaR_K = 0.;
+float deltaR_firstCand_firstMu  = -1.;
+float deltaR_firstCand_secondMu = -1.;
+float deltaR_secondCand_firstMu  = -1.;
+float deltaR_secondCand_secondMu = -1.;
 firstCandEnergy_K = 0.;
 secondCandEnergy_K = 0.;
 firstCandEnergy_Pi = 0.;
@@ -370,6 +387,20 @@ _MesonMass     = -1.;
 
         if(firstCandPt < candPtMin) continue; //firstCand filter if pT < candPtMin
 
+        //Filter to not take the muons as first track candidate ---------------------------------
+        float deltaEta_firstCand_firstMu = firstCandEta - firstMuEta;
+        float deltaPhi_firstCand_firstMu = firstCandPhi - firstMuPhi;
+        deltaR_firstCand_firstMu = sqrt(deltaEta_firstCand_firstMu*deltaEta_firstCand_firstMu + deltaPhi_firstCand_firstMu*deltaPhi_firstCand_firstMu);
+        //cout<<"deltaR_firstCand_firstMu = "<<deltaR_firstCand_firstMu<<endl;
+        if(deltaR_firstCand_firstMu < 0.002) continue;
+
+        float deltaEta_firstCand_secondMu = firstCandEta - secondMuEta;
+        float deltaPhi_firstCand_secondMu = firstCandPhi - secondMuPhi;
+        deltaR_firstCand_secondMu = sqrt(deltaEta_firstCand_secondMu*deltaEta_firstCand_secondMu + deltaPhi_firstCand_secondMu*deltaPhi_firstCand_secondMu);
+        //cout<<"deltaR_firstCand_secondMu = "<<deltaR_firstCand_secondMu<<endl;
+        if(deltaR_firstCand_secondMu < 0.002) continue;
+
+
         for(std::vector<pat::PackedCandidate>::size_type secondTrk_Index=firstTrk_Index+1; secondTrk_Index < PFCandidates->size(); secondTrk_Index++){ //2ND LOOP STARTS
 
           //minimum apporach distance
@@ -384,6 +415,20 @@ _MesonMass     = -1.;
           if(firstCandPt < 10. && secondCandPt < 10.) continue; 
           //if(verbose) cout<<"tracks pT cut passed"<<endl; //fixme
 
+          //Filter to not take the muons as second track candidate ---------------------------------
+          float deltaEta_secondCand_firstMu = secondCandEta - firstMuEta;
+          float deltaPhi_secondCand_firstMu = secondCandPhi - firstMuPhi;
+          deltaR_secondCand_firstMu = sqrt(deltaEta_secondCand_firstMu*deltaEta_secondCand_firstMu + deltaPhi_secondCand_firstMu*deltaPhi_secondCand_firstMu);
+          //cout<<"deltaR_secondCand_firstMu = "<<deltaR_secondCand_firstMu<<endl;
+          if(deltaR_secondCand_firstMu < 0.002) continue;
+
+          float deltaEta_secondCand_secondMu = secondCandEta - secondMuEta;
+          float deltaPhi_secondCand_secondMu = secondCandPhi - secondMuPhi;
+          deltaR_secondCand_secondMu = sqrt(deltaEta_secondCand_secondMu*deltaEta_secondCand_secondMu + deltaPhi_secondCand_secondMu*deltaPhi_secondCand_secondMu);
+          //cout<<"deltaR_secondCand_secondMu = "<<deltaR_secondCand_secondMu<<endl;
+          if(deltaR_secondCand_secondMu < 0.002) continue;
+
+
           //third filter on deltaR ------------------------------------------------------------
           float deltaEta= firstCandEta - secondCandEta;
 
@@ -394,7 +439,6 @@ _MesonMass     = -1.;
           //if(verbose) cout<<"deltaR = "<<deltaR_K<<endl; //fixme
           if(deltaR_K > 0.07) continue; //FIXME, it was 0.02
           //if(verbose) cout<<"deltaR cut passed"<<endl; //fixme
-
 
           //OPPOSITE CHARGE - FILTER ------------------------------------------------------------
           firstCandCharge  = PFCandidates->at(firstTrk_Index).charge(); //extrapolate firstCand charge
@@ -526,6 +570,7 @@ _iso_couple_ch = 0.;
 for(auto cand_iso = PFCandidates->begin(); cand_iso != PFCandidates->end(); ++cand_iso){ //ISOLATION FORLOOP START
 
   if(cand_iso->pt() < 0.5) continue; //do not consider tracks with pT < 500MeV
+  //cout << "particle charge = "<<cand_iso->charge()<<endl;
 
   float deltaPhi_K1 = fabs(_firstCandPhi-cand_iso->phi());  //phi folding 
   if (deltaPhi_K1 > 3.14) deltaPhi_K1 = 6.28 - deltaPhi_K1;
@@ -548,8 +593,9 @@ for(auto cand_iso = PFCandidates->begin(); cand_iso != PFCandidates->end(); ++ca
   if(deltaR_K2 <= 0.3) K2_sum_pT_05 += cand_iso->pt();
   if(deltaR_Couple <= 0.3) couple_sum_pT_05 += cand_iso->pt();
 
-  if(cand_iso->charge() != 0 && (fabs(cand_iso->dxy()) >= 0.2 || fabs(cand_iso->dz()) >= 0.5) ) continue; // Requesting charged particles to come from PV
-  if(deltaR_K1 <= 0.3) K1_sum_pT_05_ch += cand_iso->pt();
+  if(cand_iso->charge() == 0) continue;
+  //cout << "particle charge = "<<cand_iso->charge()<<endl;
+  if(fabs(cand_iso->dxy()) >= 0.2 || fabs(cand_iso->dz()) >= 0.5) continue; // Requesting charged particles to come from PV  if(deltaR_K1 <= 0.3) K1_sum_pT_05_ch += cand_iso->pt();
   if(deltaR_K2 <= 0.3) K2_sum_pT_05_ch += cand_iso->pt();
   if(deltaR_Couple <= 0.3) couple_sum_pT_05_ch += cand_iso->pt();
 } //ISOLATION FORLOOP END
@@ -592,7 +638,7 @@ _iso_K2_ch     = _secondCandPt/(K2_sum_pT_05_ch + _secondCandPt);
 _iso_couple_ch = _bestCouplePt/(couple_sum_pT_05_ch + _bestCouplePt);
 
 //CUT ON PHI ISOLATION
-if(_iso_couple_ch < 0.7) {
+if(_iso_couple_ch < 0.9) {
   if(verbose) cout<<"No isolation cut passed, RETURN."<<endl;
   return;
 }

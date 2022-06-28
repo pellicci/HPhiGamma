@@ -29,11 +29,17 @@ options.parseArguments()
 #                       era='2018-Prompt')  
 ################################################################################################################
 
-#INPUT FILE LIST                                                                                                                                                                                      
+#INPUT FILE LIST      
+
+                                                                                                                                                                               
 #Phi input file
 #input_path = '/eos/user/p/pellicci/MesonGamma_root/2018/HPhiGamma_ggH/MINI/'                                                                                                                          
 #Rho input file
 input_path = '/afs/cern.ch/user/g/gumoret/work/MesonGamma_root/2018/HRhoGamma_ggH/MINI'
+
+#DATA
+#if options.runningOnData:
+ #   input_path = '/store/data/Run2018C/Tau/MINIAOD/12Nov2019_UL2018-v1/00000/' 
 
 '''                                                                                                                                                                                                   
     For the given path, get the List of all files in the directory tree                                                                                                                               
@@ -62,11 +68,12 @@ listOfFiles = getListOfFiles(input_path)
 
 #Input source
 if options.runningOnData:
-   process.GlobalTag = GlobalTag(process.GlobalTag, '102X_dataRun2_Sep2018ABC_v2')
-   inputFiles = {"root://cms-xrd-global.cern.ch//store/data/Run2018C/Tau/MINIAOD/17Sep2018-v1/270000/E95D5792-39AA-CE4B-B2BA-9A65FA639EAA.root"}
+    process.GlobalTag = GlobalTag(process.GlobalTag, '106X_dataRun2_v33') # OLD ONE : 102X_dataRun2_Sep2018ABC_v2
+   #inputFiles = {"root://cms-xrd-global.cern.ch//store/data/Run2018C/Tau/MINIAOD/17Sep2018-v1/270000/E95D5792-39AA-CE4B-B2BA-9A65FA639EAA.root"}
+    inputFiles = listOfFiles
 
 else:
-   process.GlobalTag = GlobalTag(process.GlobalTag, '102X_upgrade2018_realistic_v18')
+   process.GlobalTag = GlobalTag(process.GlobalTag, '106X_upgrade2018_realistic_v15_L1v1')  # OLD ONE : 102X_upgrade2018_realistic_v18
    #inputFiles = {"/store/mc/RunIIAutumn18MiniAOD/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/MINIAODSIM/102X_upgrade2018_realistic_v15-v1/80000/F9947F2D-F185-4E43-9A4B-EA7FAF2CE4C2.root"}
    inputFiles = listOfFiles
    #inputFiles = 'file:/eos/user/p/pellicci/MesonGamma_root/2018/HPhiGamma_ggH/MINI/process_118.root'
@@ -84,7 +91,7 @@ process.TFileService = cms.Service("TFileService",
 
 
 ###############################################################################################################################
-#                                                                                                                             #
+#                                                                                                                               #
 #-------------------------------------------------------- Jet corrections ----------------------------------------------------#
 #                                                                                                                             #
 #                                      https://twiki.cern.ch/twiki/bin/view/CMS/JECDataMC                                     #

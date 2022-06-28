@@ -11,9 +11,10 @@ from array import array
 
 #------- Arrays and reader for the BDT -------#
 
-trk1iso_array  = array('f', [0.])
-mesoinPt_array = array('f', [0.])
-photonEt_array = array('f', [0.])
+trk1iso_array    = array('f', [0.])
+pairIsoCh_array  = array('f', [0.])
+mesoinPt_array   = array('f', [0.])
+photonEt_array   = array('f', [0.])
 
 reader = ROOT.TMVA.Reader("!Color")
 
@@ -47,6 +48,7 @@ class Simplified_Workflow_Handler:
         ###################################################################################
 
         reader.AddVariable("_firstTrkIso",trk1iso_array)
+        reader.AddVariable("_coupleIsoCh",pairIsoCh_array)
         reader.AddVariable("_bestCouplePt/mesonGammaMass",mesoinPt_array)
         reader.AddVariable("_photonEt/mesonGammaMass",photonEt_array)
 
@@ -55,9 +57,10 @@ class Simplified_Workflow_Handler:
 
     #Get BDT output function ###########################################################################################################
 
-    def get_BDT_output(self,trk1iso,mesonPt,photonEt,mesonGammaMass):
+    def get_BDT_output(self,trk1iso,pairIsoCh,mesonPt,photonEt,mesonGammaMass):
 
         trk1iso_array[0]   = trk1iso
+        pairIsoCh_array[0] = pairIsoCh
         mesoinPt_array[0]  = mesonPt/mesonGammaMass
         photonEt_array[0]  = photonEt/mesonGammaMass
 

@@ -89,8 +89,21 @@ private:
   float _bestCoupleEta;
   float _bestCouplePhi;
 
-  float _Jet_Photon_invMass;
+  float _Jet_invMass;
   float _MesonMass;
+
+  float _jet_invMass;
+  float _bestJet_pT;
+  float _bestJet_eta;
+  float _bestJet_phi;
+  int _bestJet_nDaughters;
+  float _bestJet_pTMax;
+  float _bestJet_chargedEmEnergy;
+  float _bestJet_neutralEmEnergy;
+  float _bestJet_chargedHadEnergy;
+  float _bestJet_neutralHadEnergy;
+  int _bestJet_chargedHadMultiplicity;
+  float _bestJet_invMass;
 
   
   bool isIsoMuTrigger;

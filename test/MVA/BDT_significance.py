@@ -6,8 +6,8 @@ import argparse
 #Supress the opening of many Canvas's
 ROOT.gROOT.SetBatch(True)  
 
-Nsig_passed = 2.74602865853 # Number of signal events from the sum of the weights (before applying BDT cuts), take this number running the generate_histos for signal
-Nbkg_passed = 11629 #sidebands events in input to the BDT
+Nsig_passed = 2.39577595458 # Number of signal events from the sum of the weights (before applying BDT cuts), take this number running the generate_histos for signal
+Nbkg_passed = 5419 #sidebands events in input to the BDT
 
 BDT_file = ROOT.TFile("outputs/Nominal_training.root")
 
@@ -71,10 +71,10 @@ for entry in xrange(h_BDT_effS.GetNbinsX()):
 
     effS = h_BDT_effS.GetBinContent(entry)
     effS = float(format(effS, '.3f'))
-    signif_maximizing_eff = float(format(signif_maximizing_eff, '.3f'))
-    #print "effS: ", effS, "signif_max_eff: ", signif_maximizing_eff
+    signif_maximizing_eff = float(format(signif_maximizing_eff, '.2f'))
+    print "effS: ", effS, "signif_max_eff: ", signif_maximizing_eff
     if effS == signif_maximizing_eff:
-    #if effS == 0.55:
+        #if effS == 0.55:
         BDT_output =  h_BDT_effS.GetBinCenter(entry)
         _effS = effS
 
