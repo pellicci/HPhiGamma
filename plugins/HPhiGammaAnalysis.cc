@@ -94,7 +94,7 @@ effectiveAreas_ph_( (iConfig.getParameter<edm::FileInPath>("effAreasConfigFile_p
   _nPhotonsNotWP90               = 0;
 
   debug=false;  //DEBUG datamember 
-  verbose=false; 
+  verbose=true; 
 
   h_pileup   = fs->make<TH1F>("pileup", "pileup", 75,0,75);
 
@@ -793,7 +793,7 @@ _iso_couple_ch = 0.;
 //------------- ISOLATION -------------------------------------------------------------------------  
 for(auto cand_iso = PFCandidates->begin(); cand_iso != PFCandidates->end(); ++cand_iso){ //ISOLATION FORLOOP START
 
-  if(cand_iso->pt() < 0.9) continue; //do not consider tracks with pT < 500MeV
+  if(cand_iso->pt() < 0.5) continue; //do not consider tracks with pT < 500MeV
 
   //calculate the deltaR between the track and the first candidate ---------------------------------------
   float deltaPhi_K1 = fabs(_firstCandPhi-cand_iso->phi());  //phi folding	

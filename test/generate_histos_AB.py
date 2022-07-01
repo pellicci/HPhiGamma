@@ -93,7 +93,7 @@ if samplename == "Signal":
 
 #HISTOS ###########################################################################################################
 histo_map = dict()
-list_histos = ["h_InvMass_TwoTrk_Photon","h_InvMass_TwoTrk_Photon_NoPhiMassCut","h_meson_InvMass_TwoTrk","h_firstTrk_pT","h_secondTrk_pT","h_firstTrk_Eta","h_secondTrk_Eta","h_firstTrk_Phi","h_secondTrk_Phi","h_bestCouplePt","h_bestCoupleEta","h_bestCoupleDeltaR","h_bestJetPt","h_bestJetEta","h_firstTrk_Iso","h_firstTrk_Iso_ch","h_secondTrk_Iso","h_secondTrk_Iso_ch","h_couple_Iso","h_couple_Iso_ch","h_photon_energy","h_photon_eta","h_nJets_25","h_nMuons","h_nElectrons","h_nPhotons","h_efficiency","h_photonWP90","h_decayChannel"]#,"h_BDT_out"]
+list_histos = ["h_InvMass_TwoTrk_Photon","h_InvMass_TwoTrk_Photon_NoPhiMassCut","h_meson_InvMass_TwoTrk","h_firstTrk_pT","h_secondTrk_pT","h_firstTrk_Eta","h_secondTrk_Eta","h_firstTrk_Phi","h_secondTrk_Phi","h_bestCouplePt","h_bestCoupleEta","h_bestCoupleDeltaR","h_bestJetPt","h_bestJetEta","h_firstTrk_Iso","h_firstTrk_Iso_ch","h_secondTrk_Iso","h_secondTrk_Iso_ch","h_couple_Iso","h_couple_Iso_ch","h_photon_energy","h_photon_eta","h_nJets_25","h_nMuons","h_nElectrons","h_nPhotons","h_efficiency","h_photonWP90","h_decayChannel","h_couple_Iso_neutral"]#,"h_BDT_out"]
 
 histo_map[list_histos[0]]  = ROOT.TH1F(list_histos[0],"M_{H}",140,100.,170.) 
 histo_map[list_histos[1]]  = ROOT.TH1F(list_histos[1],"M_{H} (no cut on phi mass)",140,100.,170.) 
@@ -127,6 +127,8 @@ histo_map[list_histos[25]] = ROOT.TH1F(list_histos[25],"n. of #gamma", 6, -0.5,5
 histo_map[list_histos[26]] = ROOT.TH1F(list_histos[26],"Efficiency steps", 7, 0.,7.)
 histo_map[list_histos[27]] = ROOT.TH1F(list_histos[27],"Photon wp90 steps", 2, -0.5,1.5)
 histo_map[list_histos[28]] = ROOT.TH1F(list_histos[28],"Phi or Rho channel", 2, -0.5,1.5)
+histo_map[list_histos[29]] = ROOT.TH1F(list_histos[29],"Iso_neutral of the meson", 100, 0.6,1.)
+
 
 #histo_map[list_histos[29]] = ROOT.TH1F(list_histos[29],"BDT output", 40, -1.,1.)
 
@@ -284,7 +286,7 @@ for jentry in xrange(nentries):
     isRhoEvent     = mytree.isRho
     nElectrons     = mytree.nElectrons
     nMuons         = mytree.nMuons
-
+    MesonIso0      = MesonPt/(MesonPt + (mytree.Couple_sum_pT_05 - mytree.Couple_sum_pT_05_ch))
 
     #If I'm performing a PhiGamma analysis I don't want to choose those events tagged as a RhoGamma events, and viceversa
     if isPhiAnalysis and not isPhiEvent: 
@@ -369,7 +371,7 @@ for jentry in xrange(nentries):
     deltaR = math.sqrt((mytree.firstCandEta - mytree.secondCandEta)**2 + (coupleDeltaPhi)**2)
    
 
-    #-------------- n vents in the sidebands -----------------------------
+    #-------------- n events in the sidebands -----------------------------
     if (Hmass < 100. or Hmass > 170.): continue
 
     if not samplename == 'Signal':
@@ -437,6 +439,8 @@ for jentry in xrange(nentries):
         histo_map["h_nPhotons"].Fill(nPhotons, eventWeight)
         histo_map["h_bestCoupleEta"].Fill(MesonEta, eventWeight)
         histo_map["h_decayChannel"].Fill(isPhiEvent, eventWeight)
+        histo_map["h_couple_Iso_neutral"].Fill(MesonIso0, eventWeight)
+
 
 
     #------------------------------------------------------------------------------------
@@ -532,6 +536,8 @@ histo_map["h_photonWP90"].GetYaxis().SetTitle("")
 histo_map["h_decayChannel"].SetTitle("Decay channel")
 histo_map["h_decayChannel"].GetXaxis().SetBinLabel(1,"Rho events")
 histo_map["h_decayChannel"].GetXaxis().SetBinLabel(2,"Phi events")
+histo_map["h_couple_Iso_neutral"].GetXaxis().SetTitle("sum pT_{2trk}/pT_{2trk}")
+histo_map["h_couple_Iso_neutral"].SetTitle("Isolation of the couple candidate from neutral particles")
 
 #FINAL PRINTS ###########################################################
 print ""

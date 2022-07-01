@@ -79,6 +79,10 @@ private:
   float secondCandEnergy_K;
   float firstCandEnergy_Pi;
   float secondCandEnergy_Pi;
+  float _firstCand_dxy;
+  float _firstCand_dz;
+  float _secondCand_dxy;
+  float _secondCand_dz;
   float _firstCandPt;
   float _firstCandEta;
   float _firstCandPhi;

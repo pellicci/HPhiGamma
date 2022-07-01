@@ -33,9 +33,9 @@ options.parseArguments()
 
                                                                                                                                                                                
 #Phi input file
-#input_path = '/eos/user/p/pellicci/MesonGamma_root/2018/HPhiGamma_ggH/MINI/'                                                                                                                          
+input_path = '/eos/user/p/pellicci/MesonGamma_root/2018/HPhiGamma_ggH/MINI/'                                                                                                                          
 #Rho input file
-input_path = '/afs/cern.ch/user/g/gumoret/work/MesonGamma_root/2018/HRhoGamma_ggH/MINI'
+#input_path = '/afs/cern.ch/user/g/gumoret/work/MesonGamma_root/2018/HRhoGamma_ggH/MINI'
 
 #DATA
 #if options.runningOnData:

@@ -105,7 +105,7 @@ for filename in list_inputfiles:
         
         if not histo_name == "h_nMuons" and not histo_name == "h_nPhotons" and not histo_name == "h_nJets_25" and not histo_name == "h_nElectrons" and not histo_name == "h_photonWP90" and not histo_name == "h_meson_InvMass_TwoTrk":
             print histo_name
-            if isTightSelection and (histo_name == "h_firstTrk_Iso" or histo_name == "h_firstTrk_Iso_ch" or histo_name == "h_secondTrk_Iso" or histo_name == "h_secondTrk_Iso_ch" or histo_name == "h_couple_AbsIsoCh" or histo_name == "h_couple_Iso" or histo_name == "h_couple_Iso_ch"):
+            if isTightSelection and (histo_name == "h_firstTrk_Iso" or histo_name == "h_firstTrk_Iso_ch" or histo_name == "h_firstTrk_Iso_neutral" or histo_name == "h_secondTrk_Iso" or histo_name == "h_secondTrk_Iso_ch" or histo_name == "h_couple_AbsIsoCh" or histo_name == "h_couple_Iso" or histo_name == "h_couple_Iso_ch"):
                 histo_container[-1].Rebin(4)
             else:
                 histo_container[-1].Rebin(5)
@@ -254,6 +254,9 @@ for histo_name in list_histos:
 
         if histo_name == "h_couple_Iso_ch" :
             hstack[histo_name].GetXaxis().SetTitle("p_{T}^{meson}/(#Sigmap_{T}^{ch} + p_{T}^{meson})")
+
+        if histo_name == "h_couple_Iso_neutral" :
+            hstack[histo_name].GetXaxis().SetTitle("p_{T}^{meson}/(#Sigmap_{T}^{0} + p_{T}^{meson})")
 
         if histo_name == "h_bestCoupleDeltaR" :
             hstack[histo_name].GetXaxis().SetTitle("#DeltaR_{meson}")

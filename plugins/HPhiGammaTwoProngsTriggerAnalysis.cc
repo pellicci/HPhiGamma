@@ -390,12 +390,14 @@ _MesonMass     = -1.;
         //Filter to not take the muons as first track candidate ---------------------------------
         float deltaEta_firstCand_firstMu = firstCandEta - firstMuEta;
         float deltaPhi_firstCand_firstMu = firstCandPhi - firstMuPhi;
+        if (deltaPhi_firstCand_firstMu > 3.14) deltaPhi_firstCand_firstMu = 6.28 - deltaPhi_firstCand_firstMu;
         deltaR_firstCand_firstMu = sqrt(deltaEta_firstCand_firstMu*deltaEta_firstCand_firstMu + deltaPhi_firstCand_firstMu*deltaPhi_firstCand_firstMu);
         //cout<<"deltaR_firstCand_firstMu = "<<deltaR_firstCand_firstMu<<endl;
         if(deltaR_firstCand_firstMu < 0.002) continue;
 
         float deltaEta_firstCand_secondMu = firstCandEta - secondMuEta;
         float deltaPhi_firstCand_secondMu = firstCandPhi - secondMuPhi;
+        if (deltaPhi_firstCand_secondMu > 3.14) deltaPhi_firstCand_secondMu = 6.28 - deltaPhi_firstCand_secondMu;
         deltaR_firstCand_secondMu = sqrt(deltaEta_firstCand_secondMu*deltaEta_firstCand_secondMu + deltaPhi_firstCand_secondMu*deltaPhi_firstCand_secondMu);
         //cout<<"deltaR_firstCand_secondMu = "<<deltaR_firstCand_secondMu<<endl;
         if(deltaR_firstCand_secondMu < 0.002) continue;
@@ -418,12 +420,14 @@ _MesonMass     = -1.;
           //Filter to not take the muons as second track candidate ---------------------------------
           float deltaEta_secondCand_firstMu = secondCandEta - firstMuEta;
           float deltaPhi_secondCand_firstMu = secondCandPhi - firstMuPhi;
+          if (deltaPhi_secondCand_firstMu > 3.14) deltaPhi_secondCand_firstMu = 6.28 - deltaPhi_secondCand_firstMu;
           deltaR_secondCand_firstMu = sqrt(deltaEta_secondCand_firstMu*deltaEta_secondCand_firstMu + deltaPhi_secondCand_firstMu*deltaPhi_secondCand_firstMu);
           //cout<<"deltaR_secondCand_firstMu = "<<deltaR_secondCand_firstMu<<endl;
           if(deltaR_secondCand_firstMu < 0.002) continue;
 
           float deltaEta_secondCand_secondMu = secondCandEta - secondMuEta;
           float deltaPhi_secondCand_secondMu = secondCandPhi - secondMuPhi;
+          if (deltaPhi_secondCand_secondMu > 3.14) deltaPhi_secondCand_secondMu = 6.28 - deltaPhi_secondCand_secondMu;
           deltaR_secondCand_secondMu = sqrt(deltaEta_secondCand_secondMu*deltaEta_secondCand_secondMu + deltaPhi_secondCand_secondMu*deltaPhi_secondCand_secondMu);
           //cout<<"deltaR_secondCand_secondMu = "<<deltaR_secondCand_secondMu<<endl;
           if(deltaR_secondCand_secondMu < 0.002) continue;
@@ -515,8 +519,8 @@ _MesonMass     = -1.;
           isBestCoupleOfTheEvent_Found = true;
 
           //Save if best pair has been found
-          _isPhi                  = isPhi;
-          _isRho                  = isRho;
+          _isPhi = isPhi;
+          _isRho = isRho;
           
           if(isPhi){
             best_firstCand_p4  = firstCand_p4_K; 
@@ -530,6 +534,10 @@ _MesonMass     = -1.;
             best_couple_p4     = couple_p4_Pi;
             _MesonMass         = RhoMass;
 
+          _firstCand_dxy  = PFCandidates->at(firstTrk_Index).dxy((&slimmedPV->at(0))->position());
+          _firstCand_dz   = PFCandidates->at(firstTrk_Index).dz((&slimmedPV->at(0))->position());
+          _secondCand_dxy = PFCandidates->at(secondTrk_Index).dxy((&slimmedPV->at(0))->position());
+          _secondCand_dz  = PFCandidates->at(secondTrk_Index).dz((&slimmedPV->at(0))->position());
           }      
         
       } //2ND LOOP ENDS
@@ -603,31 +611,44 @@ for(auto cand_iso = PFCandidates->begin(); cand_iso != PFCandidates->end(); ++ca
   //CANDIDATES SORTING
 if(_firstCandPt < _secondCandPt)  //swap-values loop, in order to fill the tree with the candidate with max pt of the couple in firstCand branches  
   {                               //and one with min pt in secondCand branches
-    float a,b,c,d;
+    float a,b,c,d,e,f;
     a = _firstCandPt;
     b = _firstCandEta;
     c = _firstCandPhi;
     d = firstCandEnergy;
+    e = _firstCand_dxy;
+    f = _firstCand_dz;
+
     _firstCandPt    = _secondCandPt;
     _firstCandEta   = _secondCandEta;
     _firstCandPhi   = _secondCandPhi;
-    firstCandEnergy = secondCandEnergy;       
+    firstCandEnergy = secondCandEnergy;   
+    _firstCand_dxy  = _secondCand_dxy;
+    _firstCand_dz   = _secondCand_dz;
     _secondCandPt    = a;
     _secondCandEta   = b;
     _secondCandPhi   = c;
     secondCandEnergy = d;
+    _secondCand_dxy  = e;
+    _secondCand_dz   = f;
+
 }
 
 if (verbose) {
-  cout <<"First candidate pT = "<<_firstCandPt<<endl;
-  cout <<"Second candidate pT = "<<_secondCandPt<<endl;
+  cout <<"First  candidate  pT = "<<_firstCandPt<<endl;
+  cout <<"Second candidate  pT = "<<_secondCandPt<<endl;
+  cout<< "First  candidate  dxy = "<<_firstCand_dxy<<endl;
+  cout<< "First  candidate  dz = "<<_firstCand_dz<<endl;
+  cout<< "Second candidate  dxy = "<<_secondCand_dxy<<endl;
+  cout<< "Second candidate  dz = "<<_secondCand_dz<<endl;
+
 }
 
 //CUTS ON CANDIDATES PT
-if(_firstCandPt < 20. || _secondCandPt < 5.) {
-    cout<<"Final cut on candidates pT not passed, RETURN."<<endl;
-    return;
-}
+//if(_firstCandPt < 20. || _secondCandPt < 5.) {
+  //  cout<<"Final cut on candidates pT not passed, RETURN."<<endl;
+   // return;
+//}
 
 //ISOLATION DATAMEMBER FOR TREE FILLING 
 _iso_K1        = _firstCandPt/(K1_sum_pT_05 + _firstCandPt);
@@ -698,6 +719,10 @@ void HPhiGammaTwoProngsTriggerAnalysis::create_trees()
 
   mytree->Branch("firstCandEnergy",&firstCandEnergy);
   mytree->Branch("secondCandEnergy",&secondCandEnergy);
+  mytree->Branch("firstCand_dxy",&_firstCand_dxy);
+  mytree->Branch("firstCand_dz",&_firstCand_dz);
+  mytree->Branch("secondCand_dxy",&_secondCand_dxy);
+  mytree->Branch("secondCand_dz",&_secondCand_dz);
 
   mytree->Branch("MesonMass",&_MesonMass);
 
