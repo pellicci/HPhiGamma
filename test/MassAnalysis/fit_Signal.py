@@ -9,11 +9,11 @@ ROOT.gROOT.ProcessLineSync(".L MassAnalysis/dCB/RooDoubleCBFast.cc+")
 ROOT.gROOT.SetBatch(True)   
 
 #Define the observable
-mass = ROOT.RooRealVar("mesonGammaMass","mesonGammaMass",125.,100.,150.,"GeV/c^2")
+mass = ROOT.RooRealVar("mesonGammaMass","mesonGammaMass",125.,100.,170.,"GeV/c^2")
 
 #Double Crystal Ball definition
 dCB_pole  = ROOT.RooRealVar("dCB_pole", "Double CB pole", 125.,120.,130.)
-dCB_width = ROOT.RooRealVar("dCB_width", "Double CB width",1.,0.01,10.)
+dCB_width = ROOT.RooRealVar("dCB_width", "Double CB width",1.,0.5,10.)
 dCB_aL    = ROOT.RooRealVar("dCB_aL", "Double CB alpha left", 3., 0.1, 50.)
 dCB_aR    = ROOT.RooRealVar("dCB_aR", "Double CB alpha right", 1., 0.1, 50.)
 dCB_nL    = ROOT.RooRealVar("dCB_nL", "Double CB n left", 3., 0.1, 50.)
@@ -38,19 +38,16 @@ dataset.plotOn(xframe)
 signalPDF.plotOn(xframe)
 xframe.SetTitle("")
 xframe.GetXaxis().SetTitle("m_{K^{+}K^{-}#gamma} [GeV]")
-xframe.GetXaxis().SetRangeUser(100.,150.)
+xframe.GetXaxis().SetRangeUser(100.,170.)
 
 c1 = ROOT.TCanvas()
 c1.cd()
 c1.SetTitle("")
 xframe.Draw()
 
-if isPhiGammaAnalysis:
-	c1.SaveAs("~/cernbox/www/MyAnalysis/HPhiGamma/MassAnalysis/latest_production/fitsignal.pdf")
-	c1.SaveAs("~/cernbox/www/MyAnalysis/HPhiGamma/MassAnalysis/latest_production/fitsignal.png")
-else:
-	c1.SaveAs("~/cernbox/www/MyAnalysis/HRhoGamma/MassAnalysis/latest_production/fitsignal.pdf")
-	c1.SaveAs("~/cernbox/www/MyAnalysis/HRhoGamma/MassAnalysis/latest_production/fitsignal.png")
+c1.SaveAs("/eos/user/g/gumoret/www/latest_production/massanalysis_latest_production/fitsignal.pdf")
+c1.SaveAs("/eos/user/g/gumoret/www/latest_production/massanalysis_latest_production/fitsignal.png")                                                                                                                                                          
+
 
 #create Workspace
 workspace = ROOT.RooWorkspace("myworkspace")

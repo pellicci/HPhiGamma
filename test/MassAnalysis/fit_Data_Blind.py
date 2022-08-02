@@ -7,14 +7,14 @@ ROOT.gROOT.SetBatch(True) #Supress the opening of many Canvas's
 ROOT.gROOT.ProcessLineSync(".L MassAnalysis/dCB/RooDoubleCBFast.cc+") #import the Doube Crystal Ball PDF
 
 #Define the observable --------------------------
-mass = ROOT.RooRealVar("mass_KKg","mass_KKg",100.,150.,"GeV")
+mass = ROOT.RooRealVar("mass_KKg","mass_KKg",100.,170.,"GeV")
 
 #Data input -------------------------------------------------------------
 fileInputData = ROOT.TFile("histos/latest_production/histos_SR_Data.root")
 fileInputData.cd()
 mytreeData = fileInputData.Get("tree_output")
 
-#Data input -------------------------------------------------------------
+#Signal input -------------------------------------------------------------
 fileInputSignal = ROOT.TFile("histos/latest_production/histos_SR_Signal.root")
 fileInputSignal.cd()
 mytreeSignal = fileInputSignal.Get("tree_output")
@@ -43,28 +43,29 @@ bkgPDF = workspaceSidebands.pdf("bkgPDF") #BKG PDF from the workspace
 workspaceSidebands.Print()
 
 #Define the POI -------------------------------------------------------------------------------------
-B_R = ROOT.RooRealVar("B_R","branching_ratio",10**(-5),-1,10**(-2)) #parameter of interest
+B_R = ROOT.RooRealVar("B_R","branching_ratio",10**(-5),-0.1,10**(-2)) #parameter of interest
 
 #Number of events in m_KKg
-Ndata = mytreeData.GetEntriesFast()
+fInput = ROOT.TFile("rootfiles/latest_production/MC/signals/PhiGamma_Signal/HPhiGammaAnalysis_Signal.root")
+mytree   = fInput.Get("HPhiGammaAnalysis/mytree")
+h_Events = fInput.Get("HPhiGammaAnalysis/h_Events")
 NsigPassed = mytreeSignal.GetEntriesFast()
-totalSigEvents = 49750.
-sigEfficiency = NsigPassed/totalSigEvents
-print "Ndata = ", Ndata
-print "N signal events over tightselection = ", NsigPassed
+totalSigEvents = h_Events.GetBinContent(1)
+sigEfficiency = float(NsigPassed/totalSigEvents)
+Ndata = mytreeData.GetEntriesFast()
 
 #N bkg estimation
-Nbkg = ROOT.RooRealVar("Nbkg", "N of bkg events",Ndata, 300., 3000.)
+Nbkg = ROOT.RooRealVar("Nbkg", "N of bkg events",Ndata, 10., 5000.)
 
 #BKG PDF
 bkgPDF = workspaceSidebands.pdf("bkgPDF")
 
 #Define PDFs for the fit --------------------------------------------------------------------------------------------------
-cross_sig = ROOT.RooRealVar("cross_sig","Th e signal cross section",52.36)#52.36pb (gluon fusion + vector boson fusion xsec)
+cross_sig = ROOT.RooRealVar("cross_sig","Th e signal cross section",46.87)#46.87pb (gluon fusion)
 lumi = ROOT.RooRealVar("lumi","The luminosity",39540)#pb^-1
 eff = ROOT.RooRealVar("eff","efficiency",sigEfficiency) # = (n sig over tightselection)/49750
 B_R_phiKK = ROOT.RooRealVar("B_R_phiKK","b_r_phi_KK",0.489) # = BR(phi -> K+K-)
-B_R_ = ROOT.RooRealVar("B_R_","branching_ratio",10**(-5),-1,10**(-2))
+B_R_ = ROOT.RooRealVar("B_R_","branching_ratio",10**(-5),-0.01,10**(-2))
 Nsig = ROOT.RooFormulaVar("Nsig","@0*@1*@2*@3*@4",ROOT.RooArgList(cross_sig,lumi,eff,B_R_phiKK,B_R_))
 
 #ADD PDFs --------------------------------------------------------------------------------------------------
@@ -80,6 +81,7 @@ print "PDFs added!"
 
 #Generate dataset for blind analysis -----------------------------------------------------------------------------------
 datasetGenerated = totPDF.generate(ROOT.RooArgSet(mass),Ndata)
+print "Dataset generated!"
 
 #FIT
 totPDF.fitTo(datasetGenerated)
@@ -101,8 +103,9 @@ c1.SaveAs("~/cernbox/www/MyAnalysis/HPhiGamma/MassAnalysis/latest_production/fit
 #Final useful information for debugging
 print ""
 print "######################################################"
-print "Ndata = ", Ndata
-print "N signal events over tightselection = ", NsigPassed
+print "Ndata          = ", Ndata
+print "totalSigEvents = ",totalSigEvents
+print "NsigPassed     = ",NsigPassed
 print "Signal efficiency after tightselection = ", sigEfficiency
 print "######################################################"
 print ""

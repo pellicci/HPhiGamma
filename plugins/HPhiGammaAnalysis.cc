@@ -94,7 +94,7 @@ effectiveAreas_ph_( (iConfig.getParameter<edm::FileInPath>("effAreasConfigFile_p
   _nPhotonsNotWP90               = 0;
 
   debug=false;  //DEBUG datamember 
-  verbose=true; 
+  verbose=false; 
 
   h_pileup   = fs->make<TH1F>("pileup", "pileup", 75,0,75);
 

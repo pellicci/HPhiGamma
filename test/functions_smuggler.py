@@ -11,10 +11,12 @@ from array import array
 
 #------- Arrays and reader for the BDT -------#
 
-trk1iso_array    = array('f', [0.])
-pairIsoCh_array  = array('f', [0.])
+trk1isoCh_array  = array('f', [0.])
+pairIso_array    = array('f', [0.])
 mesoinPt_array   = array('f', [0.])
 photonEt_array   = array('f', [0.])
+metPt_array      = array('f', [0.])
+bestJetPt_array  = array('f', [0.])
 
 reader = ROOT.TMVA.Reader("!Color")
 
@@ -47,22 +49,26 @@ class Simplified_Workflow_Handler:
         #                                                                                 #
         ###################################################################################
 
-        reader.AddVariable("_firstTrkIso",trk1iso_array)
-        reader.AddVariable("_coupleIsoCh",pairIsoCh_array)
+        reader.AddVariable("_firstTrkIsoCh",trk1isoCh_array)
+        reader.AddVariable("_coupleIso",pairIso_array)
         reader.AddVariable("_bestCouplePt/mesonGammaMass",mesoinPt_array)
         reader.AddVariable("_photonEt/mesonGammaMass",photonEt_array)
+        reader.AddVariable("_metPt",metPt_array)
+        reader.AddVariable("_bestJetPt/mesonGammaMass",bestJetPt_array)
 
         if isBDT:
             reader.BookMVA("BDT","MVA/default/weights/TMVAClassification_BDT.weights.xml")
 
     #Get BDT output function ###########################################################################################################
 
-    def get_BDT_output(self,trk1iso,pairIsoCh,mesonPt,photonEt,mesonGammaMass):
+    def get_BDT_output(self,trk1isoCh,pairIso,mesonPt,photonEt,metPt,bestJetPt,mesonGammaMass):
 
-        trk1iso_array[0]   = trk1iso
-        pairIsoCh_array[0] = pairIsoCh
+        trk1isoCh_array[0] = trk1isoCh
+        pairIso_array[0]   = pairIso
         mesoinPt_array[0]  = mesonPt/mesonGammaMass
         photonEt_array[0]  = photonEt/mesonGammaMass
+        metPt_array[0]     = metPt
+        bestJetPt_array[0] = bestJetPt/mesonGammaMass
 
         return reader.EvaluateMVA("BDT")
 
@@ -80,12 +86,15 @@ class Simplified_Workflow_Handler:
             local_ph_eta = -2.5
 
         scale_factor_ID = ph_ID_scale_histo_2018.GetBinContent( ph_ID_scale_histo_2018.GetXaxis().FindBin(local_ph_eta), ph_ID_scale_histo_2018.GetYaxis().FindBin(local_ph_pt) )
+        ph_ID_err       = ph_ID_scale_histo_2018.GetBinError( ph_ID_scale_histo_2018.GetXaxis().FindBin(local_ph_eta), ph_ID_scale_histo_2018.GetYaxis().FindBin(local_ph_pt) )
 
         etaBin = 1 if abs(local_ph_eta) < 1.48 else 4
         scale_factor_pixVeto = ph_pixVeto_scale_histo_2018.GetBinContent(etaBin)
-
+        ph_pixVeto_err       = ph_pixVeto_scale_histo_2018.GetBinError(etaBin)
+        
         scale_factor = scale_factor_ID * scale_factor_pixVeto
+        tot_err      = math.sqrt( scale_factor_pixVeto * scale_factor_pixVeto * ph_ID_err * ph_ID_err + scale_factor_ID * scale_factor_ID * ph_pixVeto_err * ph_pixVeto_err )
 
-        return scale_factor
+        return scale_factor, tot_err
         
 

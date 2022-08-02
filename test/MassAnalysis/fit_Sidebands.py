@@ -6,12 +6,12 @@ ROOT.gROOT.SetBatch(True)
 isPhiGammaAnalysis = False
 
 #Parameters of the PDF
-mass = ROOT.RooRealVar("mesonGammaMass","mesonGammaMass",100.,150.,"GeV")
-mass.setRange("LowSideband",100.,120.)
-mass.setRange("HighSideband",130.,150.)
+mass = ROOT.RooRealVar("mesonGammaMass","mesonGammaMass",100.,170.,"GeV")
+mass.setRange("LowSideband",100.,115.)
+mass.setRange("HighSideband",135.,170.)
 
-a_bkg = ROOT.RooRealVar("a_bkg","a_bkg",0.1,-10.,10.)
-b_bkg = ROOT.RooRealVar("b_bkg","b_bkg",0.,-10.,10.)
+a_bkg = ROOT.RooRealVar("a_bkg","a_bkg",0.01,-1.,1.)
+b_bkg = ROOT.RooRealVar("b_bkg","b_bkg",-0.2,-100.,100.)
 #c_bkg = ROOT.RooRealVar("c_bkg","c_bkg",0.,-10.,10.)
 #d_bkg = ROOT.RooRealVar("d_bkg","d_bkg",0.,-10.,10.)
 
@@ -31,7 +31,7 @@ nEntries = dataset.numEntries()
 bkgPDF.fitTo(dataset,ROOT.RooFit.Range("LowSideband,HighSideband"))
 
 #Give the blind range
-data_blinded = dataset.reduce("mesonGammaMass < 120. || mesonGammaMass > 130.")
+data_blinded = dataset.reduce("mesonGammaMass < 115. || mesonGammaMass > 135.")
 
 #Plot
 xframe = mass.frame(40)
@@ -45,12 +45,10 @@ c1.cd()
 c1.SetTitle("")
 xframe.Draw()
 
-if isPhiGammaAnalysis:
-	c1.SaveAs("~/cernbox/www/MyAnalysis/HPhiGamma/MassAnalysis/latest_production/fit_sidebands.pdf")
-	c1.SaveAs("~/cernbox/www/MyAnalysis/HPhiGamma/MassAnalysis/latest_production/fit_sidebands.png")
-else:
-	c1.SaveAs("~/cernbox/www/MyAnalysis/HRhoGamma/MassAnalysis/latest_production/fit_sidebands.pdf")
-	c1.SaveAs("~/cernbox/www/MyAnalysis/HRhoGamma/MassAnalysis/latest_production/fit_sidebands.png")
+c1.SaveAs("/eos/user/g/gumoret/www/latest_production/massanalysis_latest_production/fit_sidebands.pdf")
+c1.SaveAs("/eos/user/g/gumoret/www/latest_production/massanalysis_latest_production/fit_sidebands.png")
+	
+
 
 #create Workspace
 print "**************************************n. events = ",nEntries

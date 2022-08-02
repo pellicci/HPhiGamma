@@ -1,300 +1,290 @@
 import ROOT
 import math
+import copy
+import sys
+import tdrstyle, CMS_lumi
+from ROOT import gROOT
 
-#fInput = ROOT.TFile("HPhiGammaAnalysis_output.root")
-#fInput = ROOT.TFile("rootfiles/HPhiGamma_Signal.root")
-fInput = ROOT.TFile("rootfiles/200130/secondRun/HPhiGammaAnalysis_Signal.root")
-mytree = fInput.Get("HPhiGammaAnalysis/mytree")
-h_Events = fInput.Get("HPhiGammaAnalysis/h_Events")
+#Supress the opening of many Canvas's
+ROOT.gROOT.SetBatch(True)   
 
-cross_section = 48.58*10**(-12)
-branching_ratio = 10.**(-5)
-luminosity = 59.76*10**(15)
-nEvents = 27654.
-normalizationWeight = cross_section*branching_ratio*luminosity*(1/nEvents) 
+signal_magnify = int(sys.argv[1])
+CR_magnify = 1. #2079./1179.
 
+plotOnlyData = False
+isTightSelection = int(sys.argv[2])
 
-print "normalization weight = ", normalizationWeight
+isPhi = int(sys.argv[3]) #note that in python true = 1 and false = 0
+print "#############################"
+print "is Phi = ",isPhi
+print "#############################"
 
+inputnames = ["Signal"]
 
-#plot: H invariant mass from 2K and photon
-h_InvMass_TwoTrk_Photon = ROOT.TH1F("h_InvMass_TwoTrk_Photon","h_InvMass_TwoTrk_Photon",50,100.,150.)
+list_inputfiles = []
+for filename in sys.argv[4:]:
+    list_inputfiles.append(filename)
 
-#plot: H invariant mass from 2K and photon with a cut on phi invariant mass
-h_InvMass_TwoTrk_Photon_NoPhiMassCut = ROOT.TH1F("h_InvMass_TwoTrk_Photon_NoPhiMassCut","h_InvMass_TwoTrk_Photon_NoPhiMassCut",50,100.,150.)
+#CMS-style plotting 
+tdrstyle.setTDRStyle()
+iPeriod = 4
+iPos = 11
+CMS_lumi.lumiTextSize = 0.9
+CMS_lumi.cmsTextSize = 1.2
+CMS_lumi.lumi_13TeV = "39.54 fb^{-1}"
 
-#plot: PHI invariant mass from 2K 
-h_phi_InvMass_TwoTrk = ROOT.TH1F("phi_InvMass_TwoTrk","phi_InvMass_TwoTrk", 200, 0.9, 1.3)
+hstack  = dict()
+hsignal = dict()
+canvas  = dict()
+histo_container = [] #just for memory management
 
-#plot: first K-candidate pT (pT max of the couple)
-h_firstKCand_pT = ROOT.TH1F("firstKCand_pT","firstKCand_pT", 100, 0.,150.)
-
-#plot: second K-candidate pT (pT min of the couple)
-h_secondKCand_pT = ROOT.TH1F("secondKCand_pT","secondKCand_pT", 100, 0.,150.)
-
-#plot: first K-candidate eta
-h_firstKCand_Eta = ROOT.TH1F("firstKCand_Eta","firstKCand_Eta", 100, -2.5,2.5)
-
-#plot: second K-candidate eta
-h_secondKCand_Eta = ROOT.TH1F("secondKCand_Eta","secondKCand_Eta", 100, -2.5,2.5)
-
-#plot: first K-candidate phi
-h_firstKCand_Phi = ROOT.TH1F("firstKCand_Phi","firstKCand_Phi", 100, -3.14,3.14)
-
-#plot: second K-candidate phi
-h_secondKCand_Phi = ROOT.TH1F("secondKCand_Phi","secondKCand_Phi", 100, -3.14,3.14)
-
-#plot: best couple pt
-h_bestCouplePt = ROOT.TH1F("bestCouplePt","bestCouplePt", 100, 0.,150.)
-
-#plot: best couple deltaR
-h_bestCoupleDeltaR = ROOT.TH1F("bestCoupleDeltaR","bestCoupleDeltaR", 100, 0.,0.22)
-
-#plot: best jet pt
-h_bestJetPt = ROOT.TH1F("bestJetPt","bestJetPt", 100, 0.,400.)
-
-#plot: best jet Eta
-h_bestJetEta = ROOT.TH1F("bestJetEta","bestJetEta", 100, -2.5,2.5)
-
-#plot: K1 isolation
-h_K1_Iso = ROOT.TH1F("K1_Iso","K1_Iso", 100, 0.,1.)
-
-#plot: K1 isolation ch
-h_K1_Iso_ch = ROOT.TH1F("h_K1_Iso_ch","h_K1_Iso_ch", 100, 0.,1.)
-
-#plot: K2 isolation
-h_K2_Iso = ROOT.TH1F("K2_Iso","K2_Iso", 100, 0.,1.)
-
-#plot: K2 isolation ch
-h_K2_Iso_ch = ROOT.TH1F("h_K2_Iso_ch","h_K2_Iso_ch", 100, 0.,1.)
-
-#plot: couple isolation
-h_couple_Iso = ROOT.TH1F("couple_Iso","couple_Iso", 100, 0.,1.)
-
-#plot: couple isolation ch
-h_couple_Iso_ch = ROOT.TH1F("h_couple_Iso_ch","h_couple_Iso_ch", 100, 0.,1.)
-
-
-
-#cuts
-phi_min_invMass = 0.9
-phi_max_invMass = 1.2
-higgs_min_invMass = 100.
-higgs_max_invMass = 150.
-
-#dictionary: allows to apply all cuts except one related to the plotted variable
-def select_all_but_one(h_string):
-
-    selection_bools = dict()
-    selection_bools["h_phi_InvMass_TwoTrk"] = mytree.Phimass >= phi_min_invMass and mytree.Phimass <= phi_max_invMass 
-    selection_bools["h_InvMass_TwoTrk_Photon"] = mytree.Hmass_From2K_Photon >= higgs_min_invMass and mytree.Hmass_From2K_Photon <= higgs_max_invMass 
-    result = True
-
-    for hname in selection_bools:
-        if h_string == hname:
-            continue
-        else:
-            result = result and selection_bools[hname]
-        return result
-
-
-print "This sample has ", mytree.GetEntriesFast(), " events"
-nentries = mytree.GetEntriesFast()
-
-for jentry in xrange(nentries):
-    ientry = mytree.LoadTree( jentry )
-    if ientry < 0:
-        break
-    nb = mytree.GetEntry(jentry )
-    if nb <= 0:
+#Get the list of histograms
+list_histos = []
+signalfile = ROOT.TFile("histos/latest_production/histos_SR_Signal.root")
+keylist = signalfile.GetListOfKeys()
+key = ROOT.TKey()
+for key in keylist :
+    obj_class = ROOT.gROOT.GetClass(key.GetClassName())
+    if not obj_class.InheritsFrom("TH1") :
         continue
+    if not (key.ReadObj().GetName() == "h_efficiency" or key.ReadObj().GetName() == "h_cutOverflow"): #h_efficiency and h_cutOverflow is a plot plotted in other way   
+        list_histos.append( key.ReadObj().GetName() )
 
-    PUWeight = mytree.PU_Weight
-    MCWeight = mytree.MC_Weight/abs(mytree.MC_Weight)
-    eventWeight = normalizationWeight*PUWeight*MCWeight
-    deltaR = math.sqrt((mytree.firstCandEta - mytree.secondCandEta)**2 + (mytree.firstCandPhi - mytree.secondCandPhi)**2)
+for hname in list_histos:
+    hstack[hname] = ROOT.THStack("hstack_" + hname,"")
 
-    print "Event n.", jentry, "  normWeight = ", round(normalizationWeight,7), "  PUWeight = ",PUWeight, "  MCWeight = ",MCWeight 
 
-    if select_all_but_one(h_InvMass_TwoTrk_Photon.GetName()):
-        h_InvMass_TwoTrk_Photon.Fill(mytree.Hmass_From2K_Photon, eventWeight)
+
+for filename in list_inputfiles:
+    fileIn = ROOT.TFile(filename)
+
+    sample_name = (filename.split("_")[3])[:-5] 
+    for histo_name in list_histos:
+        histo = fileIn.Get(histo_name)
+
+        print "histo_name = ",histo_name
+        # Set to 0 the bins containing negative values, due to negative weights
+        hsize = histo.GetSize() - 2 # GetSize() returns the number of bins +2 (that is + overflow + underflow) 
+        for bin in range(1,hsize+1): # The +1 is in order to get the last bin
+            bincontent = histo.GetBinContent(bin)
+            if bincontent < 0.:
+                histo.SetBinContent(bin,0.)
+
+        histo_container.append(copy.copy(histo))
         
-    if select_all_but_one(h_phi_InvMass_TwoTrk.GetName()):
-        h_phi_InvMass_TwoTrk.Fill(mytree.Phimass, eventWeight)
+        if not histo_name == "h_nMuons" and not histo_name == "h_nPhotons" and not histo_name == "h_nJets_25" and not histo_name == "h_nElectrons" and not histo_name == "h_photonWP90" and not histo_name == "h_meson_InvMass_TwoTrk":
+            print histo_name
+            if isTightSelection and (histo_name == "h_firstTrk_Iso" or histo_name == "h_firstTrk_Iso_ch" or histo_name == "h_firstTrk_Iso_neutral" or histo_name == "h_secondTrk_Iso" or histo_name == "h_secondTrk_Iso_ch" or histo_name == "h_couple_AbsIsoCh" or histo_name == "h_couple_Iso" or histo_name == "h_couple_Iso_ch"):
+                histo_container[-1].Rebin(1)
+            else:
+                histo_container[-1].Rebin(1)
+        if histo_name == "h_meson_InvMass_TwoTrk": histo_container[-1].Rebin(2)
+
+        histo_container[-1].SetLineStyle(1)   #continue line (2 for dashed)
+        if isPhi:
+            histo_container[-1].SetLineColor(9)   #blue, 2 for red
+        else:
+            histo_container[-1].SetLineColor(46)   #blue, 2 for red
+
+        histo_container[-1].SetLineWidth(4)   #kind of thick
+        histo_container[-1].Scale(1./histo_container[-1].GetEntries()) #normalize to 1
+        hsignal[histo_name] = histo_container[-1]
+        hstack[histo_name].Add(histo_container[-1])
+
+    fileIn.Close()
+
+for histo_name in list_histos:
+
+    canvas[histo_name] = ROOT.TCanvas("Canvas_" + histo_name,"",200,106,600,600)
+    canvas[histo_name].cd()
+
+    #if not plotOnlyData :   ##########################################
+     #   pad1 = ROOT.TPad("pad_" + histo_name,"",0,0.28,1,1.)
+        #pad1.SetTopMargin(0.047)
+        #pad1.SetBottomMargin(0.02)
+        #pad1.SetBorderMode(0)
+        #pad1.SetBorderSize(0)
+        #pad1.SetFrameBorderSize(0)
+      #  pad1.SetTicks(2,1) #ticks on the right and the upper axis are drawn inside
+       # pad1.Draw()
+       # if histo_name == "h_nJets_25" or histo_name == "h_nMuons" or histo_name == "h_nElectrons" or histo_name == "h_nPhotons":
+        #    pad1.SetLogy()
+        
+        #pad1.cd()
+
+    hstack[histo_name].SetTitle("")
+    hsignal[histo_name].SetTitle("")
+
+
+    if not plotOnlyData :
+
+        hstack[histo_name].Draw("histo")
+        hstack[histo_name].GetYaxis().SetTitleSize(0.04)
+        hstack[histo_name].GetXaxis().SetTitleSize(0.045)
+        hstack[histo_name].GetYaxis().SetTitleOffset(1.25)
+        hstack[histo_name].GetXaxis().SetTitleOffset(1.15)
+        hstack[histo_name].GetYaxis().SetTitle("Events")
+        hstack[histo_name].GetYaxis().SetMaxDigits(3)
+        hstack[histo_name].GetXaxis().SetLabelSize(0.04)
+        hstack[histo_name].GetYaxis().SetLabelSize(0.04)
+        
+        hstack[histo_name].SetMaximum(1.5 * hsignal[histo_name].GetMaximum())
+
+        #Legend ----------------------------------------
+        leg1 = ROOT.TLegend(0.65,0.74,0.87,0.97) #right positioning
+        leg1.SetHeader(" ")
+        leg1.SetNColumns(1)
+        leg1.SetFillColorAlpha(0,0.)
+        leg1.SetBorderSize(0)
+        leg1.SetLineColor(1)
+        leg1.SetLineStyle(1)
+        leg1.SetLineWidth(1)
+        leg1.SetFillStyle(1001)
+
+        if histo_name == "h_InvMass_TwoTrk_Photon":
+            #hstack[histo_name].Rebin(2)            
+            hstack[histo_name].GetXaxis().SetTitle("m_{ditrk,#gamma} [GeV]")
+            hstack[histo_name].GetXaxis().SetLimits(115.,135.)
+
+        if histo_name == "h_nJets_25":
+            hstack[histo_name].GetXaxis().SetTitle("nJets")
+            hstack[histo_name].GetXaxis().SetLimits(-0.5,6.5)
     
+        if histo_name == "h_meson_InvMass_TwoTrk" :
+            hstack[histo_name].GetXaxis().SetTitle("m_{ditrk} [GeV]")
+            if isPhi:
+                hstack[histo_name].GetXaxis().SetLimits(1.00,1.042)
+                leftLine  = ROOT.TLine(1.005,0.,1.005,hsignal[histo_name].GetMaximum()*1.1)
+                rightLine = ROOT.TLine(1.037,0.,1.037,hsignal[histo_name].GetMaximum()*1.1)
+                leftLine.SetLineColor(4)
+                leftLine.SetLineStyle(2)
+                leftLine.SetLineWidth(3)
+                rightLine.SetLineColor(4)
+                rightLine.SetLineStyle(2)
+                rightLine.SetLineWidth(3)
+                leftLine.Draw()
+                rightLine.Draw()
 
-    h_InvMass_TwoTrk_Photon_NoPhiMassCut.Fill(mytree.Hmass_From2K_Photon, eventWeight)
-    h_firstKCand_pT.Fill(mytree.firstCandPt, eventWeight)    
-    h_secondKCand_pT.Fill(mytree.secondCandPt, eventWeight)   
-    h_firstKCand_Eta.Fill(mytree.firstCandEta, eventWeight)    
-    h_secondKCand_Eta.Fill(mytree.secondCandEta, eventWeight)   
-    h_firstKCand_Phi.Fill(mytree.firstCandPhi, eventWeight)    
-    h_secondKCand_Phi.Fill(mytree.secondCandPhi, eventWeight)   
-    h_bestCouplePt.Fill(mytree.bestCouplePt, eventWeight)
-    h_bestCoupleDeltaR.Fill(deltaR, eventWeight)
-    h_bestJetPt.Fill(mytree.bestJet_pT, eventWeight)
-    h_bestJetEta.Fill(mytree.bestJet_eta, eventWeight)
-    h_K1_Iso.Fill(mytree.iso_K1, eventWeight)
-    h_K1_Iso_ch.Fill(mytree.iso_K1_ch, eventWeight)
-    h_K2_Iso.Fill(mytree.iso_K2, eventWeight)
-    h_K2_Iso_ch.Fill(mytree.iso_K2_ch, eventWeight)
-    h_couple_Iso.Fill(mytree.iso_couple, eventWeight)
-    h_couple_Iso_ch.Fill(mytree.iso_couple_ch, eventWeight)
+            else:
+                hstack[histo_name].GetXaxis().SetLimits(0.5,1.)
+                leftLine  = ROOT.TLine(0.63,0.,0.63,hsignal[histo_name].GetMaximum()*1.1)
+                rightLine = ROOT.TLine(0.91,0.,0.91,hsignal[histo_name].GetMaximum()*1.1)
+                leftLine.SetLineColor(2)
+                leftLine.SetLineStyle(2)
+                leftLine.SetLineWidth(3)
+                rightLine.SetLineColor(2)
+                rightLine.SetLineStyle(2)
+                rightLine.SetLineWidth(3)
+                leftLine.Draw()
+                rightLine.Draw()
 
-h_InvMass_TwoTrk_Photon.GetXaxis().SetTitle("m_{K^{+}K^{-}#gamma} [GeV/c^2]")
-h_InvMass_TwoTrk_Photon.SetTitle("Tracks+Photon invariant mass (Cut on phi inv. mass)")
+        if histo_name == "h_firstTrk_pT" :
+            hstack[histo_name].GetXaxis().SetTitle("p_{T}^{Trk_{1}} [GeV]")
+            #hstack[histo_name].GetXaxis().SetLimits(15.,60.)
 
-h_InvMass_TwoTrk_Photon_NoPhiMassCut.GetXaxis().SetTitle("m_{K^{+}K^{-}}#gamma} [GeV/c^2]")
-h_InvMass_TwoTrk_Photon_NoPhiMassCut.SetTitle("Tracks+Photon invariant mass (No cuts)")
+        if histo_name == "h_secondTrk_pT" :
+            hstack[histo_name].GetXaxis().SetTitle("p_{T}^{Trk_{2}} [GeV]")
+            #hstack[histo_name].GetXaxis().SetLimits(5.,50.)
 
-h_phi_InvMass_TwoTrk.GetXaxis().SetTitle("m_{K^{+}K^{-}} [GeV/c^2]")
-h_phi_InvMass_TwoTrk.SetTitle("Tracks invariant mass")
+        if histo_name == "h_firstTrk_Eta" :
+            hstack[histo_name].GetXaxis().SetTitle("#eta_{Trk_{1}}")
+            hstack[histo_name].GetXaxis().SetLimits(-2.5,2.5)
 
-h_firstKCand_pT.GetXaxis().SetTitle("pT_{K} [GeV/c]")
-h_firstKCand_pT.SetTitle("Transverse momentum of the first charged particle (pT_{max} of the couple)")
+        if histo_name == "h_secondTrk_Eta" :
+            hstack[histo_name].GetXaxis().SetTitle("#eta_{Trk_{2}}")
+            hstack[histo_name].GetXaxis().SetLimits(-2.5,2.5)
 
-h_secondKCand_pT.GetXaxis().SetTitle("pT_{K} [GeV/c]")
-h_secondKCand_pT.SetTitle("Transverse momentum of the second charged particle (pT_{min} of the couple)")
+        if histo_name == "h_bestCoupleEta" :
+            hstack[histo_name].GetXaxis().SetTitle("#eta_{ditrk}")
+            hstack[histo_name].GetXaxis().SetLimits(-2.5,2.5)
 
-h_firstKCand_Eta.GetXaxis().SetTitle("#eta")
-h_firstKCand_Eta.SetTitle("Pseudorapidity of the first charged particle (pT_{max} of the couple)")
+        if histo_name == "h_firstTrk_Phi" :
+            hstack[histo_name].GetXaxis().SetTitle("#phi_{Trk_{1}} [rad]")
 
-h_secondKCand_Eta.GetXaxis().SetTitle("#eta")
-h_secondKCand_Eta.SetTitle("Pseudorapidity of the second charged particle (pT_{max} of the couple)")
+        if histo_name == "h_secondTrk_Phi" :
+            hstack[histo_name].GetXaxis().SetTitle("#phi_{Trk_{2}} [rad]")
 
-h_firstKCand_Phi.GetXaxis().SetTitle("#phi [rad]")
-h_firstKCand_Phi.SetTitle("Azimuthal angle of the first charged particle (pT_{max} of the couple)")
+        if histo_name == "h_bestCouplePt" :
+            hstack[histo_name].GetXaxis().SetTitle("p_{T}^{ditrk} [GeV]")
 
-h_secondKCand_Phi.GetXaxis().SetTitle("#phi [rad]")
-h_secondKCand_Phi.SetTitle("Azimuthal angle of the second charged particle (pT_{max} of the couple)")
+        if histo_name == "h_bestJetPt" :
+            hstack[histo_name].GetXaxis().SetTitle("p_{T}^{jet} [GeV]")
+            if isTightSelection:
+                hstack[histo_name].GetXaxis().SetLimits(45.,220.)
 
-h_bestCouplePt.GetXaxis().SetTitle("pT_{K^{+}K^{-}} [GeV]")
-h_bestCouplePt.SetTitle("Transverse momentum of the couple")
+        if histo_name == "h_bestJetEta" :
+            hstack[histo_name].GetXaxis().SetTitle("#eta_{jet}")
+            hstack[histo_name].GetXaxis().SetLimits(-2.5,2.5)
 
-h_bestCoupleDeltaR.GetXaxis().SetTitle("#DeltaR_{K^{+}K^{-}}")
-h_bestCoupleDeltaR.SetTitle("Delta R of the couple")
+        if histo_name == "h_firstTrk_Iso" :
+            hstack[histo_name].GetXaxis().SetTitle("p_{T}^{Trk_{1}}/(#Sigmap_{T} + p_{T}^{Trk_{1}})")
 
-h_bestJetPt.GetXaxis().SetTitle("pT_{jet} [GeV]")
-h_bestJetPt.SetTitle("Transverse momentum of the jet")
+        if histo_name == "h_secondTrk_Iso" :
+            hstack[histo_name].GetXaxis().SetTitle("p_{T}^{Trk_{2}}/(#Sigmap_{T} + p_{T}^{Trk_{2}})")
 
-h_bestJetEta.GetXaxis().SetTitle("#eta_{jet}")
-h_bestJetEta.SetTitle("Pseudorapidity of the jet")
+        if histo_name == "h_firstTrk_Iso_ch" :
+            hstack[histo_name].GetXaxis().SetTitle("p_{T}^{Trk_{1}}/(#Sigmap_{T}^{ch} + p_{T}^{Trk_{1}})")      
 
-h_K1_Iso.GetXaxis().SetTitle("sum pT_{K_{1}}/pT_{K_{1}}")
-h_K1_Iso.SetTitle("Isolation of the K_{1} candidate")
+        if histo_name == "h_secondTrk_Iso_ch" :
+            hstack[histo_name].GetXaxis().SetTitle("p_{T}^{Trk_{2}}/(#Sigmap_{T}^{ch} + p_{T}^{Trk_{2}})")
 
-h_K1_Iso_ch.GetXaxis().SetTitle("sum pT_{K_{1}}/pT_{K_{1}}")
-h_K1_Iso_ch.SetTitle("Isolation of the K_{1} candidate")
+        if histo_name == "h_couple_Iso" :
+            hstack[histo_name].GetXaxis().SetTitle("p_{T}^{ditrk}/(#Sigmap_{T} + p_{T}^{ditrk})")
 
-h_K2_Iso.GetXaxis().SetTitle("sum pT_{K_{2}}/pT_{K_{2}}")
-h_K2_Iso.SetTitle("Isolation of the K_{2} candidate")
+        if histo_name == "h_couple_Iso_ch" :
+            hstack[histo_name].GetXaxis().SetTitle("p_{T}^{ditrk}/(#Sigmap_{T}^{ch} + p_{T}^{ditrk})")
 
-h_K2_Iso_ch.GetXaxis().SetTitle("sum pT_{K_{2}}/pT_{K_{2}}")
-h_K2_Iso_ch.SetTitle("Isolation of the K_{1} candidate")
+        if histo_name == "h_couple_Iso_neutral" :
+            hstack[histo_name].GetXaxis().SetTitle("p_{T}^{ditrk}/(#Sigmap_{T}^{0} + p_{T}^{ditrk})")
 
-h_couple_Iso.GetXaxis().SetTitle("sum pT_{2K}/pT_{2K}")
-h_couple_Iso.SetTitle("Isolation of the couple candidate")
+        if histo_name == "h_bestCoupleDeltaR" :
+            hstack[histo_name].GetXaxis().SetTitle("#DeltaR_{ditrk}")
 
-h_couple_Iso_ch.GetXaxis().SetTitle("sum pT_{2K}/pT_{2K}")
-h_couple_Iso_ch.SetTitle("Isolation of the couple candidate")
+        if histo_name == "h_nPhotons" :
+            hstack[histo_name].GetXaxis().SetTitle("n.#gamma")
+            hstack[histo_name].GetXaxis().SetLimits(-0.5,4.5)
+
+        if histo_name == "h_photon_energy" :
+            hstack[histo_name].GetXaxis().SetTitle("E_{T}^{#gamma}[GeV]")
+            hstack[histo_name].GetXaxis().SetLimits(38.,160.)
+
+        if histo_name == "h_photon_eta" :
+            hstack[histo_name].GetXaxis().SetTitle("#eta_{#gamma}")
+
+        if histo_name == "h_nElectrons" :
+            hstack[histo_name].GetXaxis().SetTitle("n.electrons")
+            hstack[histo_name].GetXaxis().SetLimits(-0.5,2.5)
+
+        if histo_name == "h_nMuons" :
+            hstack[histo_name].GetXaxis().SetTitle("n.muons")
+            hstack[histo_name].GetXaxis().SetLimits(-0.5,3.5)
+
+        if histo_name == "h_decayChannel":
+            hstack[histo_name].GetXaxis().SetTitle("decay channel")
 
 
-c1 = ROOT.TCanvas()
-c1.cd()
-h_InvMass_TwoTrk_Photon.Draw("E1")
-c1.SaveAs("plots/h_InvMass_TwoTrk_Photon.pdf")
+        hstack[histo_name].Draw("SAME,histo")
 
-c2 = ROOT.TCanvas()
-c2.cd()
-h_phi_InvMass_TwoTrk.Draw("E1")
-c2.SaveAs("plots/h_phi_InvMass_TwoTrk.pdf")
 
-c3 = ROOT.TCanvas()
-c3.cd()
-h_firstKCand_pT.Draw("E1")
-c3.SaveAs("plots/h_firstKCand_pT.pdf")
+    if signal_magnify != 1:
+        hsignal[histo_name].Scale(signal_magnify)
+  
+    hsignal[histo_name].Draw("SAME,hist")
+    if isPhi:
+        leg1.AddEntry(hsignal[histo_name],"#phi#gamma signal","l")
+    else:
+        leg1.AddEntry(hsignal[histo_name],"#rho#gamma signal","l")
 
-c4 = ROOT.TCanvas()
-c4.cd()
-h_secondKCand_pT.Draw("E1")
-c4.SaveAs("plots/h_secondKCand_pT.pdf")
+    CMS_lumi.CMS_lumi(canvas[histo_name], iPeriod, iPos) #Print integrated lumi and energy information
+    leg1.Draw()
 
-c5 = ROOT.TCanvas()
-c5.cd()
-h_firstKCand_Eta.Draw("E1")
-c5.SaveAs("plots/h_firstKCand_Eta.pdf")
 
-c6 = ROOT.TCanvas()
-c6.cd()
-h_secondKCand_Eta.Draw("E1")
-c6.SaveAs("plots/h_secondKCand_Eta.pdf")
+    ################################################
 
-c7 = ROOT.TCanvas()
-c7.cd()
-h_firstKCand_Phi.Draw("E1")
-c7.SaveAs("plots/h_firstKCand_Phi.pdf")
+    if isPhi: 
+        output_dir = "~/cernbox/www/latest_production/signalPhi_latest_production/"
+    else:
+        output_dir = "~/cernbox/www/latest_production/signalRho_latest_production/"
 
-c8 = ROOT.TCanvas()
-c8.cd()
-h_secondKCand_Phi.Draw("E1")
-c8.SaveAs("plots/h_secondKCand_Phi.pdf")
-
-c9 = ROOT.TCanvas()
-c9.cd()
-h_InvMass_TwoTrk_Photon_NoPhiMassCut.Draw("E1")
-c9.SaveAs("plots/h_InvMass_TwoTrk_Photon_NoPhiMassCut.pdf")
-
-c10 = ROOT.TCanvas()
-c10.cd()
-h_bestCouplePt.Draw("E1")
-c10.SaveAs("plots/h_bestCouplePt.pdf")
-
-c11 = ROOT.TCanvas()
-c11.cd()
-h_Events.Draw("E1")
-c11.SaveAs("plots/h_Events.pdf")
-
-c12 = ROOT.TCanvas()
-c12.cd()
-h_bestJetPt.Draw("E1")
-c12.SaveAs("plots/h_bestJetPt.pdf")
-
-c13 = ROOT.TCanvas()
-c13.cd()
-h_bestJetEta.Draw("E1")
-c13.SaveAs("plots/h_bestJetEta.pdf")
-
-c14 = ROOT.TCanvas()
-c14.cd()
-h_K1_Iso.Draw("E1")
-c14.SaveAs("plots/h_K1_Iso.pdf")
-
-c15 = ROOT.TCanvas()
-c15.cd()
-h_K1_Iso_ch.Draw("E1")
-c15.SaveAs("plots/h_K1_Iso_ch.pdf")
-
-c16 = ROOT.TCanvas()
-c16.cd()
-h_K2_Iso.Draw("E1")
-c16.SaveAs("plots/h_K2_Iso.pdf")
-
-c17 = ROOT.TCanvas()
-c17.cd()
-h_K2_Iso_ch.Draw("E1")
-c17.SaveAs("plots/h_K2_Iso_ch.pdf")
-
-c18 = ROOT.TCanvas()
-c18.cd()
-h_couple_Iso.Draw("E1")
-c18.SaveAs("plots/h_couple_Iso.pdf")
-
-c19 = ROOT.TCanvas()
-c19.cd()
-h_couple_Iso_ch.Draw("E1")
-c19.SaveAs("plots/h_couple_Iso_ch.pdf")
-
-c20 = ROOT.TCanvas()
-c20.cd()
-h_bestCoupleDeltaR.Draw("E1")
-c20.SaveAs("plots/h_bestCoupleDeltaR.pdf")
+    canvas[histo_name].SaveAs(output_dir + histo_name + ".pdf")
+    canvas[histo_name].SaveAs(output_dir + histo_name + ".png")

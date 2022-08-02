@@ -10,7 +10,7 @@ config.General.workArea = 'crab_projects/samples_signal'
 config.section_('JobType')
 config.JobType.psetName = 'cmssw_config/run_HPhiGammaAnalysis.py'
 config.JobType.pluginName = 'Analysis'
-config.JobType.inputFiles = ['MCpileUp_2018_25ns_JuneProjectionFull18_PoissonOOTPU.root','MyDataPileupHistogram.root' ] #data files for PileUp reweighting
+config.JobType.inputFiles = ['MCpileUp_2018_25ns_UltraLegacy_PoissonOOTPU.root','MyDataPileupHistogram.root' ] #data files for PileUp reweighting
 config.JobType.outputFiles = ['HPhiGammaAnalysis_output.root']
 config.JobType.allowUndistributedCMSSW = True
 config.JobType.pyCfgParams = ['runningOnData=False'] # Configure 2016 data jobs - muons

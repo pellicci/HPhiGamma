@@ -39,9 +39,26 @@ if __name__ == '__main__':
         except ClientException as cle:
             print "Failed submitting task: %s" % (cle)
 
+    config.General.requestName = '2018_HPhiGammaTriggerAnalysis_SingleMuonA'
+    config.Data.inputDataset = '/SingleMuon/Run2018A-UL2018_MiniAODv2-v3/MINIAOD'
+    p = Process(target=submit, args=(config,))
+    p.start()
+    p.join()
 
-    config.General.requestName = '2018_HPhiGammaTriggerAnalysis_SingleMuon'
+    config.General.requestName = '2018_HPhiGammaTriggerAnalysis_SingleMuonB'
     config.Data.inputDataset = '/SingleMuon/Run2018B-UL2018_MiniAODv2-v2/MINIAOD'
+    p = Process(target=submit, args=(config,))
+    p.start()
+    p.join()
+
+    config.General.requestName = '2018_HPhiGammaTriggerAnalysis_SingleMuonC'
+    config.Data.inputDataset = '/SingleMuon/Run2018C-UL2018_MiniAODv2-v2/MINIAOD'
+    p = Process(target=submit, args=(config,))
+    p.start()
+    p.join()
+
+    config.General.requestName = '2018_HPhiGammaTriggerAnalysis_SingleMuonD'
+    config.Data.inputDataset = '/SingleMuon/Run2018D-UL2018_MiniAODv2-v3/MINIAOD'
     p = Process(target=submit, args=(config,))
     p.start()
     p.join()

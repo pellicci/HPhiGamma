@@ -10,7 +10,7 @@ config.General.workArea = 'crab_projects/samples_MC'
 config.section_('JobType')
 config.JobType.psetName = 'cmssw_config/run_HPhiGammaTriggerAnalysis.py'
 config.JobType.pluginName = 'Analysis'
-config.JobType.inputFiles = ['MCpileUp_2018_25ns_JuneProjectionFull18_PoissonOOTPU.root','MyDataPileupHistogram.root' ] #data files for PileUp reweighting
+config.JobType.inputFiles = ['MCpileUp_2018_25ns_UltraLegacy_PoissonOOTPU.root','MyDataPileupHistogram.root' ] #data files for PileUp reweighting
 config.JobType.outputFiles = ['HPhiGammaTriggerAnalysis_output.root']
 config.JobType.allowUndistributedCMSSW = True
 config.JobType.pyCfgParams = ['runningOnData=False'] # Configure 2016 data jobs - muons
@@ -48,16 +48,16 @@ if __name__ == '__main__':
     #                                               #
     #################################################
 
-config.General.requestName = 'HPhiGammaTriggerAnalysis_M-10to50'
-config.Data.unitsPerJob = 5
-config.Data.inputDataset = '/DYJetsToLL_M-10to50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18MiniAOD-106X_upgrade2018_realistic_v11_L1v1-v2/MINIAODSIM'
-p = Process(target=submit, args=(config,))
-p.start()
-p.join()
+    config.General.requestName = 'HPhiGammaTriggerAnalysis_M-10to50'
+    config.Data.unitsPerJob = 5
+    config.Data.inputDataset = '/DYJetsToLL_M-10to50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18MiniAOD-106X_upgrade2018_realistic_v11_L1v1-v2/MINIAODSIM'
+    p = Process(target=submit, args=(config,))
+    p.start()
+    p.join()
 
-config.General.requestName = 'HPhiGammaTriggerAnalysis_M-50' #Requires FileBased splitting
-config.Data.unitsPerJob = 5
-config.Data.inputDataset = '/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18MiniAOD-106X_upgrade2018_realistic_v11_L1v1-v1/MINIAODSIM'
-p = Process(target=submit, args=(config,))
-p.start()
-p.join()
+    config.General.requestName = 'HPhiGammaTriggerAnalysis_M-50' #Requires FileBased splitting
+    config.Data.unitsPerJob = 5
+    config.Data.inputDataset = '/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18MiniAOD-106X_upgrade2018_realistic_v11_L1v1-v1/MINIAODSIM'
+    p = Process(target=submit, args=(config,))
+    p.start()
+    p.join()

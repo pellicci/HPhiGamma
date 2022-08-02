@@ -46,7 +46,7 @@ if __name__ == '__main__':
     p = Process(target=submit, args=(config,))
     p.start()
     p.join()
-
+"""
     config.General.requestName = '2018_HPhiGammaTwoProngsTriggerAnalysis_SingleMuonC'
     config.Data.inputDataset = '/SingleMuon/Run2018C-UL2018_MiniAODv2-v2/MINIAOD'
     p = Process(target=submit, args=(config,))
@@ -58,4 +58,4 @@ if __name__ == '__main__':
     p = Process(target=submit, args=(config,))
     p.start()
     p.join()
-
+"""
