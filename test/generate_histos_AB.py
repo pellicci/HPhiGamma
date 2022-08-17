@@ -60,7 +60,7 @@ else :
 
 if args.isBDT_option == "BDT":
     isBDT = True
-    BDT_OUT = 0.267508006455 #take this number running MVA/BDT_significance.py: this is the BDT output value which maximizes the significance
+    BDT_OUT = 0.23609499938 #take this number running MVA/BDT_significance.py: this is the BDT output value which maximizes the significance
 print "BDT = ",isBDT
 
 print "-----------------------------------------------"
@@ -92,7 +92,7 @@ else: weightSum = 1.
 
 #HISTOS ###########################################################################################################
 histo_map = dict()
-list_histos = ["h_InvMass_TwoTrk_Photon","h_meson_InvMass_TwoTrk","h_firstTrk_pT","h_secondTrk_pT","h_firstTrk_Eta","h_secondTrk_Eta","h_firstTrk_Phi","h_secondTrk_Phi","h_bestCouplePt","h_bestCoupleEta","h_bestCoupleDeltaR","h_bestJetPt","h_bestJetEta","h_firstTrk_Iso","h_firstTrk_Iso_ch","h_secondTrk_Iso","h_secondTrk_Iso_ch","h_couple_Iso","h_couple_Iso_ch","h_photon_energy","h_photon_eta","h_nJets_25","h_nMuons","h_nElectrons","h_nPhotons","h_efficiency","h_photonWP90","h_decayChannel","h_couple_Iso_neutral","h_cutOverflow","h_met_pT"]#,"h_BDT_out"]
+list_histos = ["h_InvMass_TwoTrk_Photon","h_meson_InvMass_TwoTrk","h_firstTrk_pT","h_secondTrk_pT","h_firstTrk_Eta","h_secondTrk_Eta","h_firstTrk_Phi","h_secondTrk_Phi","h_bestCouplePt","h_bestCoupleEta","h_bestCoupleDeltaR","h_bestJetPt","h_bestJetEta","h_firstTrk_Iso","h_firstTrk_Iso_ch","h_secondTrk_Iso","h_secondTrk_Iso_ch","h_couple_Iso","h_couple_Iso_ch","h_photon_energy","h_photon_eta","h_nJets_25","h_nMuons","h_nElectrons","h_nPhotons","h_efficiency","h_photonWP90","h_decayChannel","h_couple_Iso_neutral","h_cutOverflow","h_met_pT","h_dPhiGammaTrk"]#,"h_BDT_out"]
 
 histo_map[list_histos[0]]  = ROOT.TH1F(list_histos[0],"M_{H}",140,100.,170.) 
 if   isPhiAnalysis: histo_map[list_histos[1]]  = ROOT.TH1F(list_histos[1],"M_{meson}", 100, 1., 1.05) 
@@ -108,7 +108,7 @@ histo_map[list_histos[8]]  = ROOT.TH1F(list_histos[8],"p_{T} of the meson", 100,
 histo_map[list_histos[9]]  = ROOT.TH1F(list_histos[9],"#eta_{meson}", 100, -2.5,2.5)
 if   isPhiAnalysis: histo_map[list_histos[10]] = ROOT.TH1F(list_histos[10],"#Delta R_{meson}", 100, 0.,0.026)
 elif isRhoAnalysis: histo_map[list_histos[10]] = ROOT.TH1F(list_histos[10],"#Delta R_{meson}", 100, 0.,0.07)
-histo_map[list_histos[11]] = ROOT.TH1F(list_histos[11],"p_{T} of the jet", 100, 40.,170.)
+histo_map[list_histos[11]] = ROOT.TH1F(list_histos[11],"p_{T} of the jet", 100, 30.,170.)
 histo_map[list_histos[12]] = ROOT.TH1F(list_histos[12],"#eta of the jet", 100, -2.5,2.5)
 histo_map[list_histos[13]] = ROOT.TH1F(list_histos[13],"Iso of the 1st track", 100, 0.45,1.)
 histo_map[list_histos[14]] = ROOT.TH1F(list_histos[14],"Iso_ch of the 1st track", 100, 0.8,1.)
@@ -128,6 +128,8 @@ histo_map[list_histos[27]] = ROOT.TH1F(list_histos[27],"Phi or Rho channel", 2, 
 histo_map[list_histos[28]] = ROOT.TH1F(list_histos[28],"Iso_neutral of the meson", 100, 0.6,1.)
 histo_map[list_histos[29]] = ROOT.TH1F(list_histos[29],"Data cut overflow", 5, 0.,5.)
 histo_map[list_histos[30]] = ROOT.TH1F(list_histos[30],"p_{T} of the met", 200, 0.,120.)
+histo_map[list_histos[31]] = ROOT.TH1F(list_histos[31],"#Delta#phi between leading track and photon", 100, 0.,3.14)
+
 
 #histo_map[list_histos[29]] = ROOT.TH1F(list_histos[29],"BDT output", 40, -1.,1.)
 
@@ -190,7 +192,7 @@ nentries = mytree.GetEntriesFast()
 nEventsMesonAnalysis      = 0
 nEventsOverLeptonVeto     = 0
 nEventsAfterRegionDefiner = 0
-nEventsOutOfHmassRange    = 0
+nEventsInHmassRange       = 0
 nEventsOverCuts           = 0
 nEventsLeftSB             = 0
 nEventsRightSB            = 0
@@ -242,6 +244,7 @@ for jentry in xrange(nentries):
     nMuons         = mytree.nMuons
     MesonIso0      = MesonPt/(MesonPt + (mytree.Couple_sum_pT_05 - mytree.Couple_sum_pT_05_ch))
     metPt          = mytree.met_pT
+    dPhiGammaTrk   = math.fabs(firstTrkphi - mytree.photon_phi)
     
     #If I'm performing a PhiGamma analysis I don't want to choose those events tagged as a RhoGamma events, and viceversa
     if isPhiAnalysis and not isPhiEvent: 
@@ -250,13 +253,15 @@ for jentry in xrange(nentries):
         continue
     nEventsMesonAnalysis+=1
 
+    #DELETE MEEEEEEEEE
+    #if MesonPt < 45.: continue
 
     #Define Control and Signal regions: 
     if isPhiAnalysis: #for Phi meson
-        if CRflag == 0 and not (MesonMass > 1.005 and MesonMass < 1.035) :
+        if CRflag == 0 and not (MesonMass > 1.005 and MesonMass < 1.037) :
             continue
 
-        if CRflag == 1 and (MesonMass > 1.005 and MesonMass < 1.035) :
+        if CRflag == 1 and (MesonMass > 1.005 and MesonMass < 1.037) :
             continue
 
     if isRhoAnalysis: #for Rho meson
@@ -267,7 +272,7 @@ for jentry in xrange(nentries):
             continue
 
 ################### line used to take simmetrical sidebands ################
-    if (isPhiAnalysis and MesonMass > 1.05): continue
+    if (isPhiAnalysis and MesonMass > 1.042): continue
     nEventsAfterRegionDefiner+=1
 ############################################################################
     
@@ -301,7 +306,7 @@ for jentry in xrange(nentries):
         PUWeight               = mytree.PU_Weight
         weight_sign            = mytree.MC_Weight/abs(mytree.MC_Weight)
         photonSF, photonSF_err = myWF.get_photon_scale(mytree.photon_eT,mytree.photon_eta)
-        photonSF              -= photonSF_err
+        #photonSF              -= photonSF_err
         eventWeight            = weight_sign * luminosity * normalization_weight * PUWeight * photonSF
         
         if debug:
@@ -313,7 +318,7 @@ for jentry in xrange(nentries):
             print "weight sign           = ",weight_sign
             print "PUWeight              = ",PUWeight
             print "photonSF              = ",photonSF
-            print "photonSF_err          = ",photonSF_err
+            #print "photonSF_err          = ",photonSF_err
             print "eventWeight           = ",eventWeight
             print ""
 
@@ -332,7 +337,7 @@ for jentry in xrange(nentries):
 
     #-------------- n events in the sidebands -----------------------------
     if (Hmass < 100. or Hmass > 170.): continue
-    nEventsOutOfHmassRange+=1
+    nEventsInHmassRange+=1
 
     if not samplename == 'Signal':
          if (CRflag == 0 and Hmass > 100. and Hmass < 115.) : nEventsLeftSB  += 1
@@ -385,6 +390,7 @@ for jentry in xrange(nentries):
     histo_map["h_decayChannel"].Fill(isPhiEvent, eventWeight)
     histo_map["h_couple_Iso_neutral"].Fill(MesonIso0, eventWeight)
     histo_map["h_met_pT"].Fill(metPt, eventWeight)
+    histo_map["h_dPhiGammaTrk"].Fill(dPhiGammaTrk,eventWeight)
 
 
 
@@ -487,7 +493,8 @@ histo_map["h_couple_Iso_neutral"].GetXaxis().SetTitle("sum pT_{2trk}/pT_{2trk}")
 histo_map["h_couple_Iso_neutral"].SetTitle("Isolation of the couple candidate from neutral particles")
 histo_map["h_met_pT"].GetXaxis().SetTitle("pT_{met} [GeV/c]")
 histo_map["h_met_pT"].SetTitle("Transverse momentum of the missing energy")
-
+histo_map["h_dPhiGammaTrk"].GetXaxis().SetTitle("#Delta#Phi_{#gamma,Trk_1} [rad]")
+histo_map["h_dPhiGammaTrk"].SetTitle("Transverse momentum of the missing energy")
 
 #########################################################################
 #Tree writing
@@ -564,7 +571,7 @@ else: #Only if data
     print "nEventsBestPair           = ",nEventsBestPair," (n. events with a best pair found)"
     print "nEventsMesonAnalysis      = ",nEventsMesonAnalysis," (split in PhiGamma or RhoGamma analysis)"
     print "nEventsAfterRegionDefiner = ",nEventsAfterRegionDefiner," (split in SR or CR of the ditrack inv mass)"
-    print "nEventsOutOfHmassRange    = ",nEventsOutOfHmassRange," (n. events in 100 < Hmass < 170 GeV)"
+    print "nEventsInHmassRange       = ",nEventsInHmassRange," (n. events in 100 < Hmass < 170 GeV)"
     print "nEventsMesonMassSR        = ",nEventsMesonMassSR," (Events in SR of MesonMass and in SBs of Hmass)"
     print "nEventsOverLeptonVeto     = ",nEventsOverLeptonVeto," (n. events without any electron or muon)"
     print "---------------------------------------"
@@ -586,7 +593,7 @@ else: #Only if data
 #FINAL PRINTS ###########################################################
 print ""
 print ""
-print "########### SUMMARY ####################"
+print "----------- SUMMARY -----------------------"
 if isBDT:
     print "BDT output used = ",BDT_OUT
 if samplename == "Signal":
@@ -603,7 +610,7 @@ if samplename == "Signal":
     print "Signal weight sum   = ",float(weightSum)
     print "Total signal events = ",bin1content
     print "Signal efficiency   = ",nEventsOverCuts/bin1content
-print "########################################"
+print "-------------------------------------------"
 print ""
 print ""
 

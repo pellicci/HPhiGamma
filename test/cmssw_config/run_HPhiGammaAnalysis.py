@@ -10,7 +10,7 @@ process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_condD
 from Configuration.AlCa.GlobalTag import GlobalTag
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(100000)
+    input = cms.untracked.int32(-1)
 )
 
 import FWCore.ParameterSet.VarParsing as VarParsing
@@ -41,6 +41,11 @@ input_path = '/eos/user/p/pellicci/MesonGamma_root/2018/HPhiGamma_ggH/MINI/'
 #if options.runningOnData:
  #   input_path = '/store/data/Run2018C/Tau/MINIAOD/12Nov2019_UL2018-v1/00000/' 
 
+#For the test with Mariarosaria
+if options.runningOnData:
+    input_path = '/eos/user/g/gumoret/forMaria/'
+
+
 '''                                                                                                                                                                                                   
     For the given path, get the List of all files in the directory tree                                                                                                                               
 '''                                                                                                                                                                                                   
@@ -69,8 +74,8 @@ listOfFiles = getListOfFiles(input_path)
 #Input source
 if options.runningOnData:
     process.GlobalTag = GlobalTag(process.GlobalTag, '106X_dataRun2_v33') # OLD ONE : 102X_dataRun2_Sep2018ABC_v2
-   #inputFiles = {"root://cms-xrd-global.cern.ch//store/data/Run2018C/Tau/MINIAOD/17Sep2018-v1/270000/E95D5792-39AA-CE4B-B2BA-9A65FA639EAA.root"}
-    inputFiles = listOfFiles
+    inputFiles = { '/store/data/Run2018B/Tau/MINIAOD/UL2018_MiniAODv2-v2/70000/09FD3540-D36B-6249-9817-D3BAC2F02E74.root'}
+    #inputFiles = listOfFiles
 
 else:
    process.GlobalTag = GlobalTag(process.GlobalTag, '106X_upgrade2018_realistic_v15_L1v1')  # OLD ONE : 102X_upgrade2018_realistic_v18

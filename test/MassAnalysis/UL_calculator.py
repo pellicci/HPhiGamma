@@ -12,8 +12,8 @@ ws.Print() #print some info of the workspace content
 
 B_R_ = ws.var("B_R_")
 poi_list = ROOT.RooArgSet(B_R_)
-mass_KKg = ws.var("mass_KKg")
-obs_list = ROOT.RooArgSet(ws.var("mass_KKg"))
+mass_KKg = ws.var("mesonGammaMass")
+obs_list = ROOT.RooArgSet(ws.var("mesonGammaMass"))
 
 #Retrieve the generated dataset in fit_Data_Blind.py
 data = ws.data("totPDFData")

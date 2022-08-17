@@ -69,7 +69,7 @@ effectiveAreas_ph_( (iConfig.getParameter<edm::FileInPath>("effAreasConfigFile_p
   prunedGenParticlesToken_            = consumes<std::vector<reco::GenParticle> >(edm::InputTag("prunedGenParticles"));
   photonsMiniAODToken_                = consumes<std::vector<pat::Photon> > (edm::InputTag("slimmedPhotons"));
   electronsMiniAODToken_              = consumes<std::vector<pat::Electron> > (edm::InputTag("slimmedElectrons"));
-  slimmedJetsToken_                   = consumes<std::vector<pat::Jet> >(edm::InputTag("slimmedJets"));
+        slimmedJetsToken_                   = consumes<std::vector<pat::Jet> >(edm::InputTag("slimmedJets"));
   slimmedMETsToken_                   = consumes<std::vector<pat::MET> >(edm::InputTag("slimmedMETs"));
   slimmedMETsPuppiToken_              = consumes<std::vector<pat::MET> >(edm::InputTag("slimmedMETsPuppi"));
   offlineSlimmedPrimaryVerticesToken_ = consumes<std::vector<reco::Vertex> > (edm::InputTag("offlineSlimmedPrimaryVertices"));  
@@ -555,7 +555,9 @@ if(verbose) cout<< "JETs loop"<<" --------------------------------"<<endl;
     nDaughters= jet->numberOfDaughters(); //calculate number of daughters
 
     //----------------------------- Pre-Filters --------------------------------------------------------
+    if(verbose) cout<<"Analyzing Jet with pT = "<<jet->pt()<<endl;
     if(jet->pt() < 40. || abs(jet->eta()) > 2.5) continue;
+    if(verbose) cout<<"   Ok, this jet has _Jet_Photon_invMass = "<<_Jet_Photon_invMass<<endl;
     if(_Jet_Photon_invMass < 100.) continue; //reject jets with inv mass lower then 100 GeV
     if(jet->neutralHadronEnergyFraction() > 0.9) continue; //reject if neutralhadron-energy fraction is > 0.9
     if(jet->neutralEmEnergyFraction() > 0.9) continue; //reject if neutralEm-energy fraction is > 0.9, alias NO-PHOTON FILTER                              
@@ -565,8 +567,9 @@ if(verbose) cout<< "JETs loop"<<" --------------------------------"<<endl;
     if(jet->chargedHadronMultiplicity() == 0) continue; //reject if there are NOT charged hadrons                              
     if(jet->chargedEmEnergyFraction() > 0.8) continue; //reject if chargedEm-energy fraction is > 0.8                              
      //-------------------------------------------------------------------------------------------------      
-      
-    if (verbose) cout<<"Jet at index = "<<jetIndex<<" passed the cuts:"<<endl; 
+    
+
+    if (verbose) cout<<"    Jet at index = "<<jetIndex<<" passed the cuts:"<<endl; 
 
     //------------------------------- access to MC truth -------------------------------------------
     if(!runningOnData_) { //ONLY FOR MC START  
@@ -590,7 +593,7 @@ if(verbose) cout<< "JETs loop"<<" --------------------------------"<<endl;
 
 
       //-------------------------------------daughters forloop----------------------------
-      if(verbose)cout<<"TRACKs:"<<endl;
+      if(verbose)cout<<"      TRACKs:"<<endl;
 
 
       for(int firstCand_Index=0; firstCand_Index < nDaughters; firstCand_Index++){ //1ST LOOP STARTS
@@ -634,7 +637,7 @@ if(verbose) cout<< "JETs loop"<<" --------------------------------"<<endl;
           if (deltaPhi > 3.14) deltaPhi = 6.28 - deltaPhi;
 
           deltaR_K= sqrt(deltaEta*deltaEta + deltaPhi*deltaPhi);
-          if(verbose) cout<<"deltaR = "<<deltaR_K<<endl; //fixme
+          //if(verbose) cout<<"deltaR = "<<deltaR_K<<endl; //fixme
           if(deltaR_K > 0.07) continue; //FIXME, it was 0.02
           //if(verbose) cout<<"deltaR cut passed"<<endl; //fixme
 
@@ -682,13 +685,18 @@ if(verbose) cout<< "JETs loop"<<" --------------------------------"<<endl;
           }
 
           //PT CUT
-          if(couple_p4_K.pt() < 38.) continue;
-          if(verbose) cout<<"couplepT cut passed"<<endl; //fixme
-
+          if(couple_p4_K.pt() < 38.) {
+            if(verbose) cout<<"couplePt cut NOT passed"<<endl<<"-------------------------"<<endl;
+            continue;
+          }
           //PT MAX OF THE JET - FILTER
-	        if(couple_p4_K.pt() <= bestCoupleOfTheJet_pT) continue; //choose the couple with greatest pt
-	        bestCoupleOfTheJet_pT = couple_p4_K.pt();	      
-
+          if (verbose) cout<<"Current bestCouplePt = "<<bestCoupleOfTheJet_pT<<endl;
+	        
+          if(couple_p4_K.pt() <= bestCoupleOfTheJet_pT) {
+            if(verbose) cout<<"This pair doesn't pass!"<<endl<<"-------------------------"<<endl;
+            continue; //choose the couple with greatest pt
+          }
+          
           //PHI INV MASS - FILTER
           isPhi = false;
           isRho = false;
@@ -708,6 +716,8 @@ if(verbose) cout<< "JETs loop"<<" --------------------------------"<<endl;
             isRho = false;
           }
 
+          if(verbose) cout<<"This is the best pair so far!"<<endl<<"-------------------------"<<endl;
+          bestCoupleOfTheJet_pT = couple_p4_K.pt();       
           isBestCoupleOfTheEvent_Found = true;
 
           //Save if best pair has been found
@@ -740,7 +750,7 @@ if(verbose) cout<< "JETs loop"<<" --------------------------------"<<endl;
 
 if(!isBestCoupleOfTheEvent_Found) 
 {
-  if(verbose) cout<<"No best couple detected for current event, RETURN."<<endl;
+  cout<<"No best couple detected for current event, RETURN."<<endl;
   return;
 }
 _Nevents_bestCoupleFound++;      
@@ -792,7 +802,11 @@ _iso_couple_ch = 0.;
 
 //------------- ISOLATION -------------------------------------------------------------------------  
 for(auto cand_iso = PFCandidates->begin(); cand_iso != PFCandidates->end(); ++cand_iso){ //ISOLATION FORLOOP START
-
+  
+  if(verbose){
+    cout <<endl<<"ISO CALC DETAILS ---------------------"<<endl;
+    cout << "pt cand_iso = "<<cand_iso->pt()<<endl;
+  }
   if(cand_iso->pt() < 0.5) continue; //do not consider tracks with pT < 500MeV
 
   //calculate the deltaR between the track and the first candidate ---------------------------------------
@@ -800,6 +814,7 @@ for(auto cand_iso = PFCandidates->begin(); cand_iso != PFCandidates->end(); ++ca
   if (deltaPhi_K1 > 3.14) deltaPhi_K1 = 6.28 - deltaPhi_K1;
 
   float deltaR_K1 = sqrt((_firstCandEta-cand_iso->eta())*(_firstCandEta-cand_iso->eta()) + deltaPhi_K1*deltaPhi_K1);
+  if (verbose) cout << "deltaR_K1 = "<<deltaR_K1<<endl;
   if(deltaR_K1 < 0.002) continue;
 
   //calculate the deltaR between the track and the second candidate ---------------------------------------
@@ -807,6 +822,7 @@ for(auto cand_iso = PFCandidates->begin(); cand_iso != PFCandidates->end(); ++ca
   if (deltaPhi_K2 > 3.14) deltaPhi_K2 = 6.28 - deltaPhi_K2;
 
   float deltaR_K2 = sqrt((_secondCandEta-cand_iso->eta())*(_secondCandEta-cand_iso->eta()) + deltaPhi_K2*deltaPhi_K2);
+  if (verbose) cout << "deltaR_K2 = "<<deltaR_K2<<endl;
   if(deltaR_K2 < 0.002) continue;
 
   //calculate the deltaR between the track and the best pair ---------------------------------------
@@ -822,13 +838,19 @@ for(auto cand_iso = PFCandidates->begin(); cand_iso != PFCandidates->end(); ++ca
   //cout<< "charge before = "<<cand_iso->charge()<<endl;
 
   //sum pT of the charged tracks inside a cone of deltaR = 0.3 ---------------------------------------
+  if (verbose) cout << "Charge = "<< cand_iso->charge()<<endl;
   if(cand_iso->charge() == 0) continue;
 // cout << "particle charge = "<<cand_iso->charge()<<endl;
+  if (verbose) cout << "dxy = "<<fabs(cand_iso->dxy())<<" and dz = "<< fabs(cand_iso->dz())<<endl;
   if(fabs(cand_iso->dxy()) >= 0.2 || fabs(cand_iso->dz()) >= 0.5) continue; // Requesting charged particles to come from PV
   //cout<< "charge after = "<<cand_iso->charge()<<endl;
   if(deltaR_K1 <= 0.3) K1_sum_pT_05_ch += cand_iso->pt();
   if(deltaR_K2 <= 0.3) K2_sum_pT_05_ch += cand_iso->pt();
-  if(deltaR_Couple <= 0.3) couple_sum_pT_05_ch += cand_iso->pt();
+  if (verbose) cout <<"deltaR_Couple = "<<deltaR_Couple<<endl;
+  if(deltaR_Couple <= 0.3){
+    couple_sum_pT_05_ch += cand_iso->pt();
+    if (verbose) cout<<"Particle in the cone: SumPt = "<<couple_sum_pT_05_ch<<endl;
+  }
 } //ISOLATION FORLOOP END
   
 
@@ -866,13 +888,23 @@ _iso_K2_ch     = _secondCandPt/(K2_sum_pT_05_ch + _secondCandPt);
 _iso_couple_ch = _bestCouplePt/(couple_sum_pT_05_ch + _bestCouplePt);
 
 //CUT ON PHI ISOLATION
+//if(verbose){
+  cout<<endl;
+  cout<<"###### ISO           = "<<_iso_couple_ch<<endl;
+  cout<<"###### isRho         = "<<isRho<<endl;
+  cout<<"###### SUM pT        = "<<couple_sum_pT_05_ch<<endl;
+  cout<<"###### pT leading    = "<<_firstCandPt<<endl;
+  cout<<"###### pT subleading = "<<_secondCandPt<<endl;
+  cout<<"###### MesonMass     = "<<_MesonMass<<endl;
+  cout<<"###### HMass         = "<<_Hmass_From2K_Photon<<endl;
+//}
+
 if(_iso_couple_ch < 0.9) {
-  if(verbose) cout<<"No isolation cut passed, RETURN."<<endl;
+  cout<<"No isolation cut passed, RETURN."<<endl;
   return;
 }
 
 _Nevents_coupleIsolationFilter++;
-
 
 //MC TRUTH CHECK
 if(!runningOnData_) //ONLY FOR MC START  
@@ -908,7 +940,11 @@ if(!runningOnData_) //ONLY FOR MC START
       cout<<"--------------------------------------------------"<<endl<<endl;
     }
   }  //ONLY FOR MC START 
-
+ 
+ else //ONLY FOR DATA
+ {
+  cout<<"CANDIDATE HIGGS FOUND IN DATA: EVENT RECORDED!"<<endl;
+ }
 
   mytree->Fill();
 

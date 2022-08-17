@@ -7,7 +7,7 @@ ROOT.gROOT.SetBatch(True) #Supress the opening of many Canvas's
 ROOT.gROOT.ProcessLineSync(".L MassAnalysis/dCB/RooDoubleCBFast.cc+") #import the Doube Crystal Ball PDF
 
 #Define the observable --------------------------
-mass = ROOT.RooRealVar("mass_KKg","mass_KKg",100.,170.,"GeV")
+mass = ROOT.RooRealVar("mesonGammaMass","mesonGammaMass",100.,170.,"GeV")
 
 #Data input -------------------------------------------------------------
 fileInputData = ROOT.TFile("histos/latest_production/histos_SR_Data.root")
@@ -97,8 +97,8 @@ c1 = ROOT.TCanvas()
 c1.cd()
 c1.SetTitle("")
 xframe.Draw()
-c1.SaveAs("~/cernbox/www/MyAnalysis/HPhiGamma/MassAnalysis/latest_production/fit_to_generated_dataset.pdf")
-c1.SaveAs("~/cernbox/www/MyAnalysis/HPhiGamma/MassAnalysis/latest_production/fit_to_generated_dataset.png")
+c1.SaveAs("/eos/user/g/gumoret/www/latest_production/massanalysis_latest_production/fit_to_generated_dataset.pdf")
+c1.SaveAs("/eos/user/g/gumoret/www/latest_production/massanalysis_latest_production/fit_to_generated_dataset.png")
 
 #Final useful information for debugging
 print ""

@@ -1,4 +1,5 @@
 import ROOT
+import tdrstyle, CMS_lumi
 
 isPhiGammaAnalysis = False
 
@@ -7,6 +8,16 @@ ROOT.gROOT.ProcessLineSync(".L MassAnalysis/dCB/RooDoubleCBFast.cc+")
 
 #Supress the opening of many Canvas's
 ROOT.gROOT.SetBatch(True)   
+
+#CMS-style plotting 
+tdrstyle.setTDRStyle()
+iPeriod = 4
+iPos = 11
+CMS_lumi.lumiTextSize = 0.7
+CMS_lumi.lumiTextOffset = 0.25
+CMS_lumi.cmsTextSize = 0.8
+#CMS_lumi.cmsTextOffset = 0.4
+CMS_lumi.lumi_13TeV = "39.54 fb^{-1}" 
 
 #Define the observable
 mass = ROOT.RooRealVar("mesonGammaMass","mesonGammaMass",125.,100.,170.,"GeV/c^2")
@@ -30,10 +41,15 @@ tree = fileInput.Get("tree_output")
 dataset = ROOT.RooDataSet("dataset","dataset",ROOT.RooArgSet(mass),ROOT.RooFit.Import(tree))
 
 #Do the fit
-signalPDF.fitTo(dataset)
+fitResult = signalPDF.fitTo(dataset)
 
 #Plot
 xframe = mass.frame(40)
+
+nParam   = fitResult.floatParsFinal().getSize()
+chi2     = xframe.chiSquare(nParam)#Returns chi2/ndof. Remember to remove the option XErrorSize(0) from data.PlotOn
+cut_chi2 = "{:.2f}".format(chi2) #Crop the chi2 to 2 decimal digits
+
 dataset.plotOn(xframe)
 signalPDF.plotOn(xframe)
 xframe.SetTitle("")

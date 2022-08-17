@@ -298,6 +298,10 @@ for histo_name in list_histos:
         if histo_name == "h_decayChannel":
             hstack[histo_name].GetXaxis().SetTitle("decay channel")
 
+        if histo_name == "h_dPhiGammaTrk":
+            hstack[histo_name].GetXaxis().SetTitle("#Delta#phi_{#gamma,Trk_{1}} [rad]")
+            
+
 
         hstack[histo_name].Draw("SAME,histo")
 
