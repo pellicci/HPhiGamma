@@ -60,7 +60,7 @@ else :
 
 if args.isBDT_option == "BDT":
     isBDT = True
-    BDT_OUT = 0.23609499938 #take this number running MVA/BDT_significance.py: this is the BDT output value which maximizes the significance
+    BDT_OUT = 0.260657621497 #take this number running MVA/BDT_significance.py: this is the BDT output value which maximizes the significance
 print "BDT = ",isBDT
 
 print "-----------------------------------------------"
@@ -94,7 +94,7 @@ else: weightSum = 1.
 histo_map = dict()
 list_histos = ["h_InvMass_TwoTrk_Photon","h_meson_InvMass_TwoTrk","h_firstTrk_pT","h_secondTrk_pT","h_firstTrk_Eta","h_secondTrk_Eta","h_firstTrk_Phi","h_secondTrk_Phi","h_bestCouplePt","h_bestCoupleEta","h_bestCoupleDeltaR","h_bestJetPt","h_bestJetEta","h_firstTrk_Iso","h_firstTrk_Iso_ch","h_secondTrk_Iso","h_secondTrk_Iso_ch","h_couple_Iso","h_couple_Iso_ch","h_photon_energy","h_photon_eta","h_nJets_25","h_nMuons","h_nElectrons","h_nPhotons","h_efficiency","h_photonWP90","h_decayChannel","h_couple_Iso_neutral","h_cutOverflow","h_met_pT","h_dPhiGammaTrk"]#,"h_BDT_out"]
 
-histo_map[list_histos[0]]  = ROOT.TH1F(list_histos[0],"M_{H}",140,100.,170.) 
+histo_map[list_histos[0]]  = ROOT.TH1F(list_histos[0],"M_{H}",280,100.,170.) 
 if   isPhiAnalysis: histo_map[list_histos[1]]  = ROOT.TH1F(list_histos[1],"M_{meson}", 100, 1., 1.05) 
 elif isRhoAnalysis: histo_map[list_histos[1]]  = ROOT.TH1F(list_histos[1],"M_{meson}", 100, 0.5, 1.) 
 histo_map[list_histos[2]]  = ROOT.TH1F(list_histos[2],"p_{T} of the 1st track", 100, 20.,60.)
@@ -160,6 +160,7 @@ _photonEta           = np.zeros(1, dtype=float)
 _eventWeight         = np.zeros(1, dtype=float)
 _metPt               = np.zeros(1, dtype=float)
 _nJets               = np.zeros(1, dtype=float)
+_dPhiGammaTrk        = np.zeros(1, dtype=float)
 
 tree_output = ROOT.TTree('tree_output','tree_output')
 tree_output.Branch('mesonGammaMass',mesonGammaMass,'mesonGammaMass/D')
@@ -184,6 +185,7 @@ tree_output.Branch('_photonEta',_photonEta,'_photonEta/D')
 tree_output.Branch('_eventWeight',_eventWeight,'_eventWeight/D')
 tree_output.Branch('_metPt',_metPt,'_metPt/D')
 tree_output.Branch('_nJets',_nJets,'_nJets/D')
+tree_output.Branch('_dPhiGammaTrk',_dPhiGammaTrk,'_dPhiGammaTrk/D')
     
 print "This sample has ", mytree.GetEntriesFast(), " events"
 nentries = mytree.GetEntriesFast()
@@ -191,6 +193,7 @@ nentries = mytree.GetEntriesFast()
 #------------- counters -----------------
 nEventsMesonAnalysis      = 0
 nEventsOverLeptonVeto     = 0
+nEventsOverVBFOrt         = 0
 nEventsAfterRegionDefiner = 0
 nEventsInHmassRange       = 0
 nEventsOverCuts           = 0
@@ -253,26 +256,28 @@ for jentry in xrange(nentries):
         continue
     nEventsMesonAnalysis+=1
 
-    #DELETE MEEEEEEEEE
-    #if MesonPt < 45.: continue
+    #VBF ORTHOGONALITY ------------------------------------------
+    if nJets > 2 : continue
+    nEventsOverVBFOrt += 1
 
-    #Define Control and Signal regions: 
+
+    #Define Control and Signal regions: ------------------------------------------
     if isPhiAnalysis: #for Phi meson
-        if CRflag == 0 and not (MesonMass > 1.005 and MesonMass < 1.037) :
+        if CRflag == 0 and not (MesonMass > 1.005 and MesonMass < 1.035) :
             continue
 
-        if CRflag == 1 and (MesonMass > 1.005 and MesonMass < 1.037) :
+        if CRflag == 1 and (MesonMass > 1.005 and MesonMass < 1.035) :
             continue
 
     if isRhoAnalysis: #for Rho meson
-        if CRflag == 0 and not (MesonMass > 0.63 and MesonMass < 0.91) :
+        if CRflag == 0 and not (MesonMass > 0.55 and MesonMass < 0.95) :
             continue
 
-        if CRflag == 1 and (MesonMass > 0.63 and MesonMass < 0.91) :
+        if CRflag == 1 and (MesonMass > 0.55 and MesonMass < 0.95) :
             continue
 
 ################### line used to take simmetrical sidebands ################
-    if (isPhiAnalysis and MesonMass > 1.042): continue
+    if (isPhiAnalysis and MesonMass > 1.04): continue
     nEventsAfterRegionDefiner+=1
 ############################################################################
     
@@ -287,16 +292,14 @@ for jentry in xrange(nentries):
         print "MesonMass     = ",MesonMass
         print ""
 
+    #--------------------------------------------------------------------------------------
 
-    #TIGHT SELECTION from BDT output -------------------------------------------------  
-    if isBDT:
-        BDT_out = myWF.get_BDT_output(firstTrkisoCh,MesonIso,MesonPt,photonEt,metPt,jetPt,Hmass)
-        #histo_map["h_BDT_out"].Fill(BDT_out)
+    #phi angle folding
+    coupleDeltaPhi = math.fabs(mytree.firstCandPhi - mytree.secondCandPhi)
+    if coupleDeltaPhi > 3.14:
+        coupleDeltaPhi = 6.28 - coupleDeltaPhi
+    deltaR = math.sqrt((mytree.firstCandEta - mytree.secondCandEta)**2 + (coupleDeltaPhi)**2)
 
-        if debug: print "BDT value before selection = ", BDT_out
-        if BDT_out < BDT_OUT: #Cut on BDT output
-            if debug: print "BDT cut NOT passed"
-            continue
 
 
     #NORMALIZATION -------------------------------------------------------------------
@@ -306,7 +309,7 @@ for jentry in xrange(nentries):
         PUWeight               = mytree.PU_Weight
         weight_sign            = mytree.MC_Weight/abs(mytree.MC_Weight)
         photonSF, photonSF_err = myWF.get_photon_scale(mytree.photon_eT,mytree.photon_eta)
-        #photonSF              -= photonSF_err
+#        photonSF              += photonSF_err
         eventWeight            = weight_sign * luminosity * normalization_weight * PUWeight * photonSF
         
         if debug:
@@ -318,7 +321,7 @@ for jentry in xrange(nentries):
             print "weight sign           = ",weight_sign
             print "PUWeight              = ",PUWeight
             print "photonSF              = ",photonSF
-            #print "photonSF_err          = ",photonSF_err
+    #        print "photonSF_err          = ",photonSF_err
             print "eventWeight           = ",eventWeight
             print ""
 
@@ -326,23 +329,6 @@ for jentry in xrange(nentries):
     if samplename == "Data":
         eventWeight = 1.  
         
-    #--------------------------------------------------------------------------------------
-
-    #phi angle folding
-    coupleDeltaPhi = math.fabs(mytree.firstCandPhi - mytree.secondCandPhi)
-    if coupleDeltaPhi > 3.14:
-        coupleDeltaPhi = 6.28 - coupleDeltaPhi
-    deltaR = math.sqrt((mytree.firstCandEta - mytree.secondCandEta)**2 + (coupleDeltaPhi)**2)
-   
-
-    #-------------- n events in the sidebands -----------------------------
-    if (Hmass < 100. or Hmass > 170.): continue
-    nEventsInHmassRange+=1
-
-    if not samplename == 'Signal':
-         if (CRflag == 0 and Hmass > 100. and Hmass < 115.) : nEventsLeftSB  += 1
-         if (CRflag == 0 and Hmass > 135. and Hmass < 170.) : nEventsRightSB += 1
-
 
     #Electron and muon veto ------------------------------------------
     histo_map["h_nMuons"].Fill(nMu, eventWeight) # fill this histo to check the number of electrons and muons before the veto
@@ -352,6 +338,25 @@ for jentry in xrange(nentries):
     if nMuons     > 0: continue
     nEventsOverLeptonVeto += 1
 
+
+    #-------------- n events in the sidebands -----------------------------
+    if (Hmass < 100. or Hmass > 170.): continue
+
+    #TIGHT SELECTION from BDT output -------------------------------------------------  
+    if isBDT:
+        BDT_out = myWF.get_BDT_output(firstTrkisoCh,MesonIso,MesonPt,photonEt,Hmass)
+        #histo_map["h_BDT_out"].Fill(BDT_out)
+
+        if debug: print "BDT value before selection = ", BDT_out
+        if BDT_out < BDT_OUT: #Cut on BDT output
+            if debug: print "BDT cut NOT passed"
+            continue
+
+    nEventsInHmassRange+=1
+
+    if samplename == 'Data':
+         if (CRflag == 0 and Hmass > 100. and Hmass < 115.) : nEventsLeftSB  += 1
+         if (CRflag == 0 and Hmass > 135. and Hmass < 170.) : nEventsRightSB += 1
 
     #FILL HISTOS --------------------------------------------------------------------------
     #if DATA -> Blind Analysis on H inv mass plot
@@ -376,7 +381,7 @@ for jentry in xrange(nentries):
     histo_map["h_secondTrk_Eta"].Fill(secondTrketa, eventWeight)   
     histo_map["h_firstTrk_Phi"].Fill(firstTrkphi, eventWeight)    
     histo_map["h_secondTrk_Phi"].Fill(secondTrkphi, eventWeight)   
-    histo_map["h_bestCoupleDeltaR"].Fill(deltaR, eventWeight)
+    histo_map["h_bestCoupleDeltaR"].Fill(deltaR/MesonMass, eventWeight)
     histo_map["h_bestJetEta"].Fill(jetEta, eventWeight)
     histo_map["h_couple_Iso"].Fill(MesonIso, eventWeight)
     histo_map["h_firstTrk_Iso"].Fill(firstTrkiso, eventWeight)
@@ -419,6 +424,7 @@ for jentry in xrange(nentries):
     _eventWeight[0]       = eventWeight
     _metPt[0]             = metPt
     _nJets[0]             = nJets
+    _dPhiGammaTrk[0]      = dPhiGammaTrk
     
     tree_output.Fill()
 
@@ -570,10 +576,11 @@ else: #Only if data
     print "nEventsPhoton             = ",nEventsPhoton," (n. events with a best photon found)"
     print "nEventsBestPair           = ",nEventsBestPair," (n. events with a best pair found)"
     print "nEventsMesonAnalysis      = ",nEventsMesonAnalysis," (split in PhiGamma or RhoGamma analysis)"
+    print "nEventsOverVBFOrt         = ",nEventsOverVBFOrt," (n. events over the VBF orthogonality: events with more than one jet are discarded)"
     print "nEventsAfterRegionDefiner = ",nEventsAfterRegionDefiner," (split in SR or CR of the ditrack inv mass)"
+    print "nEventsOverLeptonVeto     = ",nEventsOverLeptonVeto," (n. events without any electron or muon)"
     print "nEventsInHmassRange       = ",nEventsInHmassRange," (n. events in 100 < Hmass < 170 GeV)"
     print "nEventsMesonMassSR        = ",nEventsMesonMassSR," (Events in SR of MesonMass and in SBs of Hmass)"
-    print "nEventsOverLeptonVeto     = ",nEventsOverLeptonVeto," (n. events without any electron or muon)"
     print "---------------------------------------"
 
     c11 = ROOT.TCanvas()
@@ -596,17 +603,18 @@ print ""
 print "----------- SUMMARY -----------------------"
 if isBDT:
     print "BDT output used = ",BDT_OUT
-if samplename == "Signal":
+if not samplename == "Data":
     print "Signal MC sample (~ 2M events)"
 if isBDT:
     print "n. events after preselection = ",jentry
 print "n. events after cuts = " , nEventsOverCuts
-if not samplename == 'Signal' and CRflag == 0:
+
+if samplename == 'Data' and CRflag == 0:
     print "n. events in the left sideband counted = ",nEventsLeftSB
     print "n. events in the right sideband counted = ",nEventsRightSB 
     print "Total events in the sidebands = ", nEventsRightSB + nEventsLeftSB
 
-if samplename == "Signal":
+if not samplename == "Data":
     print "Signal weight sum   = ",float(weightSum)
     print "Total signal events = ",bin1content
     print "Signal efficiency   = ",nEventsOverCuts/bin1content

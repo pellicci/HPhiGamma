@@ -46,7 +46,7 @@ def BDT_output():
     channel_text = TPaveText(0.30,0.84,0.65,0.86,"NB,NDC")
 
 
-    channel_text.AddText("#rho#gamma channel")
+    channel_text.AddText("#phi#gamma channel")
     arrow_SR = TArrow(0.292,2.6,0.59,2.6,0.02,"<|>")#The starting point in x should be 0.285, but then the two arrows overlap
     arrow_CR = TArrow(0.216,2.6,0.285,2.6,0.02,"<|>")
     SR_text  = TPaveText(0.412,2.75,0.454,2.77,"NB")
@@ -102,7 +102,7 @@ def BDT_output():
     h_BDT_Train_bkg.SetMarkerStyle(21)
     h_BDT_Train_sig.Draw("SAME, lep")
     h_BDT_Train_bkg.Draw("SAME, lep")
-    h_BDT_sig.SetMaximum(4.5)
+    h_BDT_sig.SetMaximum(6.0)
     leg1.Draw("SAME")
     channel_text.Draw("SAME")
     #SR_text.Draw("SAME")

@@ -183,16 +183,17 @@ mass = ROOT.RooRealVar("mass","K^{+}K^{-} invariant mass",1.,1.05)
 #signal parametrization
 mean  = ROOT.RooRealVar("mean","The mean of the Crystal Ball",1.02,1.0,1.05)
 sigma = ROOT.RooRealVar("sigma","The width of the Crystal Ball",0.002,0.0001,0.1)
-alpha = ROOT.RooRealVar("alpha","The alpha of the Crystal Ball",1.2,-2.,2.)
-n     = ROOT.RooRealVar("n","The n of the Crystal Ball",4.,0.,10.)
+alpha = ROOT.RooRealVar("alpha","The alpha of the Crystal Ball",1.2,-5.,10.)
+n     = ROOT.RooRealVar("n","The n of the Crystal Ball",4.,0.,20.)
 signalPDF = ROOT.RooCBShape("signalPDF","The Crystall Ball",mass,mean,sigma,alpha,n)
 
 #Background parametrization: 
-a1 = ROOT.RooRealVar("a1","The a1 of background",0.3,-2.,2.)
+a1 = ROOT.RooRealVar("a1","The a1 of background",0.1,-0.3,0.3)
 a2 = ROOT.RooRealVar("a2","The a2 of background",0.3,-2.,2.)
-a3 = ROOT.RooRealVar("a3","The a3 of background",-0.03,-2.,2.)
+#a3 = ROOT.RooRealVar("a3","The a3 of background",-0.03,-2.,2.)
 #a4 = ROOT.RooRealVar("a4","The a4 of background",-0.03,-2.,2.)
-backgroundPDF = ROOT.RooChebychev("backgroundPDF","The background PDF",mass,ROOT.RooArgList(a1,a2,a3))
+backgroundPDF = ROOT.RooChebychev("backgroundPDF","The background PDF",mass,ROOT.RooArgList(a1,a2))
+
 
 #FIT TO THE OFFLINE SELECTION ---------------------------------------------------------------------------------------------------------
 #Define the yields
@@ -296,7 +297,8 @@ leg1.AddEntry(histo_map["h_MesonMass"],"Data","elp")
 leg1.AddEntry("totPDFOffline","Fit","l")
 leg1.AddEntry("backgroundPDF","Bkg only fit","l")
 leg1.AddEntry(cut_chi2,"#chi^{2}/ndof = " + cut_chi2,"brNDC")
-leg1.AddEntry(NsigOffline,"N_{sig} = "+str(round(NsigOffline.getValV(),1))+" #pm "+str(round(NsigOffline.getError(),1)),"brNDC")
+NsigOfflineError = math.sqrt(NsigOffline.getValV())
+leg1.AddEntry(NsigOffline,"N_{sig} = "+str(round(NsigOffline.getValV(),1))+" #pm "+str(round(NsigOfflineError,1)),"brNDC")
 leg1.Draw()
 
 leg2 = ROOT.TLegend(0.12,0.65,0.44,0.84) #left positioning
@@ -323,7 +325,7 @@ canvasOffline.SaveAs("/eos/user/g/gumoret/www/latest_production/trigger_efficien
 #Print fit results ---------------------
 NsigOffline.Print()
 denominator = NsigOffline.getValV()
-denError    = NsigOffline.getError()
+denError    = math.sqrt(denominator)
 print "NsigOffline = ",denominator
 print "error = ",denError
 
@@ -336,16 +338,16 @@ mass = ROOT.RooRealVar("mass","K^{+}K^{-} invariant mass",1.,1.05)
 #signal parametrization
 mean  = ROOT.RooRealVar("mean","The mean of the Crystal Ball",1.02,1.0,1.05)
 sigma = ROOT.RooRealVar("sigma","The width of the Crystal Ball",0.002,0.0001,0.1)
-alpha = ROOT.RooRealVar("alpha","The alpha of the Crystal Ball",1.2,-2.,2.)
-n     = ROOT.RooRealVar("n","The n of the Crystal Ball",4.,0.,10.)
+alpha = ROOT.RooRealVar("alpha","The alpha of the Crystal Ball",1.2,-5.,10.)
+n     = ROOT.RooRealVar("n","The n of the Crystal Ball",4.,0.,20.)
 signalPDF = ROOT.RooCBShape("signalPDF","The Crystall Ball",mass,mean,sigma,alpha,n)
 
 #Background parametrization: 
-a1 = ROOT.RooRealVar("a1","The a1 of background",0.3,-2.,2.)
+a1 = ROOT.RooRealVar("a1","The a1 of background",0.1,-0.3,0.3)
 a2 = ROOT.RooRealVar("a2","The a2 of background",0.3,-2.,2.)
-a3 = ROOT.RooRealVar("a3","The a3 of background",-0.03,-2.,2.)
+#a3 = ROOT.RooRealVar("a3","The a3 of background",-0.03,-2.,2.)
 #a4 = ROOT.RooRealVar("a4","The a4 of background",-0.03,-2.,2.)
-backgroundPDF = ROOT.RooChebychev("backgroundPDF","The background PDF",mass,ROOT.RooArgList(a1,a2,a3))
+backgroundPDF = ROOT.RooChebychev("backgroundPDF","The background PDF",mass,ROOT.RooArgList(a1,a2))
 
 NsigTriggered = ROOT.RooRealVar("Nsig","The Phi signal events",300.,0.,1000.)
 NbkgTriggered = ROOT.RooRealVar("Nbkg","The bkg events",1500.,0.,10000.)
@@ -442,7 +444,8 @@ leg1.AddEntry(histo_map["h_MesonMass"],"Data","elp")
 leg1.AddEntry("totPDFTriggered","Fit","l")
 leg1.AddEntry("backgroundPDF","Bkg only fit","l")
 leg1.AddEntry(cut_chi2,"#chi^{2}/ndof = " + cut_chi2,"brNDC")
-leg1.AddEntry(NsigTriggered,"N_{sig} = "+str(round(NsigTriggered.getValV(),1))+" #pm "+str(round(NsigTriggered.getError(),1)),"brNDC")
+NsigTriggeredError = math.sqrt(NsigTriggered.getValV())
+leg1.AddEntry(NsigTriggered,"N_{sig} = "+str(round(NsigTriggered.getValV(),1))+" #pm "+str(round(NsigTriggeredError,1)),"brNDC")
 leg1.Draw()
 
 leg2 = ROOT.TLegend(0.12,0.65,0.44,0.84) #left positioning
@@ -468,7 +471,7 @@ canvasTriggered.SaveAs("/eos/user/g/gumoret/www/latest_production/trigger_effici
 NsigTriggered.Print()
 
 numerator = NsigTriggered.getValV()
-numError  = NsigTriggered.getError()
+numError  = math.sqrt(numerator)
 print "NsigTriggered = ",numerator
 print "error = ",numError
 
@@ -488,29 +491,6 @@ triggerFraction = float(nEventsTwoProngsTriggered)/float(nEventsOfflineTwoProngs
 histo_map["h_triggerEff_TwoProngsPt"].Divide(histo_map["h_nTwoProngsOffline_pT"]) #divide it by the denominator
 #histo_map["h_triggerEff_TwoProngsPt"].Scale(100.) #multiply for the percentage
 
-
-#CALCULATE EFFICIENCY ERRORS ########################################################
-print "##########################################"
-for bin_index in range(1,10):
-    
-    N = histo_map["h_nTwoProngsOffline_pT"].GetBinContent(bin_index)
-    epsilon = histo_map["h_triggerEff_TwoProngsPt"].GetBinContent(bin_index)
-    if N == 0 : 
-        error = 0
-    else: 
-        error = math.sqrt(epsilon * (1 - epsilon) * (1/N))
-    
-    print "For bin ",bin_index,": N = ",N,", eff = ",epsilon, " and efficiency error = ",error
-
-    histo_map["h_triggerEff_TwoProngsPt"].SetBinError(bin_index,error)
-print "##########################################"
-
-if debug:
-    print "########################################"
-    print "nEventsTwoProngsTriggered = ",nEventsTwoProngsTriggered
-    print "nEventsOfflineTwoProngs = ",nEventsOfflineTwoProngs
-    print "Trigger fraction = ",triggerFraction
-    print "########################################"
 
 #HISTO LABELS #####################################################################################################################
 histo_map["h_mass_mumu"].GetXaxis().SetTitle("m_{#mu^{+}#mu^{-}} [GeV]")
@@ -625,12 +605,17 @@ triggerEff = float(numerator/denominator)
 print "number of bins = ",len(binList)-1
 print "binIndex = ",binIndex
 print "triggerEff = ",triggerEff
-
-if triggerEff > 1.: 
-    triggerEff = 1.
-    print "Trigger efficinecy set to 100 %"
+print "denominator = ",denominator
 
 h_trigger_efficiency.SetBinContent(binIndex+1,triggerEff)
+error = math.sqrt(triggerEff * abs(1 - triggerEff) * (1/denominator))
+h_trigger_efficiency.SetBinError(binIndex+1,error)
+
+h_trigger_efficiency.Print()
+print "error = ",error
+print "get error = ",h_trigger_efficiency.GetBinError(binIndex+1)
+print "get content = ",h_trigger_efficiency.GetBinContent(binIndex+1)
+
 
 h_trigger_efficiency.Write(h_trigger_efficiency.GetName(),ROOT.TObject.kOverwrite)
 
@@ -644,7 +629,7 @@ h_trigger_efficiency.GetXaxis().SetLabelSize(0.035)
 h_trigger_efficiency.GetYaxis().SetLabelSize(0.035)
 triggerEffCanvas.SetRightMargin(0.05)
 ROOT.gStyle.SetPaintTextFormat("4.2f")
-h_trigger_efficiency.Draw("HIST TEXT0")
+h_trigger_efficiency.Draw("")
 CMS_lumi.CMS_lumi(triggerEffCanvas, iPeriod, iPos) #Print integrated lumi and energy information
 triggerEffCanvas.SaveAs("/eos/user/g/gumoret/www/latest_production/trigger_efficiency_TwoProngs_latest_production/h_triggerEff_TwoProngsPt_"+SAMPLE_NAME+".pdf")
 triggerEffCanvas.SaveAs("/eos/user/g/gumoret/www/latest_production/trigger_efficiency_TwoProngs_latest_production/h_triggerEff_TwoProngsPt_"+SAMPLE_NAME+".png") 

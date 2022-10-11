@@ -15,7 +15,10 @@ secs_table = dict()
 #secs_table["Wlnu"]                = 52850.0
 
 #Signal
-secs_table["Signal"]               = 46.87*10**(-5) #cross section * B.R.(10^-5)
+secs_table["Signal_Phi_ggH"]       = 46.87*10**(-5) #cross section * B.R.(10^-5)
+secs_table["Signal_Rho_ggH"        = 46.87*10**(-5) #cross section * B.R.(10^-5)
+secs_table["Signal_Phi_VBF"]       =  3.78*10**(-5)
+secs_table["Signal_Rho_VBF"]       =  3.78*10**(-5)
 
 #ttbar
 #secs_table["ttbarToSemiLeptonic"] = 687.1 #OLD = 365.34 # accounting for the 2 possible charge signs of the W
@@ -31,19 +34,23 @@ secs_table["WW"]                  = 0. #No xsec on DAS #OLD = 12.178
 secs_table["WZ"]                  = 27.59 #OLD = 27.6
 """
 #GammaJets
-secs_table["GammaJetsHT100to200"] =    5034.0  #UL
-secs_table["GammaJetsHT200to400"] =    1128.0  #UL
-secs_table["GammaJetsHT400to600"] =     124.8  #UL to check
-secs_table["GammaJetsHT600toInf"] =      40.72 #UL
-"""
-#QCD
-secs_table["QCDpT30to50"]         = 6447000.0 #UL 
-secs_table["QCDpT50to80"]         = 1988000.0 #UL  
-secs_table["QCDpT80to120"]        =  367500.0 #UL
-secs_table["QCDpT120to170"]       =   66590.0 #UL
-secs_table["QCDpT170to300"]       =   16620.0 #UL 
-secs_table["QCDpT300toInf"]       =    1104.0 #UL
+secs_table["GammaJetsHT40to100"]  =    18700.0  * 1.26 #UL   
+secs_table["GammaJetsHT100to200"] =     5034.0  * 1.26 #UL
+secs_table["GammaJetsHT200to400"] =     1128.0  * 1.26 #UL
+secs_table["GammaJetsHT400to600"] =      124.8  * 1.26 #UL to check
+secs_table["GammaJetsHT600toInf"] =       40.72 * 1.26 #UL
 
+#QCD
+secs_table["QCDpT15to20"]         =   66590.0 * 1.26 #UL 
+secs_table["QCDpT20to30"]         = 1324000.0 * 1.26 #UL 
+secs_table["QCDpT30to50"]         = 6447000.0 * 1.26 #UL 
+secs_table["QCDpT50to80"]         = 1988000.0 * 1.26 #UL  
+secs_table["QCDpT80to120"]        =  367500.0 * 1.26 #UL
+secs_table["QCDpT120to170"]       =   66590.0 * 1.26 #UL
+secs_table["QCDpT170to300"]       =   16620.0 * 1.26 #UL 
+secs_table["QCDpT300toInf"]       =    1104.0 * 1.26 #UL
+
+"""
 #W jets
 secs_table["WJetsToLNu0J"]        = 53330.0 #OLD = 50131.98
 secs_table["WJetsToLNu1J"]        =  8875.0 #OLD = 8426.09
@@ -65,7 +72,10 @@ frac_table = dict()
 #frac_table["Wlnu"]                = 0.0003866
 
 #Signal
-frac_table["Signal"]              = 0.
+frac_table["Signal_Phi_ggH"]       = 0.
+frac_table["Signal_Rho_ggH"]       = 0.
+frac_table["Signal_Phi_VBF"]       = 0.
+frac_table["Signal_Rho_VBF"]       = 0.
 """
 #ttbar
 frac_table["ttbarToSemiLeptonic"] = 0.003957 #OLD = 0.
@@ -79,16 +89,19 @@ frac_table["DY10to50"]            = 0.     #OLD = 0.1367
 #Bosons
 frac_table["WW"]                  = 0. #No negative fraction on DAS #OLD = 0.001755
 frac_table["WZ"]                  = 0. #UL
-
+"""
 #QCD
+frac_table["QCDpT15to20"]         = 0. #UL
+frac_table["QCDpT20to30"]         = 0. #UL
 frac_table["QCDpT30to50"]         = 0. #UL
 frac_table["QCDpT50to80"]         = 0. #UL
 frac_table["QCDpT80to120"]        = 0. #UL
 frac_table["QCDpT120to170"]       = 0. #UL
 frac_table["QCDpT170to300"]       = 0. #UL
 frac_table["QCDpT300toInf"]       = 0. #UL
-"""
+
 #GammaJets
+frac_table["GammaJetsHT40to100"]  = 9.997e-06 #UL
 frac_table["GammaJetsHT100to200"] = 6.985e-05 #UL
 frac_table["GammaJetsHT200to400"] = 0.0003769 #UL
 frac_table["GammaJetsHT400to600"] = 0.0008598 #UL to check

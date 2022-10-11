@@ -19,7 +19,7 @@ print "#############################"
 print "is Phi = ",isPhi
 print "#############################"
 
-inputnames = ["Signal","Data","SidebandsNorm"]
+inputnames = ["Data","SignalggH","SignalVBF","SidebandsNorm"]
 
 list_inputfiles = []
 for filename in sys.argv[4:]:
@@ -33,15 +33,17 @@ CMS_lumi.lumiTextSize = 0.9
 CMS_lumi.cmsTextSize = 1.5
 CMS_lumi.lumi_13TeV = "39.54 fb^{-1}"
 
-hstack  = dict()
-hsignal = dict()
-hdata   = dict()
-canvas  = dict()
+hstack     = dict()
+#hsignal    = dict()
+hsignalggH = dict()
+hsignalVBF = dict()
+hdata      = dict()
+canvas     = dict()
 histo_container = [] #just for memory management
 
 #Get the list of histograms
 list_histos = []
-signalfile = ROOT.TFile("histos/latest_production/histos_SR_Signal.root")
+signalfile = ROOT.TFile("histos/latest_production/histos_SR_SignalggH.root")
 keylist = signalfile.GetListOfKeys()
 key = ROOT.TKey()
 for key in keylist :
@@ -64,6 +66,9 @@ if isPhi:
 else:
     colors_mask["SidebandsNorm"]      = ROOT.kRed-7
     decayChannel = "#rho#gamma "
+
+colors_mask["GammaJets"] = ROOT.kOrange
+colors_mask["QCD"]       = ROOT.kRed
 
 
 
@@ -93,6 +98,7 @@ for filename in list_inputfiles:
     fileIn = ROOT.TFile(filename)
 
     sample_name = (filename.split("_")[3])[:-5] 
+    print "=============== ", sample_name
     for histo_name in list_histos:
         histo = fileIn.Get(histo_name)
 
@@ -106,22 +112,35 @@ for filename in list_inputfiles:
 
         histo_container.append(copy.copy(histo))
         
-        if not histo_name == "h_nMuons" and not histo_name == "h_nPhotons" and not histo_name == "h_nJets_25" and not histo_name == "h_nElectrons" and not histo_name == "h_photonWP90" and not histo_name == "h_meson_InvMass_TwoTrk":
-            print histo_name
+        if not histo_name == "h_nMuons" and not histo_name == "h_nPhotons" and not histo_name == "h_nJets_25" and not histo_name == "h_nElectrons" and not histo_name == "h_photonWP90":
             if isTightSelection and not (histo_name == "h_firstTrk_Iso" or histo_name == "h_firstTrk_Iso_ch" or histo_name == "h_firstTrk_Iso_neutral" or histo_name == "h_secondTrk_Iso" or histo_name == "h_secondTrk_Iso_ch" or histo_name == "h_couple_AbsIsoCh" or histo_name == "h_couple_Iso" or histo_name == "h_couple_Iso_ch"):
                 histo_container[-1].Rebin(10)
+            elif histo_name == "h_InvMass_TwoTrk_Photon":
+                histo_container[-1].Rebin(5)
+                #hsignalVBF[histo_name].Rebin(1/5)
+                #hsignalggH[histo_name].Rebin(1/5)
+
             else:
                 histo_container[-1].Rebin(5)
 
-        if "Signal" in sample_name:
-            histo_container[-1].SetLineStyle(2)   #dashed
-            histo_container[-1].SetLineColor(4)   #blue, 2 for red
+        #if sample_name == "Signal":
+         #   histo_container[-1].SetLineStyle(1)   
+          #  histo_container[-1].SetLineColor(1)   #4 for blue, 2 for red
+          #  histo_container[-1].SetLineWidth(4)   #kind of thick
+          #  hsignal[histo_name] = histo_container[-1]
+        if sample_name == "SignalggH":
+            histo_container[-1].SetLineStyle(1)   
+            histo_container[-1].SetLineColor(4)   #4 for blue, 2 for red
             histo_container[-1].SetLineWidth(4)   #kind of thick
-            hsignal[histo_name] = histo_container[-1]
+            hsignalggH[histo_name] = histo_container[-1]
+        elif sample_name == "SignalVBF":
+            histo_container[-1].SetLineStyle(1)   
+            histo_container[-1].SetLineColor(8)   #4 for blue, 2 for red
+            histo_container[-1].SetLineWidth(4)   #kind of thick
+            hsignalVBF[histo_name] = histo_container[-1]
         elif "Data" in sample_name:
             histo_container[-1].SetMarkerStyle(20)   #point
             histo_container[-1].SetBinErrorOption(ROOT.TH1.kPoisson)
-
             hdata[histo_name] = histo_container[-1]
         else:
             histo_container[-1].SetFillColor(colors_mask[sample_name])
@@ -134,15 +153,20 @@ for filename in list_inputfiles:
 
 
         if histo_name == "h_InvMass_TwoTrk_Photon" : #Add the legend only once (InvMass_TwoTrk_Photon is just a random variable)
-
-            if not sample_name == "Data" and not sample_name == "Signal":
-                leg1.AddEntry(histo_container[-1],sample_name,"f")
+            
+            if not sample_name == "Data" and not sample_name == "Signal" and not sample_name == "SignalVBF" and not sample_name == "SignalggH":
+                leg1.AddEntry(histo_container[-1],"bkg estimation","f")
             elif sample_name == "Data":
                 leg1.AddEntry(histo_container[-1],sample_name,"ep")
+            elif sample_name == "SignalggH":
+                leg1.AddEntry(histo_container[-1],decayChannel + "ggH" ,"f")
+            elif sample_name == "SignalVBF":
+                leg1.AddEntry(histo_container[-1],decayChannel + "VBF" ,"f")
             elif sample_name == "Signal":
-                leg1.AddEntry(histo_container[-1],decayChannel + sample_name + " x " + str(signal_magnify),"f")
-
+                leg1.AddEntry(histo_container[-1],decayChannel + "ggH + VBF","f")
+   
     fileIn.Close()
+
 
 for histo_name in list_histos:
 
@@ -171,7 +195,9 @@ for histo_name in list_histos:
 
     hstack[histo_name].SetTitle("")
     hdata[histo_name].SetTitle("")
-    hsignal[histo_name].SetTitle("")
+    #hsignal[histo_name].SetTitle("")
+    hsignalggH[histo_name].SetTitle("")
+    hsignalVBF[histo_name].SetTitle("")
 
 
     if not plotOnlyData :
@@ -273,7 +299,7 @@ for histo_name in list_histos:
             if isTightSelection: hstack[histo_name].GetXaxis().SetLimits(0.7,1.)
 
         if histo_name == "h_bestCoupleDeltaR" :
-            hstack[histo_name].GetXaxis().SetTitle("#DeltaR_{ditrk}")
+            hstack[histo_name].GetXaxis().SetTitle("#DeltaR_{ditrk}/m_{ditrk}")
 
         if histo_name == "h_nPhotons" :
             hstack[histo_name].GetXaxis().SetTitle("n.#gamma")
@@ -323,13 +349,18 @@ for histo_name in list_histos:
                 hstack[histo_name].GetXaxis().SetLimits(0.5,1.)
                 hstack[histo_name].GetXaxis().SetTitle("m_{#pi#pi} [GeV]")
 
-
     if signal_magnify != 1:
-        hsignal[histo_name].Scale(signal_magnify)   
-  
+        #hsignal[histo_name].Scale(signal_magnify)   
+        hsignalggH[histo_name].Scale(signal_magnify)   
+        hsignalVBF[histo_name].Scale(signal_magnify)   
+        if histo_name == "h_InvMass_TwoTrk_Photon":
+            hsignalVBF[histo_name].Rebin(1/5) #do this to have more granularity in the signal curve
+            hsignalggH[histo_name].Rebin(1/5)
 
     hdata[histo_name].Draw("SAME,E1,X0")
-    hsignal[histo_name].Draw("SAME,hist")
+    #hsignal[histo_name].Draw("SAME,hist")
+    hsignalggH[histo_name].Draw("SAME,hist")
+    hsignalVBF[histo_name].Draw("SAME,hist")
 
     hMCErr = copy.deepcopy(hstack[histo_name].GetStack().Last())
     hMCErr_size = hMCErr.GetSize() - 2
@@ -385,7 +416,7 @@ for histo_name in list_histos:
         totalData.GetYaxis().SetTitle("Data/Bkg")
         totalData.GetYaxis().SetTitleSize(0.16)
         totalData.GetYaxis().SetTitleOffset(0.3)
-        totalData.GetYaxis().SetRangeUser(0.,2.)
+        totalData.GetYaxis().SetRangeUser(0.5,1.5)
         totalData.GetYaxis().SetNdivisions(502,ROOT.kFALSE)
         totalData.GetXaxis().SetLabelSize(0.10)
         totalData.GetXaxis().SetTitleSize(0.12)

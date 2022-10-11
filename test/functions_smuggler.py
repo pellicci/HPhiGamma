@@ -13,10 +13,11 @@ from array import array
 
 trk1isoCh_array  = array('f', [0.])
 pairIso_array    = array('f', [0.])
-mesoinPt_array   = array('f', [0.])
+mesonPt_array    = array('f', [0.])
 photonEt_array   = array('f', [0.])
-metPt_array      = array('f', [0.])
-bestJetPt_array  = array('f', [0.])
+#metPt_array      = array('f', [0.])
+#bestJetPt_array  = array('f', [0.])
+#dPhiGammaTrk_array = array('f', [0.])
 
 reader = ROOT.TMVA.Reader("!Color")
 
@@ -51,24 +52,26 @@ class Simplified_Workflow_Handler:
 
         reader.AddVariable("_firstTrkIsoCh",trk1isoCh_array)
         reader.AddVariable("_coupleIso",pairIso_array)
-        reader.AddVariable("_bestCouplePt/mesonGammaMass",mesoinPt_array)
+        reader.AddVariable("_bestCouplePt/mesonGammaMass",mesonPt_array)
         reader.AddVariable("_photonEt/mesonGammaMass",photonEt_array)
-        reader.AddVariable("_metPt",metPt_array)
-        reader.AddVariable("_bestJetPt/mesonGammaMass",bestJetPt_array)
+        #reader.AddVariable("_metPt",metPt_array)
+        #reader.AddVariable("_bestJetPt/mesonGammaMass",bestJetPt_array)
+        #reader.AddVariable("_dPhiGammaTrk",dPhiGammaTrk_array)
 
         if isBDT:
             reader.BookMVA("BDT","MVA/default/weights/TMVAClassification_BDT.weights.xml")
 
     #Get BDT output function ###########################################################################################################
 
-    def get_BDT_output(self,trk1isoCh,pairIso,mesonPt,photonEt,metPt,bestJetPt,mesonGammaMass):
+    def get_BDT_output(self,trk1isoCh,pairIso,mesonPt,photonEt,mesonGammaMass):
 
         trk1isoCh_array[0] = trk1isoCh
         pairIso_array[0]   = pairIso
-        mesoinPt_array[0]  = mesonPt/mesonGammaMass
+        mesonPt_array[0]   = mesonPt/mesonGammaMass
         photonEt_array[0]  = photonEt/mesonGammaMass
-        metPt_array[0]     = metPt
-        bestJetPt_array[0] = bestJetPt/mesonGammaMass
+        #metPt_array[0]     = metPt
+        #bestJetPt_array[0] = bestJetPt/mesonGammaMass
+        #dPhiGammaTrk_array[0] = dPhiGammaTrk
 
         return reader.EvaluateMVA("BDT")
 

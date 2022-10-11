@@ -5,7 +5,7 @@ import argparse
 #INPUT FILES
 fIn_bkg  = ROOT.TFile("../histos/latest_production/histos_CR_Sidebands.root")
 tree_bkg = fIn_bkg.Get("tree_output")
-fIn_sig  = ROOT.TFile("../histos/latest_production/histos_SR_Signal.root")
+fIn_sig  = ROOT.TFile("../histos/latest_production/histos_SR_SignalggH.root")
 tree_sig = fIn_sig.Get("tree_output")
 
 #OUTPUT FILE
@@ -32,10 +32,12 @@ dataloader.AddVariable("_firstTrkIsoCh","F")
 dataloader.AddVariable("_coupleIso","F")
 dataloader.AddVariable("_bestCouplePt/mesonGammaMass","F")
 dataloader.AddVariable("_photonEt/mesonGammaMass","F")
-dataloader.AddVariable("_metPt","F")
+#dataloader.AddVariable("_metPt","F")
 #dataloader.AddVariable("_nJets","F")
-dataloader.AddVariable("_bestJetPt/mesonGammaMass","F")
-#dataloader.AddVariable("_secondTrkIsoCh","F")
+#dataloader.AddVariable("_bestJetPt/mesonGammaMass","F")
+#dataloader.AddVariable("_bestCoupleDeltaR","F")
+#dataloader.AddVariable("_dPhiGammaTrk","F")
+#dataloader.AddVariable("_secondTrkIso","F")
 
 
 ##-------------------------------------------------------------------------------------------------------

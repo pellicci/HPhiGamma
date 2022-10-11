@@ -364,7 +364,7 @@ for(auto el = slimmedElectrons->begin(); el != slimmedElectrons->end(); ++el){
     if(el_iso > 0.35) continue;
 
     //-------------Conditions on loose/medium MVA electron ID-------------//
-    if(el->electronID("mvaEleID-Fall17-iso-V1-wp90") == 0) continue;
+    if(el->electronID("mvaEleID-Fall17-iso-V1-wp80") == 0) continue;
     nElectrons++;
   }
 
@@ -416,7 +416,7 @@ for(auto el = slimmedElectrons->begin(); el != slimmedElectrons->end(); ++el){
     if(!photon->passElectronVeto()) continue; 
 
     if (debug) cout<<"Photon WP90 before selection = "<<photon->photonID("mvaPhoID-RunIIFall17-v1p1-wp90")<<endl; //FIXME
-    if(photon->photonID("mvaPhoID-RunIIFall17-v1p1-wp90") == 0) continue; //WP90
+    if(photon->photonID("mvaPhoID-RunIIFall17-v1p1-wp80") == 0) continue; //WP80
     if (debug) cout<<"Photon WP90 after selection = "<<photon->photonID("mvaPhoID-RunIIFall17-v1p1-wp90")<<endl; //FIXME
 
     float abseta = fabs(photon->superCluster()->eta());
@@ -556,7 +556,7 @@ if(verbose) cout<< "JETs loop"<<" --------------------------------"<<endl;
 
     //----------------------------- Pre-Filters --------------------------------------------------------
     if(verbose) cout<<"Analyzing Jet with pT = "<<jet->pt()<<endl;
-    if(jet->pt() < 40. || abs(jet->eta()) > 2.5) continue;
+    if(jet->pt() < 40. || abs(jet->eta()) > 4.7) continue;
     if(verbose) cout<<"   Ok, this jet has _Jet_Photon_invMass = "<<_Jet_Photon_invMass<<endl;
     if(_Jet_Photon_invMass < 100.) continue; //reject jets with inv mass lower then 100 GeV
     if(jet->neutralHadronEnergyFraction() > 0.9) continue; //reject if neutralhadron-energy fraction is > 0.9
@@ -696,6 +696,10 @@ if(verbose) cout<< "JETs loop"<<" --------------------------------"<<endl;
             if(verbose) cout<<"This pair doesn't pass!"<<endl<<"-------------------------"<<endl;
             continue; //choose the couple with greatest pt
           }
+
+          //If passed, this is the pair with the largest pT of the event so far
+          bestCoupleOfTheJet_pT = couple_p4_K.pt();       
+
           
           //PHI INV MASS - FILTER
           isPhi = false;
@@ -717,7 +721,6 @@ if(verbose) cout<< "JETs loop"<<" --------------------------------"<<endl;
           }
 
           if(verbose) cout<<"This is the best pair so far!"<<endl<<"-------------------------"<<endl;
-          bestCoupleOfTheJet_pT = couple_p4_K.pt();       
           isBestCoupleOfTheEvent_Found = true;
 
           //Save if best pair has been found
@@ -815,7 +818,7 @@ for(auto cand_iso = PFCandidates->begin(); cand_iso != PFCandidates->end(); ++ca
 
   float deltaR_K1 = sqrt((_firstCandEta-cand_iso->eta())*(_firstCandEta-cand_iso->eta()) + deltaPhi_K1*deltaPhi_K1);
   if (verbose) cout << "deltaR_K1 = "<<deltaR_K1<<endl;
-  if(deltaR_K1 < 0.002) continue;
+  if(deltaR_K1 < 0.0005) continue;
 
   //calculate the deltaR between the track and the second candidate ---------------------------------------
   float deltaPhi_K2 = fabs(_secondCandPhi-cand_iso->phi());  //phi folding	
@@ -823,7 +826,7 @@ for(auto cand_iso = PFCandidates->begin(); cand_iso != PFCandidates->end(); ++ca
 
   float deltaR_K2 = sqrt((_secondCandEta-cand_iso->eta())*(_secondCandEta-cand_iso->eta()) + deltaPhi_K2*deltaPhi_K2);
   if (verbose) cout << "deltaR_K2 = "<<deltaR_K2<<endl;
-  if(deltaR_K2 < 0.002) continue;
+  if(deltaR_K2 < 0.0005) continue;
 
   //calculate the deltaR between the track and the best pair ---------------------------------------
   float deltaPhi_Couple = fabs(_bestCouplePhi-cand_iso->phi());  //phi folding	
@@ -888,7 +891,7 @@ _iso_K2_ch     = _secondCandPt/(K2_sum_pT_05_ch + _secondCandPt);
 _iso_couple_ch = _bestCouplePt/(couple_sum_pT_05_ch + _bestCouplePt);
 
 //CUT ON PHI ISOLATION
-//if(verbose){
+if(verbose){
   cout<<endl;
   cout<<"###### ISO           = "<<_iso_couple_ch<<endl;
   cout<<"###### isRho         = "<<isRho<<endl;
@@ -897,7 +900,7 @@ _iso_couple_ch = _bestCouplePt/(couple_sum_pT_05_ch + _bestCouplePt);
   cout<<"###### pT subleading = "<<_secondCandPt<<endl;
   cout<<"###### MesonMass     = "<<_MesonMass<<endl;
   cout<<"###### HMass         = "<<_Hmass_From2K_Photon<<endl;
-//}
+}
 
 if(_iso_couple_ch < 0.9) {
   cout<<"No isolation cut passed, RETURN."<<endl;
@@ -927,6 +930,7 @@ if(!runningOnData_) //ONLY FOR MC START
     //some prints
     
     if(verbose){
+      cout<<"n Jets = "<<nJets_25<<endl;
       cout<<"Jet + photon inv. mass = "<<_bestJet_Photon_invMass<<endl;
       cout<<"n. of daughters: "<<_bestJet_nDaughters<<endl;
       cout<<"Best couple pT = "<<_firstCandPt + _secondCandPt<<endl;
