@@ -22,7 +22,7 @@ photonEt_array   = array('f', [0.])
 reader = ROOT.TMVA.Reader("!Color")
 
 #MCfromDATA correction for photons ###############################################################################
-ph_ID_scale_name_2018  = "scale_factors/egammaEffi.txt_EGM2D_Pho_wp90.root_UL18.root"
+ph_ID_scale_name_2018  = "scale_factors/egammaEffi.txt_EGM2D_Pho_wp80.root_UL18.root"
 ph_ID_scale_file_2018  = ROOT.TFile(ph_ID_scale_name_2018)
 ph_ID_scale_histo_2018 = ROOT.TH2F()
 ph_ID_scale_histo_2018 = ph_ID_scale_file_2018.Get("EGamma_SF2D")

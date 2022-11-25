@@ -32,6 +32,12 @@ output_filename = args.outputfile_option
 mytree = fInput.Get("HPhiGammaAnalysis/mytree")
 h_Events = fInput.Get("HPhiGammaAnalysis/h_Events")
 
+#Trigger eff scale factors
+fInput_TwoProngsTriggerSF = ROOT.TFile("scale_factors/TwoProngsTriggerSF.root") 
+fInput_PhotonTriggerSF    = ROOT.TFile("scale_factors/PhotonTriggerSF.root") 
+h_TwoProngsTriggerSF = fInput_TwoProngsTriggerSF.Get("h_trigger_efficiency")
+h_PhotonTriggerSF    = fInput_PhotonTriggerSF.Get("h_triggerEff_eT")
+
 #Bools ######################################################################################################
 print "################################################################################"
 
@@ -60,7 +66,7 @@ else :
 
 if args.isBDT_option == "BDT":
     isBDT = True
-    BDT_OUT = 0.260657621497 #take this number running MVA/BDT_significance.py: this is the BDT output value which maximizes the significance
+    BDT_OUT = 0.226302968711 #take this number running MVA/BDT_significance.py: this is the BDT output value which maximizes the significance
 print "BDT = ",isBDT
 
 print "-----------------------------------------------"
@@ -307,22 +313,40 @@ for jentry in xrange(nentries):
     if not samplename == "Data":
         
         PUWeight               = mytree.PU_Weight
-        weight_sign            = mytree.MC_Weight/abs(mytree.MC_Weight)
+        weight_sign            = mytree.MC_Weight/abs(mytree.MC_Weight) #just take the sign of the MC gen weight
         photonSF, photonSF_err = myWF.get_photon_scale(mytree.photon_eT,mytree.photon_eta)
 #        photonSF              += photonSF_err
-        eventWeight            = weight_sign * luminosity * normalization_weight * PUWeight * photonSF
         
+        #Trigger eff scale factors
+        if photonEt < 80.:
+            PhotonTriggerSF        = h_PhotonTriggerSF.GetBinContent(h_PhotonTriggerSF.GetXaxis().FindBin(photonEt))
+            PhotonTriggerSF_err    = h_PhotonTriggerSF.GetBinError(h_PhotonTriggerSF.GetXaxis().FindBin(photonEt))
+        else: PhotonTriggerSF,PhotonTriggerSF_err = h_PhotonTriggerSF.GetBinContent(9),h_PhotonTriggerSF.GetBinError(9)
+        
+        #PhotonTriggerSF -= PhotonTriggerSF_err     
+
+        TwoProngsTriggerSF     = h_TwoProngsTriggerSF.GetBinContent(h_TwoProngsTriggerSF.GetXaxis().FindBin(MesonPt))
+        TwoProngsTriggerSF_err = h_TwoProngsTriggerSF.GetBinError(h_TwoProngsTriggerSF.GetXaxis().FindBin(MesonPt))
+        
+        eventWeight = weight_sign * luminosity * normalization_weight * PUWeight * photonSF * PhotonTriggerSF * TwoProngsTriggerSF
+
+
         if debug:
             print "EVENT WEIGHT"
             print "--------------------------------------"
-            print "luminosity            = ",luminosity
-            print "normalization_weight  = ",normalization_weight
-            print "mytree.MC_Weight      = ",mytree.MC_Weight
-            print "weight sign           = ",weight_sign
-            print "PUWeight              = ",PUWeight
-            print "photonSF              = ",photonSF
-    #        print "photonSF_err          = ",photonSF_err
-            print "eventWeight           = ",eventWeight
+            print "luminosity             = ",luminosity
+            print "normalization_weight   = ",normalization_weight
+            print "mytree.MC_Weight       = ",mytree.MC_Weight, " (this is not considered)"
+            print "weight sign            = ",weight_sign
+            print "PUWeight               = ",PUWeight
+            print "photonSF               = ",photonSF
+            print "photonSF_err          = ",photonSF_err
+            print "TwoProngsTriggerSF     = ",TwoProngsTriggerSF
+            print "TwoProngsTriggerSF_err = ",TwoProngsTriggerSF_err
+    #        print "Photon Et              = ", photonEt
+            print "PhotonTriggerSF        = ",PhotonTriggerSF
+    #        print "PhotonTriggerSF_err    = ",PhotonTriggerSF_err
+            print "Final eventWeight **** = ",eventWeight
             print ""
 
     #normalization for DATA 
@@ -616,6 +640,7 @@ if samplename == 'Data' and CRflag == 0:
 
 if not samplename == "Data":
     print "Signal weight sum   = ",float(weightSum)
+    print "Signal integral     = ",histo_map["h_InvMass_TwoTrk_Photon"].Integral()
     print "Total signal events = ",bin1content
     print "Signal efficiency   = ",nEventsOverCuts/bin1content
 print "-------------------------------------------"
