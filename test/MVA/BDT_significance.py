@@ -4,8 +4,12 @@ import numpy as np
 import argparse
 
 #Supress the opening of many Canvas's
-ROOT.gROOT.SetBatch(True)  
+ROOT.gROOT.SetBatch(True)
 
+#Choose an injected BR (since you moved to BR = 1 here you can set it at 10^-5 to make comparison with previous productions)
+BR_inj = 0.00001
+
+#Input files
 fInputSignal = ROOT.TFile("../histos/latest_production/histos_SR_Signal.root")
 mytree       = fInputSignal.Get("tree_output")
 
@@ -27,7 +31,7 @@ for jentry in xrange(nentries):
         print "nb < 0"
         continue
 
-    Nsig_passed += mytree._eventWeight
+    Nsig_passed += mytree._eventWeight * BR_inj
 
 BDT_file = ROOT.TFile("outputs/Nominal_training.root")
 
@@ -40,7 +44,7 @@ signif = []
 _effS = 0
 
 for jbin in range(1,h_BDT_effB_effS.GetNbinsX()+1):
-    if h_BDT_effB_effS.GetBinCenter(jbin) > 0.2    : #insert the number before whom the function fluctuates too much to estimate the maximum
+    if h_BDT_effB_effS.GetBinCenter(jbin) > 0.1    : #insert the number before whom the function fluctuates too much to estimate the maximum
         sig_eff.append(h_BDT_effB_effS.GetBinCenter(jbin))
         if h_BDT_effB_effS.GetBinContent(jbin) < 0.:
             bkg_eff.append(0.)
@@ -58,7 +62,8 @@ sign = ROOT.TGraph(70,sig_eff_array,signif_array)
 sign.SetTitle("")
 sign.GetXaxis().SetTitle("#varepsilon_{S}^{BDT}")
 sign.GetYaxis().SetTitle("Significance")
-sign.SetMaximum(0.02)
+sign.GetXaxis().SetRangeUser(0.,1.)
+sign.SetMaximum(0.013)
 sign.SetMarkerStyle(8)
 sign.SetMarkerColor(4)
 sign.Draw("AP")
@@ -69,7 +74,7 @@ sign_vs_bkg.SetTitle("")
 sign_vs_bkg.GetXaxis().SetTitle("#varepsilon_{B}^{BDT}")
 sign_vs_bkg.GetYaxis().SetTitle("Significance")
 sign_vs_bkg.GetXaxis().SetRangeUser(0.,0.8)
-sign_vs_bkg.SetMaximum(0.7)
+sign_vs_bkg.SetMaximum(0.013)
 sign_vs_bkg.SetMarkerStyle(8)
 sign_vs_bkg.SetMarkerColor(4)
 sign_vs_bkg.Draw("AP")
@@ -107,5 +112,21 @@ print "Signal efficiency = ", _effS
 print "Significance:   Z = ",signif_array[np.argmax(signif_array)]
 print "BDT output        = ", BDT_output
 print "-------------------------------------------------------------"
+
+# Create a ROOT file to store the tree
+output_file = ROOT.TFile("BDToutput.root", "RECREATE")
+
+# Create the tree and add a branch for the BDT output variable
+tree = ROOT.TTree("BDTtree", "Tree with BDT output")
+
+output_file.cd()
+
+_BDT_output = np.zeros(1, dtype=float)
+tree.Branch("_BDT_output",_BDT_output, "_BDT_output/D")
+_BDT_output[0] = BDT_output
+tree.Fill()
+# Save the tree to the output file and close the file
+output_file.Write()
+output_file.Close()
 
 raw_input()

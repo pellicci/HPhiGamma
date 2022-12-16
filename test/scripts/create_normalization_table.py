@@ -15,16 +15,16 @@ secs_table = dict()
 #secs_table["Wlnu"]                = 52850.0
 
 #Signal
-secs_table["Signal_Phi_ggH"]       = 46.87*10**(-5) #cross section * B.R.(10^-5)
-secs_table["Signal_Rho_ggH"        = 46.87*10**(-5) #cross section * B.R.(10^-5)
-secs_table["Signal_Phi_VBF"]       =  3.78*10**(-5)
+secs_table["Signal_Phi_ggH"]       = 48.58*10**(-5)*0.49 #cross section * B.R.(10^-5) * BR(Phi->KK)
+secs_table["Signal_Rho_ggH"]       = 48.58*10**(-5) #cross section * B.R.(10^-5)
+secs_table["Signal_Phi_VBF"]       =  3.78*10**(-5)*0.49
 secs_table["Signal_Rho_VBF"]       =  3.78*10**(-5)
-
+'''
 #ttbar
 #secs_table["ttbarToSemiLeptonic"] = 687.1 #OLD = 365.34 # accounting for the 2 possible charge signs of the W
 #secs_table["ttbarToHadronic"]     = 687.1 #OLD = 377.96
 #secs_table["ttbarlnu"]            = 687.1 #OLD = 88.29 #NNLO-2018
-"""
+
 #Drell-Yan
 secs_table["DY10to50"]            = 15890.0 #OLD = 18810.0
 secs_table["DY50"]                =  6404.0 #OLD = 2075.14*3 #amcatnlo 2017
@@ -32,7 +32,7 @@ secs_table["DY50"]                =  6404.0 #OLD = 2075.14*3 #amcatnlo 2017
 #Bosons
 secs_table["WW"]                  = 0. #No xsec on DAS #OLD = 12.178
 secs_table["WZ"]                  = 27.59 #OLD = 27.6
-"""
+
 #GammaJets
 secs_table["GammaJetsHT40to100"]  =    18700.0  * 1.26 #UL   
 secs_table["GammaJetsHT100to200"] =     5034.0  * 1.26 #UL
@@ -50,7 +50,6 @@ secs_table["QCDpT120to170"]       =   66590.0 * 1.26 #UL
 secs_table["QCDpT170to300"]       =   16620.0 * 1.26 #UL 
 secs_table["QCDpT300toInf"]       =    1104.0 * 1.26 #UL
 
-"""
 #W jets
 secs_table["WJetsToLNu0J"]        = 53330.0 #OLD = 50131.98
 secs_table["WJetsToLNu1J"]        =  8875.0 #OLD = 8426.09
@@ -61,7 +60,7 @@ secs_table["DiPhotonJets"]        = 126.2 #OLD = 134.3
 
 #ZGamma
 secs_table["ZGammaToLLGamma"]     =     55.48 #UL
-"""
+'''
 #fraction of negative-weighted events in NLO samples (2018)
 frac_table = dict()
 
@@ -76,7 +75,7 @@ frac_table["Signal_Phi_ggH"]       = 0.
 frac_table["Signal_Rho_ggH"]       = 0.
 frac_table["Signal_Phi_VBF"]       = 0.
 frac_table["Signal_Rho_VBF"]       = 0.
-"""
+'''
 #ttbar
 frac_table["ttbarToSemiLeptonic"] = 0.003957 #OLD = 0.
 frac_table["ttbarToHadronic"]     = 0.00388 #OLD = 0.
@@ -89,7 +88,7 @@ frac_table["DY10to50"]            = 0.     #OLD = 0.1367
 #Bosons
 frac_table["WW"]                  = 0. #No negative fraction on DAS #OLD = 0.001755
 frac_table["WZ"]                  = 0. #UL
-"""
+
 #QCD
 frac_table["QCDpT15to20"]         = 0. #UL
 frac_table["QCDpT20to30"]         = 0. #UL
@@ -106,7 +105,7 @@ frac_table["GammaJetsHT100to200"] = 6.985e-05 #UL
 frac_table["GammaJetsHT200to400"] = 0.0003769 #UL
 frac_table["GammaJetsHT400to600"] = 0.0008598 #UL to check
 frac_table["GammaJetsHT600toInf"] = 0.002077 #UL
-"""
+
 #W jets
 frac_table["WJetsToLNu0J"]        = 0.09824 #OLD = 0.09868
 frac_table["WJetsToLNu1J"]        = 0.2584  #OLD = 0.269
@@ -117,7 +116,7 @@ frac_table["DiPhotonJets"]        = 0.2363 #OLD = 0.2238
 
 #ZGamma
 frac_table["ZGammaToLLGamma"]     = 0.1847 #UL
-"""
+'''
 
 
 

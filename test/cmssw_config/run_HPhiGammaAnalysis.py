@@ -33,7 +33,7 @@ options.parseArguments()
 
                                                                                                                                                                                
 #Phi input file
-input_path = '/eos/user/p/pellicci/MesonGamma_root/2018/HPhiGamma_ggH/MINI/' 
+
 #Rho input file
 #input_path = '/afs/cern.ch/user/g/gumoret/work/MesonGamma_root/2018/HRhoGamma_ggH/MINI'
 
@@ -42,8 +42,8 @@ input_path = '/eos/user/p/pellicci/MesonGamma_root/2018/HPhiGamma_ggH/MINI/'
  #   input_path = '/store/data/Run2018C/Tau/MINIAOD/12Nov2019_UL2018-v1/00000/' 
 
 #For the test with Mariarosaria
-if options.runningOnData:
-    input_path = '/eos/user/g/gumoret/forMaria/'
+#if options.runningOnData:
+ #   input_path = '/eos/user/g/gumoret/forMaria/'
 
 
 '''                                                                                                                                                                                                   
@@ -67,7 +67,7 @@ def getListOfFiles(dirName):
     return allFiles     
 
 # Get the list of all files in directory tree at given path                                                                                                                                           
-listOfFiles = getListOfFiles(input_path)                                                                                                                                                              
+#listOfFiles = getListOfFiles(input_path)                                                                                                                                                              
 #print(listOfFiles)
 
 
@@ -80,8 +80,8 @@ if options.runningOnData:
 else:
    process.GlobalTag = GlobalTag(process.GlobalTag, '106X_upgrade2018_realistic_v15_L1v1')  # OLD ONE : 102X_upgrade2018_realistic_v18
    #inputFiles = {"/store/mc/RunIIAutumn18MiniAOD/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/MINIAODSIM/102X_upgrade2018_realistic_v15-v1/80000/F9947F2D-F185-4E43-9A4B-EA7FAF2CE4C2.root"}
-   inputFiles = listOfFiles
-   inputFiles = '/store/mc/RunIISummer20UL18MiniAODv2/GluGlu_HToPhiGamma_M125_TuneCP5_PSWeights_13TeV_powheg_pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v3/40000/0463B7C5-264A-0C4D-A535-09E91F90879B.root'                                                                                                                        
+   #inputFiles = listOfFiles
+   inputFiles = '/store/mc/RunIISummer20UL18MiniAODv2/GluGlu_HToPhiGamma_M125_TuneCP5_PSWeights_13TeV_powheg_pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v3/40000/5BD2049A-67EB-B746-8D2F-AEF653B3838C.root'                                                                                                                        
 
    
 process.source = cms.Source ("PoolSource",

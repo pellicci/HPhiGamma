@@ -87,13 +87,13 @@ signalPDF_ggH = workspaceSignal.pdf("crystal_ball_"+CHANNEL+"_GFcat_ggH") #SIGNA
 signalPDF_VBF = workspaceSignal.pdf("crystal_ball_"+CHANNEL+"_GFcat_VBF") #SIGNAL PDF from the workspace
 
 #Background PDF
-fInputSidebandsPDF = ROOT.TFile("workspaces/ws_sidebands.root")
+fInputSidebandsPDF = ROOT.TFile("workspaces/workspace_STAT_"+CHANNEL+"_GFcat_2018.root")
 fInputSidebandsPDF.cd()
-workspaceSidebands   = fInputSidebandsPDF.Get("myworkspace")
+workspaceSidebands   = fInputSidebandsPDF.Get("workspace_STAT_"+CHANNEL+"_GFcat_2018")
 bkgPDF_chebychev     = workspaceSidebands.pdf("chebychev_GFcat_bkg") #BKG PDF from the workspace
 bkgPDF_exponential   = workspaceSidebands.pdf("exponential_GFcat_bkg") #BKG PDF from the workspace
 bkgPDF_bernstein     = workspaceSidebands.pdf("bernstein_GFcat_bkg") #BKG PDF from the workspace
-bkgPDF_polynomial    = workspaceSidebands.pdf("polynomial_GFcat_bkg") #BKG PDF from the workspace
+#bkgPDF_polynomial    = workspaceSidebands.pdf("polynomial_GFcat_bkg") #BKG PDF from the workspace
 
 print "############################### WORKSPACE BKG ##############################################################"
 workspaceSidebands.Print()
@@ -101,7 +101,7 @@ print "#########################################################################
 print ""
 
 #Define the POI -------------------------------------------------------------------------------------
-B_R_ = ROOT.RooRealVar("B_R_","branching_ratio",10**(-5),-0.1,10**(-2)) #parameter of interest
+B_R_ = ROOT.RooRealVar("B_R_","branching_ratio",0.001,-0.1,10**(0)) #parameter of interest
 #B_R_ = ROOT.RooRealVar("B_R_","branching_ratio",0.) #parameter of interest
 
 #Number of events in m_KKg
@@ -122,10 +122,10 @@ sigEfficiency_VBF = float(NsigPassed_VBF/totalSigEvents_VBF)
 Ndata = mytreeData.GetEntriesFast()
 
 #N bkg estimation
-Nbkg = ROOT.RooRealVar("Nbkg", "N of bkg events",Ndata, 10., 10000.)
+Nbkg = ROOT.RooRealVar("Nbkg", "N of bkg events",Ndata, 0.5*Ndata, 3*Ndata)
 
 #Define PDFs for the fit --------------------------------------------------------------------------------------------------
-cross_sig_ggH = ROOT.RooRealVar("cross_sig","The signal cross section",46.87)#46.87pb (gluon fusion)
+cross_sig_ggH = ROOT.RooRealVar("cross_sig","The signal cross section",48.85)#46.87pb (gluon fusion)
 cross_sig_VBF = ROOT.RooRealVar("cross_sig","The signal cross section",3.78)#3.78pb (VBF)
 lumi = ROOT.RooRealVar("lumi","The luminosity",39540)#pb^-1
 eff_ggH  = ROOT.RooRealVar("eff_ggH","efficiency ggH",sigEfficiency_ggH) # = (n sig over tightselection)/49750
@@ -136,37 +136,37 @@ Nsig_ggH = ROOT.RooFormulaVar("Nsig_ggH","@0*@1*@2*@3*@4",ROOT.RooArgList(lumi,c
 Nsig_VBF = ROOT.RooFormulaVar("Nsig_VBF","@0*@1*@2*@3*@4",ROOT.RooArgList(lumi,cross_sig_VBF,eff_VBF,B_R_meson,B_R_))
 
 #ADD PDFs --------------------------------------------------------------------------------------------------
-argListN = ROOT.RooArgList(Nsig_ggH,Nsig_VBF,Nbkg)
+argListN = ROOT.RooArgList(Nsig_ggH,Nbkg)
 print "arg list N size = ",argListN.getSize()
-argListPDFs_chebychev   = ROOT.RooArgList(signalPDF_ggH,signalPDF_VBF,bkgPDF_chebychev)
-argListPDFs_exponential = ROOT.RooArgList(signalPDF_ggH,signalPDF_VBF,bkgPDF_exponential)
-argListPDFs_bernstein   = ROOT.RooArgList(signalPDF_ggH,signalPDF_VBF,bkgPDF_bernstein)
-argListPDFs_polynomial  = ROOT.RooArgList(signalPDF_ggH,signalPDF_VBF,bkgPDF_polynomial)
+argListPDFs_chebychev   = ROOT.RooArgList(signalPDF_ggH,bkgPDF_chebychev)
+argListPDFs_exponential = ROOT.RooArgList(signalPDF_ggH,bkgPDF_exponential)
+argListPDFs_bernstein   = ROOT.RooArgList(signalPDF_ggH,bkgPDF_bernstein)
+#argListPDFs_polynomial  = ROOT.RooArgList(signalPDF_ggH,signalPDF_VBF,bkgPDF_polynomial)
 
 print "arg lists created!"
 totPDF_chebychev   = ROOT.RooAddPdf("totPDF_chebychev","Cheby",argListPDFs_chebychev,argListN)
 totPDF_exponential = ROOT.RooAddPdf("totPDF_exponential","Exp",argListPDFs_exponential,argListN)
-totPDF_bernstein   = ROOT.RooAddPdf("totPDF_bernstein","Bern",argListPDFs_bernstein,argListN)
-totPDF_polynomial  = ROOT.RooAddPdf("totPDF_polynomial","Pol",argListPDFs_polynomial,argListN)
+#totPDF_bernstein   = ROOT.RooAddPdf("totPDF_bernstein","Bern",argListPDFs_bernstein,argListN)
+#totPDF_polynomial  = ROOT.RooAddPdf("totPDF_polynomial","Pol",argListPDFs_polynomial,argListN)
 
 print "PDFs added!"
 
 #Generate dataset for blind analysis -----------------------------------------------------------------------------------
 datasetGenerated_chebychev   = totPDF_chebychev.generate(ROOT.RooArgSet(mass),Ndata)
 datasetGenerated_exponential = totPDF_exponential.generate(ROOT.RooArgSet(mass),Ndata)
-datasetGenerated_bernstein   = totPDF_bernstein.generate(ROOT.RooArgSet(mass),Ndata)
-datasetGenerated_polynomial  = totPDF_polynomial.generate(ROOT.RooArgSet(mass),Ndata)
+#datasetGenerated_bernstein   = totPDF_bernstein.generate(ROOT.RooArgSet(mass),Ndata)
+#datasetGenerated_polynomial  = totPDF_polynomial.generate(ROOT.RooArgSet(mass),Ndata)
 
 print "Dataset generated!"
 
 #FIT
 totPDF_chebychev.fitTo(datasetGenerated_chebychev)
-#totPDF_exponential.fitTo(datasetGenerated_exponential)
-totPDF_bernstein.fitTo(datasetGenerated_bernstein)
+totPDF_exponential.fitTo(datasetGenerated_exponential)
+#totPDF_bernstein.fitTo(datasetGenerated_bernstein)
 #totPDF_polynomial.fitTo(datasetGenerated_polynomial)
 
 #PLOT
-xframe_chebychev = mass.frame(28)
+xframe_chebychev = mass.frame(14)
 xframe_chebychev.SetTitle("#sqrt{s} = 13 TeV       lumi = 39.54/fb")
 xframe_chebychev.GetXaxis().SetTitle("m_{ditrk,#gamma} [GeV]")
 datasetGenerated_chebychev.plotOn(xframe_chebychev)
@@ -179,8 +179,8 @@ xframe_chebychev.Draw()
 c1.SaveAs("/eos/user/g/gumoret/www/latest_production/massanalysis_latest_production/fit_to_generated_dataset_chebychev.pdf")
 c1.SaveAs("/eos/user/g/gumoret/www/latest_production/massanalysis_latest_production/fit_to_generated_dataset_chebychev.png")
 
-'''
-xframe_exponential = mass.frame(28)
+
+xframe_exponential = mass.frame(14)
 xframe_exponential.SetTitle("#sqrt{s} = 13 TeV       lumi = 39.54/fb")
 xframe_exponential.GetXaxis().SetTitle("m_{ditrk,#gamma} [GeV]")
 datasetGenerated_exponential.plotOn(xframe_exponential)
@@ -193,7 +193,7 @@ xframe_exponential.Draw()
 c2.SaveAs("/eos/user/g/gumoret/www/latest_production/massanalysis_latest_production/fit_to_generated_dataset_exponential.pdf")
 c2.SaveAs("/eos/user/g/gumoret/www/latest_production/massanalysis_latest_production/fit_to_generated_dataset_exponential.png")
 '''
-xframe_bernstein = mass.frame(28)
+xframe_bernstein = mass.frame(14)
 xframe_bernstein.SetTitle("#sqrt{s} = 13 TeV       lumi = 39.54/fb")
 xframe_bernstein.GetXaxis().SetTitle("m_{ditrk,#gamma} [GeV]")
 datasetGenerated_bernstein.plotOn(xframe_bernstein)
@@ -205,7 +205,8 @@ c3.SetTitle("")
 xframe_bernstein.Draw()
 c3.SaveAs("/eos/user/g/gumoret/www/latest_production/massanalysis_latest_production/fit_to_generated_dataset_bernstein.pdf")
 c3.SaveAs("/eos/user/g/gumoret/www/latest_production/massanalysis_latest_production/fit_to_generated_dataset_bernstein.png")
-'''
+
+
 xframe_polynomial = mass.frame(28)
 xframe_polynomial.SetTitle("#sqrt{s} = 13 TeV       lumi = 39.54/fb")
 xframe_polynomial.GetXaxis().SetTitle("m_{ditrk,#gamma} [GeV]")
@@ -234,36 +235,42 @@ print "######################################################"
 print ""
 
 #create Workspace
-workspace = ROOT.RooWorkspace("myworkspace")
-getattr(workspace,'import')(totPDF_chebychev)
-getattr(workspace,'import')(datasetGenerated_chebychev)
+#workspace = ROOT.RooWorkspace("myworkspace")
+#getattr(workspace,'import')(totPDF_chebychev)
+#getattr(workspace,'import')(datasetGenerated_chebychev)
 #getattr(workspace,'import')(totPDF_exponential)
 #getattr(workspace,'import')(datasetGenerated_exponential)
-getattr(workspace,'import')(totPDF_bernstein)
-getattr(workspace,'import')(datasetGenerated_bernstein)
+#getattr(workspace,'import')(totPDF_bernstein)
+#getattr(workspace,'import')(datasetGenerated_bernstein)
 #getattr(workspace,'import')(totPDF_polynomial)
 
-fOut = ROOT.TFile("workspaces/ws_data_blind.root","RECREATE")
-fOut.cd()
-workspace.Write()
-fOut.Close()
+#fOut = ROOT.TFile("workspaces/ws_data_blind.root","RECREATE")
+#fOut.cd()
+#workspace.Write()
+#fOut.Close()
 
 
 if doBiasStudy:
 	
-	pdfList = [totPDF_chebychev,totPDF_bernstein]#,totPDF_chebychev]#,totPDF_bernstein]
+	genPDF_chebychev     = workspaceSidebands.pdf("chebychev_GFcat_bkg") #BKG PDF from the workspace
+	genPDF_exponential   = workspaceSidebands.pdf("exponential_GFcat_bkg") #BKG PDF from the workspace
+	genPDF_bernstein     = workspaceSidebands.pdf("bernstein_GFcat_bkg") #BKG PDF from the workspace
+	
+	pdfListGen = [genPDF_chebychev,genPDF_bernstein]
+	pdfListFit = [totPDF_chebychev,totPDF_exponential] #totPDF_bernstein
 
 	multicanvas = ROOT.TCanvas()
 	multicanvas.cd()
-	multicanvas.Divide(len(pdfList),len(pdfList))
+	multicanvas.Divide(len(pdfListFit),len(pdfListFit))
 	canvas_index = 0
 
-	for fitPDF in pdfList:
-		for genPDF in pdfList:
+	for fitPDF in pdfListFit:
+		for genPDF in pdfListFit:
 			canvas_index += 1
 
+			#ROOT.RooFit.FitModel(fitPDF)
 			mcstudy = ROOT.RooMCStudy(genPDF, ROOT.RooArgSet(mass), ROOT.RooFit.Silence(),ROOT.RooFit.FitModel(fitPDF), ROOT.RooFit.Extended(1), ROOT.RooFit.FitOptions(ROOT.RooFit.Save(1), ROOT.RooFit.PrintEvalErrors(0)))
-			mcstudy.generateAndFit(1000)
+			mcstudy.generateAndFit(5000)
 	
 			#set the frame
 
@@ -279,7 +286,7 @@ if doBiasStudy:
 			leg2.AddEntry(0,"gen pdf: "+genPDF.GetTitle(),"")
 			leg2.AddEntry(0,"fit pdf: "+fitPDF.GetTitle(),"")
 
-			BRpull_frame = mcstudy.plotPull(B_R_, ROOT.RooFit.Bins(28), ROOT.RooFit.FitGauss(1))
+			BRpull_frame = mcstudy.plotPull(B_R_, ROOT.RooFit.Bins(56), ROOT.RooFit.FitGauss(1))
 			BRpull_frame.SetTitle("")
 			BRpull_frame.SetTitleOffset(1.5,"y")
 			BRpull_frame.SetXTitle("Gen: "+genPDF.GetTitle()+" Vs Fit: "+fitPDF.GetTitle())
@@ -292,8 +299,8 @@ if doBiasStudy:
 
 	multicanvas.Draw()
 
-	multicanvas.SaveAs("/eos/user/g/gumoret/www/latest_production/massanalysis_latest_production/BRpull.png")
-	multicanvas.SaveAs("/eos/user/g/gumoret/www/latest_production/massanalysis_latest_production/BRpull.pdf")
+	multicanvas.SaveAs("/eos/user/g/gumoret/www/latest_production/massanalysis_latest_production/BRpullAlternative.png")
+	multicanvas.SaveAs("/eos/user/g/gumoret/www/latest_production/massanalysis_latest_production/BRpullAlternative.pdf")
 
 	#NLLframe.SetTitle("")
 

@@ -34,12 +34,12 @@ totPDF_exponential = workspace.pdf("totPDF_exponential")
 #Construct the Toy-MC machinery
 #Binned(kTRUE)
 print "pdf retrieved"
-mcstudy = ROOT.RooMCStudy(totPDF_exponential, ROOT.RooArgSet(mesonGammaMass), ROOT.RooFit.Silence(), ROOT.RooFit.Extended(), ROOT.RooFit.FitOptions(ROOT.RooFit.Save(1), ROOT.RooFit.PrintEvalErrors(0)))
+mcstudy = ROOT.RooMCStudy(totPDF_chebychev, ROOT.RooArgSet(mesonGammaMass), ROOT.RooFit.Silence(), ROOT.RooFit.Extended(1), ROOT.RooFit.FitOptions(ROOT.RooFit.Save(1), ROOT.RooFit.PrintEvalErrors(0)))
 #mcstudy = ROOT.RooMCStudy(totPDF, ROOT.RooArgSet(mesonGammaMass), ROOT.RooFit.Silence(), ROOT.RooFit.Extended(), ROOT.RooFit.FitOptions(ROOT.RooFit.Save(1), ROOT.RooFit.PrintEvalErrors(0)))
 
 #mcstudy = ROOT.RooMCStudy(totPDF, ROOT.RooArgSet(mesonGammaMass), ROOT.RooFit.Silence(), ROOT.RooFit.ProtoData(datasetGenerated), ROOT.RooFit.FitOptions(ROOT.RooFit.Save(1), ROOT.RooFit.PrintEvalErrors(0)))
 print "mcstudy set"
-mcstudy.generateAndFit(1000)
+mcstudy.generateAndFit(100)
 print "toy generated"
 
 #Plot the distributions of the fitted parameter, the error and the pull
@@ -84,8 +84,8 @@ c2.SaveAs("/eos/user/g/gumoret/www/latest_production/massanalysis_latest_product
 c3 = ROOT.TCanvas()
 c3.cd()
 BRpull_frame.Draw()
-c3.SaveAs("/eos/user/g/gumoret/www/latest_production/massanalysis_latest_production/BRpull.pdf")
-c3.SaveAs("/eos/user/g/gumoret/www/latest_production/massanalysis_latest_production/BRpull.png")
+c3.SaveAs("/eos/user/g/gumoret/www/latest_production/massanalysis_latest_production/BRpull_cheby.pdf")
+c3.SaveAs("/eos/user/g/gumoret/www/latest_production/massanalysis_latest_production/BRpull_cheby.png")
 
 c4 = ROOT.TCanvas()
 c4.cd()

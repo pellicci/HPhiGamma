@@ -153,9 +153,9 @@ for histo_name in list_histos:
         if histo_name == "h_meson_InvMass_TwoTrk" :
             hstack[histo_name].GetXaxis().SetTitle("m_{ditrk} [GeV]")
             if isPhi:
-                hstack[histo_name].GetXaxis().SetLimits(1.00,1.042)
+                hstack[histo_name].GetXaxis().SetLimits(1.00,1.04)
                 leftLine  = ROOT.TLine(1.005,0.,1.005,hsignal[histo_name].GetMaximum()*1.1)
-                rightLine = ROOT.TLine(1.037,0.,1.037,hsignal[histo_name].GetMaximum()*1.1)
+                rightLine = ROOT.TLine(1.035,0.,1.035,hsignal[histo_name].GetMaximum()*1.1)
                 leftLine.SetLineColor(4)
                 leftLine.SetLineStyle(2)
                 leftLine.SetLineWidth(3)
@@ -167,8 +167,8 @@ for histo_name in list_histos:
 
             else:
                 hstack[histo_name].GetXaxis().SetLimits(0.5,1.)
-                leftLine  = ROOT.TLine(0.63,0.,0.63,hsignal[histo_name].GetMaximum()*1.1)
-                rightLine = ROOT.TLine(0.91,0.,0.91,hsignal[histo_name].GetMaximum()*1.1)
+                leftLine  = ROOT.TLine(0.55,0.,0.55,hsignal[histo_name].GetMaximum()*1.1)
+                rightLine = ROOT.TLine(0.95,0.,0.95,hsignal[histo_name].GetMaximum()*1.1)
                 leftLine.SetLineColor(2)
                 leftLine.SetLineStyle(2)
                 leftLine.SetLineWidth(3)

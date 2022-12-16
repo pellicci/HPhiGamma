@@ -8,7 +8,7 @@ from ROOT import gROOT
 #Supress the opening of many Canvas's
 ROOT.gROOT.SetBatch(True)   
 
-signal_magnify = int(sys.argv[1])
+signal_magnify = float(sys.argv[1])
 CR_magnify = 1. #2079./1179.
 
 plotOnlyData = False
@@ -61,10 +61,10 @@ colors_mask = dict()
 #colors_mask["bkgEstimationCR"]   = ROOT.kRed-7
 #colors_mask["Sidebands"]          = ROOT.kRed-7
 if isPhi:
-    colors_mask["SidebandsNorm"]      = ROOT.kTeal-9
+    colors_mask["SidebandsNorm"]      = ROOT.kCyan-7
     decayChannel = "#phi#gamma "
 else:
-    colors_mask["SidebandsNorm"]      = ROOT.kRed-7
+    colors_mask["SidebandsNorm"]      = ROOT.kRed-4
     decayChannel = "#rho#gamma "
 
 colors_mask["GammaJets"] = ROOT.kOrange
@@ -101,7 +101,6 @@ for filename in list_inputfiles:
     print "=============== ", sample_name
     for histo_name in list_histos:
         histo = fileIn.Get(histo_name)
-
         print "histo_name = ",histo_name
         # Set to 0 the bins containing negative values, due to negative weights
         hsize = histo.GetSize() - 2 # GetSize() returns the number of bins +2 (that is + overflow + underflow) 
@@ -112,11 +111,11 @@ for filename in list_inputfiles:
 
         histo_container.append(copy.copy(histo))
         
-        if not histo_name == "h_nMuons" and not histo_name == "h_nPhotons" and not histo_name == "h_nJets_25" and not histo_name == "h_nElectrons" and not histo_name == "h_photonWP90":
+        if not histo_name == "h_nMuons" and not histo_name == "h_nPhotons" and not histo_name == "h_nJets_25" and not histo_name == "h_nElectrons":
             if isTightSelection and not (histo_name == "h_firstTrk_Iso" or histo_name == "h_firstTrk_Iso_ch" or histo_name == "h_firstTrk_Iso_neutral" or histo_name == "h_secondTrk_Iso" or histo_name == "h_secondTrk_Iso_ch" or histo_name == "h_couple_AbsIsoCh" or histo_name == "h_couple_Iso" or histo_name == "h_couple_Iso_ch"):
                 histo_container[-1].Rebin(10)
             elif histo_name == "h_InvMass_TwoTrk_Photon":
-                histo_container[-1].Rebin(5)
+                histo_container[-1].Rebin(10)
                 #hsignalVBF[histo_name].Rebin(1/5)
                 #hsignalggH[histo_name].Rebin(1/5)
 
@@ -225,7 +224,7 @@ for histo_name in list_histos:
         if histo_name == "h_nJets_25":
             hstack[histo_name].GetXaxis().SetTitle("nJets")
             hstack[histo_name].GetXaxis().SetLimits(-0.5,6.5)
-    
+
         if histo_name == "h_meson_InvMass_TwoTrk" :
             hstack[histo_name].GetXaxis().SetTitle("m_{ditrk} [GeV]")
             if isPhi:
@@ -326,7 +325,7 @@ for histo_name in list_histos:
 
         if histo_name == "h_dPhiGammaTrk":
             hstack[histo_name].GetXaxis().SetTitle("#Delta#phi_{#gamma,Trk_{1}} [rad]")
-            
+                
 
 
         hstack[histo_name].Draw("SAME,histo")
@@ -362,6 +361,7 @@ for histo_name in list_histos:
     hsignalggH[histo_name].Draw("SAME,hist")
     hsignalVBF[histo_name].Draw("SAME,hist")
 
+
     hMCErr = copy.deepcopy(hstack[histo_name].GetStack().Last())
     hMCErr_size = hMCErr.GetSize() - 2
     hMCErr.SetFillStyle(3005)
@@ -375,6 +375,8 @@ for histo_name in list_histos:
 
     if not plotOnlyData:
         CMS_lumi.CMS_lumi(pad1, iPeriod, iPos) #Print integrated lumi and energy information
+    else: 
+        CMS_lumi.CMS_lumi(canvas[histo_name], iPeriod, iPos) #Print integrated lumi and energy information
 
 
     ################################################
@@ -416,7 +418,8 @@ for histo_name in list_histos:
         totalData.GetYaxis().SetTitle("Data/Bkg")
         totalData.GetYaxis().SetTitleSize(0.16)
         totalData.GetYaxis().SetTitleOffset(0.3)
-        totalData.GetYaxis().SetRangeUser(0.5,1.5)
+        totalData.GetYaxis().SetRangeUser(0.8,1.2)
+        if isPhi: totalData.GetYaxis().SetRangeUser(0.5,1.5)
         totalData.GetYaxis().SetNdivisions(502,ROOT.kFALSE)
         totalData.GetXaxis().SetLabelSize(0.10)
         totalData.GetXaxis().SetTitleSize(0.12)

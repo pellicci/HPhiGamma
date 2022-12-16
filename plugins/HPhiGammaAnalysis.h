@@ -47,8 +47,10 @@ private:
   //Counters
   int nPV;
 
-  int nMuons;
-  int nElectrons;
+  int nMuons10;
+  int nMuons20;
+  int nElectrons10;
+  int nElectrons20;
   int nPhotonsChosen;
   int nPhotonsOverSelection;
   int nJets;
@@ -64,8 +66,7 @@ private:
   int _Nevents_bestCoupleFound;
   int _Nevents_candPtFilter;
   int _Nevents_coupleIsolationFilter;
-  int _nPhotonsWP90;
-  int _nPhotonsNotWP90;
+  int _Nevents_VBFVeto;
   
   //TTree and TTree variables
   TTree *mytree;
@@ -73,10 +74,13 @@ private:
   int run_number;
 
   float ph_eT;
+  float ph_en_sigmaUP;
+  float ph_en_sigmaDW;
+  float ph_en_scaleUP;
+  float ph_en_scaleDW;
   float ph_eta;
   float ph_etaSC;
   float ph_phi;
-  float ph_energy;
   float ph_iso_ChargedHadron;
   float ph_iso_NeutralHadron;
   float ph_iso_Photon;
@@ -163,6 +167,9 @@ private:
   bool _isRho;
   //rho for isolation
   float rho_;
+
+  //for VBF veto
+  int nJets20;
 
   //Tokens
   edm::EDGetTokenT<std::vector<pat::PackedCandidate> > packedPFCandidatesToken_; 

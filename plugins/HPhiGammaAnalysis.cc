@@ -90,8 +90,8 @@ effectiveAreas_ph_( (iConfig.getParameter<edm::FileInPath>("effAreasConfigFile_p
   _Nevents_bestCoupleFound       = 0;
   _Nevents_candPtFilter          = 0;
   _Nevents_coupleIsolationFilter = 0;
-  _nPhotonsWP90                  = 0;
-  _nPhotonsNotWP90               = 0;
+  _Nevents_VBFVeto               = 0;
+
 
   debug=false;  //DEBUG datamember 
   verbose=false; 
@@ -256,20 +256,21 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
   //*************************************************************//
 
 
- nMuons                = 0;
- nElectrons            = 0;
+ nMuons10              = 0;
+ nElectrons10          = 0;
+ nMuons20              = 0;
+ nElectrons20          = 0;
  nPhotonsOverSelection = 0;
  nPhotonsChosen        = 0;
  nJets                 = 0;
  nJets_25              = 0;
-
+ nJets20               = 0;
+ 
   //These variables will go in the tree
  ph_eT     = 0.;
  ph_eta    = 0.;
  ph_etaSC  = 0.;
  ph_phi    = 0.;
- ph_energy = 0.;
- 
  LorentzVector ph_p4;
 
  ph_iso_ChargedHadron = 0.;
@@ -280,7 +281,7 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
  is_photon_a_photon = false;
  is_photon_matched  = false;
 
- eTphMax  = -1000.;
+ eTphMax = -1000.;
 
  _Jet_Photon_invMass  = -1.;
  _MesonMass           = -1.;
@@ -333,9 +334,11 @@ for(auto metpuppi = slimmedMETsPuppi->begin(); metpuppi != slimmedMETsPuppi->end
   //*************************************************************//
  //Count muons for each event
 for(auto mu = slimmedMuons->begin(); mu != slimmedMuons->end(); ++mu){
-  if(mu->pt() < 20. || !mu->CutBasedIdMedium || fabs(mu->eta()) > 2.4 || fabs(mu->muonBestTrack()->dxy((&slimmedPV->at(0))->position())) >= 0.2 || fabs(mu->muonBestTrack()->dz((&slimmedPV->at(0))->position())) >= 0.5) continue;
+  if(mu->pt() < 10. || !mu->CutBasedIdMedium || fabs(mu->eta()) > 2.4 || fabs(mu->muonBestTrack()->dxy((&slimmedPV->at(0))->position())) >= 0.2 || fabs(mu->muonBestTrack()->dz((&slimmedPV->at(0))->position())) >= 0.5) continue;
   if(!mu->PFIsoLoose) continue;
-  nMuons++;
+  nMuons10++;
+  if(mu->pt() < 20.) continue;
+  nMuons20++;
 }
 
   //*************************************************************//
@@ -350,13 +353,17 @@ iEvent.getByToken(rhoToken_,rhoH);
 rho_ = *rhoH;
 
 float corr_pt = 0.;
+ph_en_sigmaUP = 0.;
+ph_en_sigmaDW = 0.;
+ph_en_scaleUP = 0.;
+ph_en_scaleDW = 0.;
 
 for(auto el = slimmedElectrons->begin(); el != slimmedElectrons->end(); ++el){
     //Calculate electron p4, correct it with the Scale&Smearing correction and extract the pT
-    LorentzVector el_p4 = el->p4(); // * el->userFloat("ecalTrkEnergyPostCorr")/el->energy();
+    LorentzVector el_p4 = el->p4() * el->userFloat("ecalTrkEnergyPostCorr")/el->energy();
     corr_pt = el_p4.pt();
 
-    if(corr_pt < 20. || fabs(el->eta()) > 2.5 || fabs(el->gsfTrack()->dxy((&slimmedPV->at(0))->position())) >= 0.2 || fabs(el->gsfTrack()->dz((&slimmedPV->at(0))->position())) >= 0.5) continue;
+    if(corr_pt < 10. || fabs(el->eta()) > 2.5 || fabs(el->gsfTrack()->dxy((&slimmedPV->at(0))->position())) >= 0.2 || fabs(el->gsfTrack()->dz((&slimmedPV->at(0))->position())) >= 0.5) continue;
 
     float abseta = fabs(el->superCluster()->eta());
     float eA     = effectiveAreas_el_.getEffectiveArea(abseta);
@@ -365,7 +372,9 @@ for(auto el = slimmedElectrons->begin(); el != slimmedElectrons->end(); ++el){
 
     //-------------Conditions on loose/medium MVA electron ID-------------//
     if(el->electronID("mvaEleID-Fall17-iso-V1-wp80") == 0) continue;
-    nElectrons++;
+    nElectrons10++;
+    if (corr_pt < 20.) continue;
+    nElectrons20++;
   }
 
   //std::cout << "Nelectrons " << nElectrons << " Nmuons " << nMuons << std::endl;
@@ -377,13 +386,13 @@ for(auto el = slimmedElectrons->begin(); el != slimmedElectrons->end(); ++el){
   //*************************************************************//
 
   //In signal, identify if there's a real mu or ele from W
-  is_Kplus_fromPhi = false;
-  is_Kminus_fromPhi = false;
-  is_Piplus_fromRho = false;
+  is_Kplus_fromPhi   = false;
+  is_Kminus_fromPhi  = false;
+  is_Piplus_fromRho  = false;
   is_Piminus_fromRho = false;
-  is_Phi_fromH = false;
-  is_Rho_fromH = false;
-  is_Photon_fromH = false;
+  is_Phi_fromH       = false;
+  is_Rho_fromH       = false;
+  is_Photon_fromH    = false;
 
   if(!runningOnData_){
     for(auto gen = genParticles->begin(); gen != genParticles->end(); ++gen){
@@ -409,15 +418,15 @@ for(auto el = slimmedElectrons->begin(); el != slimmedElectrons->end(); ++el){
   float corr_et = -1.;
 
   for(auto photon = slimmedPhotons->begin(); photon != slimmedPhotons->end(); ++photon){ //PHOTON FORLOOP START --------------------------------
+    
+    // Apply energy scale corrections
+    corr_et   = photon->et() * photon->userFloat("ecalEnergyPostCorr") / photon->energy(); 
 
-    corr_et = photon->et(); 
     if(corr_et < 38. || fabs(photon->eta()) > 2.5) continue; //
     //if(photon->hasPixelSeed()) continue;   //electron veto
     if(!photon->passElectronVeto()) continue; 
 
-    if (debug) cout<<"Photon WP90 before selection = "<<photon->photonID("mvaPhoID-RunIIFall17-v1p1-wp90")<<endl; //FIXME
     if(photon->photonID("mvaPhoID-RunIIFall17-v1p1-wp80") == 0) continue; //WP80
-    if (debug) cout<<"Photon WP90 after selection = "<<photon->photonID("mvaPhoID-RunIIFall17-v1p1-wp90")<<endl; //FIXME
 
     float abseta = fabs(photon->superCluster()->eta());
     float eA = effectiveAreas_ph_.getEffectiveArea(abseta);
@@ -428,6 +437,10 @@ for(auto el = slimmedElectrons->begin(); el != slimmedElectrons->end(); ++el){
 
     nPhotonsOverSelection++;
 
+    // Apply energy scale corrections
+    ph_p4 = photon->p4() * photon->userFloat("ecalEnergyPostCorr") / photon->energy();
+
+
     if(corr_et < eTphMax) continue; //choose as best photon the one with highest eT
     
     eTphMax = corr_et;
@@ -435,15 +448,15 @@ for(auto el = slimmedElectrons->begin(); el != slimmedElectrons->end(); ++el){
     ph_iso_NeutralHadron = photon->neutralHadronIso();
     ph_iso_Photon        = photon->photonIso();
     ph_iso_eArho         = eA * rho_;
-
     ph_eT     = corr_et;
+    //ph_energy = photon->energy();
+    ph_en_sigmaUP = photon->userFloat("energySigmaUp")/cosh(photon->eta()); //dividing for cosh(eta) means passing from energy to eT
+    ph_en_sigmaDW = photon->userFloat("energySigmaDown")/cosh(photon->eta());  //dividing for cosh(eta) means passing from energy to eT
+    ph_en_scaleUP = photon->userFloat("energyScaleUp")/cosh(photon->eta()); //dividing for cosh(eta) means passing from energy to eT
+    ph_en_scaleDW = photon->userFloat("energyScaleDown")/cosh(photon->eta()); //dividing for cosh(eta) means passing from energy to eT
     ph_eta    = photon->eta();
     ph_etaSC  = photon->superCluster()->eta();
     ph_phi    = photon->phi();
-
-    // Apply energy scale corrections to MC
-    ph_energy = photon->energy(); //userFloat("ecalEnergyPostCorr");
-    ph_p4     = photon->p4();  //* photon->userFloat("ecalEnergyPostCorr")/photon->energy();
     
     cand_photon_found = true;
     nPhotonsChosen++;
@@ -475,7 +488,9 @@ for(auto el = slimmedElectrons->begin(); el != slimmedElectrons->end(); ++el){
     if(gen_ID != 22 && verbose) cout << "Photon gen ID = " << gen_ID << endl;
     if(gen_ID != 22 && fabs(gen_mother) == 24 && verbose) cout << "Photon gen ID when matched = " << gen_ID << endl;
     if(fabs(gen_mother) == 25) is_photon_matched = true;
-    if(verbose) cout<<"Bool: is_photon_matched = "<<is_photon_matched<<endl;
+    if(verbose) {
+      cout<<"Bool: is_photon_matched = "<<is_photon_matched<<endl;
+    }
   } //ONLY FOR MC END ----------------------------------------------------------------------------------------------
 
 }//PHOTON FORLOOP END -------------------------------------------------------------------------------------------------------------------------
@@ -544,6 +559,7 @@ float candPtMin = 1.;
 bool isBestCoupleOfTheEvent_Found=false;
 bool isPhi = false;
 bool isRho = false;
+std::vector<float> eta_jets_vector;   //for VBF veto
 
 if(verbose) cout<< "JETs loop"<<" --------------------------------"<<endl;
 
@@ -556,19 +572,24 @@ if(verbose) cout<< "JETs loop"<<" --------------------------------"<<endl;
 
     //----------------------------- Pre-Filters --------------------------------------------------------
     if(verbose) cout<<"Analyzing Jet with pT = "<<jet->pt()<<endl;
-    if(jet->pt() < 40. || abs(jet->eta()) > 4.7) continue;
     if(verbose) cout<<"   Ok, this jet has _Jet_Photon_invMass = "<<_Jet_Photon_invMass<<endl;
-    if(_Jet_Photon_invMass < 100.) continue; //reject jets with inv mass lower then 100 GeV
     if(jet->neutralHadronEnergyFraction() > 0.9) continue; //reject if neutralhadron-energy fraction is > 0.9
     if(jet->neutralEmEnergyFraction() > 0.9) continue; //reject if neutralEm-energy fraction is > 0.9, alias NO-PHOTON FILTER                              
     if(nDaughters < 2) continue; //reject if number of constituens is less then 1
     if(jet->muonEnergyFraction() > 0.8) continue; //reject if muon-energy fraction is > 0.8                                             
     if(jet->chargedHadronEnergyFraction() <= 0.) continue; //reject if chargedHadron-energy fraction is 0                              
     if(jet->chargedHadronMultiplicity() == 0) continue; //reject if there are NOT charged hadrons                              
-    if(jet->chargedEmEnergyFraction() > 0.8) continue; //reject if chargedEm-energy fraction is > 0.8                              
+    if(jet->chargedEmEnergyFraction() > 0.8) continue; //reject if chargedEm-energy fraction is > 0.8   
+    if(jet->pt() < 20. || abs(jet->eta()) > 4.7) continue;
+    //for VBF veto ----------------------
+    nJets20++;
+    eta_jets_vector.push_back(jet->eta());
+    //-----------------------------------
+    if(jet->pt() < 40.) continue;
+    if(_Jet_Photon_invMass < 100.) continue; //reject jets with inv mass lower then 100 GeV
+                           
      //-------------------------------------------------------------------------------------------------      
     
-
     if (verbose) cout<<"    Jet at index = "<<jetIndex<<" passed the cuts:"<<endl; 
 
     //------------------------------- access to MC truth -------------------------------------------
@@ -909,6 +930,48 @@ if(_iso_couple_ch < 0.9) {
 
 _Nevents_coupleIsolationFilter++;
 
+//VBF veto -------------------------------------------------------------
+int jet_i = 0;
+int jet_j = 0;
+
+if(verbose){
+  cout <<"VBF veto ------------------------------------"<<endl<<endl;
+  cout <<"nJets20      = "<<nJets20<<endl;
+  cout <<"nJets        = "<<nJets<<endl;
+}
+
+if (nJets20 > 2.){
+
+  float deltaEtaJets = -1.;
+  
+  for (jet_i = 0; jet_i < nJets20; jet_i++){
+    
+    //cout <<"deltaEta(BestJet - jet"<<jet_i<<")  = "<<abs(_bestJet_eta-eta_jets_vector.at(jet_i))<<endl;
+    
+    if (abs(_bestJet_eta-eta_jets_vector.at(jet_i)) == 0) {
+      if(verbose) cout<<"Best jet index = "<<jet_i<<endl;
+      continue;
+    }
+
+    for (jet_j = jet_i + 1; jet_j < nJets20; jet_j++){
+
+      //cout <<"deltaEta(BestJet - jet"<<jet_j<<")  = "<<abs(_bestJet_eta-eta_jets_vector.at(jet_j))<<endl;
+      if (abs(_bestJet_eta-eta_jets_vector.at(jet_j)) == 0) {
+      if(verbose) cout<<"Best jet index = "<<jet_j<<endl;
+      continue;
+      }
+
+      deltaEtaJets = abs(eta_jets_vector.at(jet_i) - eta_jets_vector.at(jet_j));
+
+      if(verbose) cout <<"deltaEta(jet"<<jet_i<<" - jet"<<jet_j<<") = "<<deltaEtaJets<<endl;
+      if (deltaEtaJets > 3.) return;
+
+    }
+  }
+}
+if(verbose) cout <<"---------------------------------------------"<<endl<<endl;
+_Nevents_VBFVeto++;
+
 //MC TRUTH CHECK
 if(!runningOnData_) //ONLY FOR MC START  
 {
@@ -930,6 +993,11 @@ if(!runningOnData_) //ONLY FOR MC START
     //some prints
     
     if(verbose){
+      cout<<"Photon eT = "<<ph_eT<<endl;
+      cout<<"ph_en_sigmaUP = "<< ph_en_sigmaUP<<endl;
+      cout<<"ph_en_sigmaDW = "<< ph_en_sigmaDW<<endl;
+      cout<<"ph_en_scaleUP = "<<ph_en_scaleUP<<endl;
+      cout<<"ph_en_scaleDW = "<<ph_en_scaleDW<<endl;
       cout<<"n Jets = "<<nJets_25<<endl;
       cout<<"Jet + photon inv. mass = "<<_bestJet_Photon_invMass<<endl;
       cout<<"n. of daughters: "<<_bestJet_nDaughters<<endl;
@@ -937,7 +1005,6 @@ if(!runningOnData_) //ONLY FOR MC START
       cout<<"Best couple DeltaR = "<<deltaR_KChosen<<endl;
       cout<<"Meson candidate inv. mass  = "<<_MesonMass<<endl;
       cout<<"isPhi = "<<isPhi<<" and isRho = "<<isRho<<endl;
-      cout<<"Best photon ID bool = "<<is_photon_wp90<<endl;
       cout<<"H inv. mass = "<<_Hmass_From2K_Photon<<endl;
       cout<<"--------------------------------------------------"<<endl;
       cout<<"MC Higgs found = "<<_Nevents_HiggsFound<<",   Higgs NOT matched = "<<_Nevents_HiggsNotMatched<<endl;
@@ -948,6 +1015,13 @@ if(!runningOnData_) //ONLY FOR MC START
  else //ONLY FOR DATA
  {
   cout<<"CANDIDATE HIGGS FOUND IN DATA: EVENT RECORDED!"<<endl;
+  if(verbose){
+cout<<"Photon eT = "<<ph_eT<<endl;
+cout<<"ph_en_sigmaUP = "<< ph_en_sigmaUP<<endl;
+cout<<"ph_en_sigmaDW = "<< ph_en_sigmaDW<<endl;
+cout<<"ph_en_scaleUP = "<<ph_en_scaleUP<<endl;
+cout<<"ph_en_scaleDW = "<<ph_en_scaleDW<<endl;
+}
  }
 
   mytree->Fill();
@@ -973,8 +1047,10 @@ void HPhiGammaAnalysis::create_trees()
     mytree->Branch("run_number",&run_number);
   }
 
-  mytree->Branch("nMuons",&nMuons);
-  mytree->Branch("nElectrons",&nElectrons);
+  mytree->Branch("nMuons10",&nMuons10);
+  mytree->Branch("nMuons20",&nMuons20);
+  mytree->Branch("nElectrons10",&nElectrons10);
+  mytree->Branch("nElectrons20",&nElectrons20);
   mytree->Branch("nPhotonsOverSelection",&nPhotonsOverSelection);
   mytree->Branch("nPhotonsChosen",&nPhotonsChosen);
   mytree->Branch("nJets",&nJets);
@@ -983,15 +1059,17 @@ void HPhiGammaAnalysis::create_trees()
   mytree->Branch("metpuppi_pT",&metpuppi_pT);
 
   mytree->Branch("photon_eT",&ph_eT);
+  mytree->Branch("photon_eT_sigmaDW",&ph_en_sigmaDW);
+  mytree->Branch("photon_eT_sigmaUP",&ph_en_sigmaUP);
+  mytree->Branch("photon_eT_scaleDW",&ph_en_scaleDW);
+  mytree->Branch("photon_eT_scaleUP",&ph_en_scaleUP);
   mytree->Branch("photon_eta",&ph_eta);
   mytree->Branch("photon_etaSC",&ph_etaSC);
   mytree->Branch("photon_phi",&ph_phi);
-  mytree->Branch("photon_energy",&ph_energy);
   //mytree->Branch("photon_iso_ChargedHadron",&ph_iso_ChargedHadron);
   //mytree->Branch("photon_iso_NeutralHadron",&ph_iso_NeutralHadron);
   //mytree->Branch("photon_iso_Photon",&ph_iso_Photon);
   mytree->Branch("photon_iso_eArho",&ph_iso_eArho);
-  mytree->Branch("is_photon_wp90",&is_photon_wp90);     //ABCD method update
 
   mytree->Branch("bestJet_pT",&_bestJet_pT);
   mytree->Branch("bestJet_eta",&_bestJet_eta);
@@ -1075,14 +1153,15 @@ h_Events->Fill(1.5,_Nevents_triggered);
 h_Events->Fill(2.5,_Nevents_isPhoton);
 h_Events->Fill(3.5,_Nevents_bestCoupleFound);  
 h_Events->Fill(4.5,_Nevents_candPtFilter);  
-h_Events->Fill(5.5,_Nevents_coupleIsolationFilter);  
-
-h_Events->GetXaxis()->SetBinLabel(1,"Events processed");
-h_Events->GetXaxis()->SetBinLabel(2,"Events triggered");
-h_Events->GetXaxis()->SetBinLabel(3,"Best photon selection");
-h_Events->GetXaxis()->SetBinLabel(4,"Best pair selection");
-h_Events->GetXaxis()->SetBinLabel(5,"1trk pT 15, 2trk pT 5");
-h_Events->GetXaxis()->SetBinLabel(6,"Pair isolation selection");
+h_Events->Fill(5.5,_Nevents_coupleIsolationFilter);
+h_Events->Fill(6.5,_Nevents_VBFVeto);  
+h_Events->GetXaxis()->SetBinLabel(1,"processed");
+h_Events->GetXaxis()->SetBinLabel(2,"triggered");
+h_Events->GetXaxis()->SetBinLabel(3,"best photon");
+h_Events->GetXaxis()->SetBinLabel(4,"best pair");
+h_Events->GetXaxis()->SetBinLabel(5,"trks pT");
+h_Events->GetXaxis()->SetBinLabel(6,"trks iso");
+h_Events->GetXaxis()->SetBinLabel(7,"VBF veto");
 }
 
 //define this as a plug-in
