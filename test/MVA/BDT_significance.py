@@ -10,10 +10,10 @@ ROOT.gROOT.SetBatch(True)
 BR_inj = 0.00001
 
 #Input files
-fInputSignal = ROOT.TFile("../histos/latest_production/histos_SR_Signal.root")
+fInputSignal = ROOT.TFile("../histos/latest_production/histos_SR_preselection_SignalggH.root")
 mytree       = fInputSignal.Get("tree_output")
 
-fInputData  = ROOT.TFile("../histos/latest_production/histos_SR_Data.root")
+fInputData  = ROOT.TFile("../histos/latest_production/histos_SR_preselection_Data.root")
 h_mesonMass = fInputData.Get("h_meson_InvMass_TwoTrk")
 
 Nbkg_passed = h_mesonMass.GetEntries()
@@ -44,7 +44,7 @@ signif = []
 _effS = 0
 
 for jbin in range(1,h_BDT_effB_effS.GetNbinsX()+1):
-    if h_BDT_effB_effS.GetBinCenter(jbin) > 0.1    : #insert the number before whom the function fluctuates too much to estimate the maximum
+    if h_BDT_effB_effS.GetBinCenter(jbin) > 0.11    : #insert the number before whom the function fluctuates too much to estimate the maximum
         sig_eff.append(h_BDT_effB_effS.GetBinCenter(jbin))
         if h_BDT_effB_effS.GetBinContent(jbin) < 0.:
             bkg_eff.append(0.)
@@ -62,10 +62,12 @@ sign = ROOT.TGraph(70,sig_eff_array,signif_array)
 sign.SetTitle("")
 sign.GetXaxis().SetTitle("#varepsilon_{S}^{BDT}")
 sign.GetYaxis().SetTitle("Significance")
-sign.GetXaxis().SetRangeUser(0.,1.)
-sign.SetMaximum(0.013)
+sign.SetMinimum(0.)
+sign.SetMaximum(2.*ROOT.TMath.MaxElement(sign.GetN(),sign.GetY()))
 sign.SetMarkerStyle(8)
 sign.SetMarkerColor(4)
+sign.GetXaxis().SetRangeUser(0.1,1.)
+
 sign.Draw("AP")
 
 canvas2 = ROOT.TCanvas()
@@ -74,7 +76,8 @@ sign_vs_bkg.SetTitle("")
 sign_vs_bkg.GetXaxis().SetTitle("#varepsilon_{B}^{BDT}")
 sign_vs_bkg.GetYaxis().SetTitle("Significance")
 sign_vs_bkg.GetXaxis().SetRangeUser(0.,0.8)
-sign_vs_bkg.SetMaximum(0.013)
+sign_vs_bkg.SetMinimum(0.)
+sign_vs_bkg.SetMaximum(2.*ROOT.TMath.MaxElement(sign_vs_bkg.GetN(),sign_vs_bkg.GetY()))
 sign_vs_bkg.SetMarkerStyle(8)
 sign_vs_bkg.SetMarkerColor(4)
 sign_vs_bkg.Draw("AP")

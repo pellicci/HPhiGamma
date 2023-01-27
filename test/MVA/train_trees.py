@@ -3,9 +3,9 @@ import os
 import argparse
 
 #INPUT FILES
-fIn_bkg  = ROOT.TFile("../histos/latest_production/histos_CR_Sidebands.root")
+fIn_bkg  = ROOT.TFile("../histos/latest_production/histos_CR_preselection_Sidebands.root")
 tree_bkg = fIn_bkg.Get("tree_output")
-fIn_sig  = ROOT.TFile("../histos/latest_production/histos_SR_SignalggH.root")
+fIn_sig  = ROOT.TFile("../histos/latest_production/histos_SR_preselection_SignalggH.root")
 tree_sig = fIn_sig.Get("tree_output")
 
 #OUTPUT FILE

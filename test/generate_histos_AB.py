@@ -15,6 +15,7 @@ isDataBlind    = False #Bool for blind analysis
 isBDT          = False #BDT bool
 isPhiAnalysis  = False # for H -> Phi Gamma
 isRhoAnalysis  = False # for H -> Rho Gamma
+isPhotonEtaCat = False # for barrel and endcap categories
 
 #Supress the opening of many Canvas's
 ROOT.gROOT.SetBatch(True)   
@@ -25,6 +26,7 @@ p.add_argument('Decay_channel_option', help='Type <<Phi>> for Phi, <<Rho>> for R
 p.add_argument('CR_option', help='Type <<0>> for SR, <<1>> for CR') #flag for bkg estimation
 p.add_argument('isBDT_option', help='Type <<preselection>> or <<BDT>>') #flag for loose selection or tight selection (from BDT output)
 p.add_argument('isBlindAnalysis', help='Type <<blind>> or <<unblind>>') #flag for loose selection or tight selection (from BDT output)
+p.add_argument("isEtaCat",help='Type the photon eta category',default='noPhotonEtaCat')
 p.add_argument('rootfile_name', help='Type rootfile name')
 p.add_argument('outputfile_option', help='Provide output file name')
 
@@ -39,6 +41,10 @@ fInput_TwoProngsTriggerSF = ROOT.TFile("scale_factors/TwoProngsTriggerSF.root")
 fInput_PhotonTriggerSF    = ROOT.TFile("scale_factors/PhotonTriggerSF.root") 
 h_TwoProngsTriggerSF = fInput_TwoProngsTriggerSF.Get("h_trigger_efficiency")
 h_PhotonTriggerSF    = fInput_PhotonTriggerSF.Get("h_triggerEff_eT")
+
+#Track iso syst scale factors
+fInput_isoNeutralSF = ROOT.TFile("scale_factors/isoTrackSyst.root")
+h_isoNeutralSF = fInput_isoNeutralSF.Get("h_iso_couple_all_Data")
 
 #Bools ######################################################################################################
 print "################################################################################"
@@ -66,7 +72,7 @@ if CRflag > 0 :
 else :
     print "Processing the signal region" 
 
-if args.isBDT_option == "BDT":
+if (args.isBDT_option == "BDT0" or args.isBDT_option == "BDT1"):
     isBDT = True
     fInputBDT = ROOT.TFile("MVA/BDToutput.root","READ")
     BDTtree = fInputBDT.Get("BDTtree")
@@ -75,7 +81,14 @@ if args.isBDT_option == "BDT":
     print "BDT_OUT = ",BDT_OUT
     fInputBDT.Close()
 
-print "BDT = ",isBDT
+if (args.isEtaCat == "EB" or args.isEtaCat == "EE"):
+    isPhotonEtaCat = True
+    PHOTONCAT = args.isEtaCat
+else:
+    PHOTONCAT = "No photon cat"
+
+
+print "Category = ",args.isBDT_option, ", ",PHOTONCAT," photons"
 print "-----------------------------------------------"
 
 ################################################################################################################
@@ -315,7 +328,7 @@ for jentry in xrange(nentries):
 
 
     #--------------------------------------------------------------------------
-    #central_photonEt = photonEt
+    central_photonEt = photonEt
     #photonEt = phEt_sigmaUP
 
     #NORMALIZATION -------------------------------------------------------------------
@@ -325,7 +338,7 @@ for jentry in xrange(nentries):
         PUWeight               = mytree.PU_Weight
         weight_sign            = mytree.MC_Weight/abs(mytree.MC_Weight) #just take the sign of the MC gen weight
         photonSF, photonSF_err = myWF.get_photon_scale(photonEt,mytree.photon_eta)
-#        photonSF              += photonSF_err
+     #   photonSF              += photonSF_err
         
         #Trigger eff scale factors
         if photonEt < 80.:
@@ -333,7 +346,7 @@ for jentry in xrange(nentries):
             PhotonTriggerSF_err    = h_PhotonTriggerSF.GetBinError(h_PhotonTriggerSF.GetXaxis().FindBin(photonEt))
         else: PhotonTriggerSF,PhotonTriggerSF_err = h_PhotonTriggerSF.GetBinContent(9),h_PhotonTriggerSF.GetBinError(9)
         
-#        PhotonTriggerSF -= PhotonTriggerSF_err     
+        PhotonTriggerSF += PhotonTriggerSF_err     
 
         if MesonPt < 100.:
             TwoProngsTriggerSF     = h_TwoProngsTriggerSF.GetBinContent(h_TwoProngsTriggerSF.GetXaxis().FindBin(MesonPt))
@@ -343,7 +356,14 @@ for jentry in xrange(nentries):
 
 #        TwoProngsTriggerSF -= TwoProngsTriggerSF_err
         
-        eventWeight = weight_sign * luminosity * normalization_weight * PUWeight * photonSF * PhotonTriggerSF * TwoProngsTriggerSF
+
+        #iso track neutral 
+        isoNeutralSF     = h_isoNeutralSF.GetBinContent(h_isoNeutralSF.GetXaxis().FindBin(MesonIso0))
+        isoNeutralSF_err = h_isoNeutralSF.GetBinError(h_isoNeutralSF.GetXaxis().FindBin(MesonIso0))
+
+        #isoNeutralSF += isoNeutralSF_err
+
+        eventWeight =  luminosity * normalization_weight * weight_sign * PUWeight * photonSF * PhotonTriggerSF * TwoProngsTriggerSF #* isoNeutralSF
 
 
         if debug:
@@ -366,6 +386,8 @@ for jentry in xrange(nentries):
             print "Photon Et scaled down  = ",phET_scaleDW
             print "Photon Et scaled up    = ",phET_scaleUP
             print "PhotonTriggerSF        = ",PhotonTriggerSF
+            print "Meson iso0             = ",MesonIso0
+            print "isoNeutralSF           = ",isoNeutralSF
     #        print "PhotonTriggerSF_err    = ",PhotonTriggerSF_err
             print "Final eventWeight **** = ",eventWeight
             print ""
@@ -392,16 +414,30 @@ for jentry in xrange(nentries):
         #histo_map["h_BDT_out"].Fill(BDT_out)
 
         if debug: print "BDT value before selection = ", BDT_out
-        if BDT_out < BDT_OUT: #Cut on BDT output
-        #if (BDT_out < 0.3 or BDT_out > 0.4):
-            if debug: print "BDT cut NOT passed"
-            continue
+        if args.isBDT_option == "BDT0":
+            if BDT_out < BDT_OUT: #Cut on BDT output
+                if debug: print "BDT cut NOT passed"
+                continue
+        
+        if args.isBDT_option == "BDT1":
+            if (BDT_out < 0. or BDT_out > BDT_OUT):
+                if debug: print "BDT cut NOT passed"
+                continue
+
+    #Photon category -------------------------------------------------
+    if isPhotonEtaCat:
+        if PHOTONCAT == "EB":
+            if (abs(photonEta) < 0. or abs(photonEta) > 1.444): continue
+        
+        elif PHOTONCAT == "EE":
+            if (abs(photonEta) < 1.566 or abs(photonEta) > 2.5): continue
 
     nEventsInHmassRange+=1
 
     if samplename == 'Data':
          if (CRflag == 0 and Hmass > 100. and Hmass < 115.) : nEventsLeftSB  += 1
          if (CRflag == 0 and Hmass > 135. and Hmass < 170.) : nEventsRightSB += 1
+
 
     #FILL HISTOS --------------------------------------------------------------------------
     #if DATA -> Blind Analysis on H inv mass plot

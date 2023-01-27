@@ -15,15 +15,24 @@ plotOnlyData = False
 isTightSelection = int(sys.argv[2])
 
 isPhi = int(sys.argv[3]) #note that in python true = 1 and false = 0
-print "#############################"
-print "is Phi = ",isPhi
-print "#############################"
 
-inputnames = ["Data","SignalggH","SignalVBF","SidebandsNorm"]
+
+if not isTightSelection:
+    inputnames = ["Data","SignalggH","SignalVBF","SidebandsNorm"]
+else:
+    inputnames = ["Data","SignalggH","SignalVBF"]
 
 list_inputfiles = []
 for filename in sys.argv[4:]:
     list_inputfiles.append(filename)
+
+fileIn = ROOT.TFile(list_inputfiles[0])
+CAT = (filename.split("_")[3]) 
+
+print "#############################"
+print "is Phi = ",isPhi
+print "Category = ", CAT
+print "#############################"
 
 #CMS-style plotting 
 tdrstyle.setTDRStyle()
@@ -42,8 +51,8 @@ canvas     = dict()
 histo_container = [] #just for memory management
 
 #Get the list of histograms
+signalfile = ROOT.TFile("histos/latest_production/histos_SR_"+CAT+"_SignalggH.root")
 list_histos = []
-signalfile = ROOT.TFile("histos/latest_production/histos_SR_SignalggH.root")
 keylist = signalfile.GetListOfKeys()
 key = ROOT.TKey()
 for key in keylist :
@@ -96,8 +105,7 @@ leg1.SetNColumns(1)
 
 for filename in list_inputfiles:
     fileIn = ROOT.TFile(filename)
-
-    sample_name = (filename.split("_")[3])[:-5] 
+    sample_name = (filename.split("_")[4])[:-5] 
     print "=============== ", sample_name
     for histo_name in list_histos:
         histo = fileIn.Get(histo_name)
@@ -210,7 +218,8 @@ for histo_name in list_histos:
         hstack[histo_name].GetYaxis().SetMaxDigits(3)
 
         if histo_name == "h_nJets_25" or histo_name == "h_nMuons" or histo_name == "h_nElectrons" or histo_name == "h_nPhotons":
-            hstack[histo_name].SetMaximum(10 * hdata[histo_name].GetMaximum())
+            hstack[histo_name].SetMaximum(100 * hdata[histo_name].GetMaximum())
+            hstack[histo_name].SetMinimum(1.)  #cannot use values < 1 otherwise log is negative
         else:
             hstack[histo_name].SetMaximum(2.1 * hdata[histo_name].GetMaximum())
 
@@ -438,10 +447,7 @@ for histo_name in list_histos:
         totalMC.Draw("sameE2")
         line_on_one.Draw("SAME")
     ################################################
-    if isTightSelection:
-        output_dir = "~/cernbox/www/latest_production/tightselection_latest_production/"
-    else:
-        output_dir = "~/cernbox/www/latest_production/preselection_latest_production/"
+    output_dir = "~/cernbox/www/latest_production/"+CAT+"_latest_production/"
 
 
     canvas[histo_name].SaveAs(output_dir + histo_name + ".pdf")

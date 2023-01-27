@@ -3,7 +3,7 @@ import argparse
 import tdrstyle, CMS_lumi
 
 #BOOL
-doBiasStudy = True
+doBiasStudy = False
 
 #This script does the fit of a combined PDF (signal pdf + bkg pdf) to a generated dataset
 
@@ -101,7 +101,7 @@ print "#########################################################################
 print ""
 
 #Define the POI -------------------------------------------------------------------------------------
-B_R_ = ROOT.RooRealVar("B_R_","branching_ratio",0.001,-0.1,10**(0)) #parameter of interest
+B_R_ = ROOT.RooRealVar("B_R_","branching_ratio",0.00001,-0.1,10**(0)) #parameter of interest
 #B_R_ = ROOT.RooRealVar("B_R_","branching_ratio",0.) #parameter of interest
 
 #Number of events in m_KKg
@@ -146,7 +146,7 @@ argListPDFs_bernstein   = ROOT.RooArgList(signalPDF_ggH,bkgPDF_bernstein)
 print "arg lists created!"
 totPDF_chebychev   = ROOT.RooAddPdf("totPDF_chebychev","Cheby",argListPDFs_chebychev,argListN)
 totPDF_exponential = ROOT.RooAddPdf("totPDF_exponential","Exp",argListPDFs_exponential,argListN)
-#totPDF_bernstein   = ROOT.RooAddPdf("totPDF_bernstein","Bern",argListPDFs_bernstein,argListN)
+totPDF_bernstein   = ROOT.RooAddPdf("totPDF_bernstein","Bern",argListPDFs_bernstein,argListN)
 #totPDF_polynomial  = ROOT.RooAddPdf("totPDF_polynomial","Pol",argListPDFs_polynomial,argListN)
 
 print "PDFs added!"
@@ -154,7 +154,7 @@ print "PDFs added!"
 #Generate dataset for blind analysis -----------------------------------------------------------------------------------
 datasetGenerated_chebychev   = totPDF_chebychev.generate(ROOT.RooArgSet(mass),Ndata)
 datasetGenerated_exponential = totPDF_exponential.generate(ROOT.RooArgSet(mass),Ndata)
-#datasetGenerated_bernstein   = totPDF_bernstein.generate(ROOT.RooArgSet(mass),Ndata)
+datasetGenerated_bernstein   = totPDF_bernstein.generate(ROOT.RooArgSet(mass),Ndata)
 #datasetGenerated_polynomial  = totPDF_polynomial.generate(ROOT.RooArgSet(mass),Ndata)
 
 print "Dataset generated!"
@@ -162,7 +162,7 @@ print "Dataset generated!"
 #FIT
 totPDF_chebychev.fitTo(datasetGenerated_chebychev)
 totPDF_exponential.fitTo(datasetGenerated_exponential)
-#totPDF_bernstein.fitTo(datasetGenerated_bernstein)
+totPDF_bernstein.fitTo(datasetGenerated_bernstein)
 #totPDF_polynomial.fitTo(datasetGenerated_polynomial)
 
 #PLOT
@@ -192,7 +192,7 @@ c2.SetTitle("")
 xframe_exponential.Draw()
 c2.SaveAs("/eos/user/g/gumoret/www/latest_production/massanalysis_latest_production/fit_to_generated_dataset_exponential.pdf")
 c2.SaveAs("/eos/user/g/gumoret/www/latest_production/massanalysis_latest_production/fit_to_generated_dataset_exponential.png")
-'''
+
 xframe_bernstein = mass.frame(14)
 xframe_bernstein.SetTitle("#sqrt{s} = 13 TeV       lumi = 39.54/fb")
 xframe_bernstein.GetXaxis().SetTitle("m_{ditrk,#gamma} [GeV]")
@@ -206,7 +206,7 @@ xframe_bernstein.Draw()
 c3.SaveAs("/eos/user/g/gumoret/www/latest_production/massanalysis_latest_production/fit_to_generated_dataset_bernstein.pdf")
 c3.SaveAs("/eos/user/g/gumoret/www/latest_production/massanalysis_latest_production/fit_to_generated_dataset_bernstein.png")
 
-
+'''
 xframe_polynomial = mass.frame(28)
 xframe_polynomial.SetTitle("#sqrt{s} = 13 TeV       lumi = 39.54/fb")
 xframe_polynomial.GetXaxis().SetTitle("m_{ditrk,#gamma} [GeV]")
@@ -257,7 +257,7 @@ if doBiasStudy:
 	genPDF_bernstein     = workspaceSidebands.pdf("bernstein_GFcat_bkg") #BKG PDF from the workspace
 	
 	pdfListGen = [genPDF_chebychev,genPDF_bernstein]
-	pdfListFit = [totPDF_chebychev,totPDF_exponential] #totPDF_bernstein
+	pdfListFit = [totPDF_chebychev,totPDF_bernstein]#totPDF_exponential
 
 	multicanvas = ROOT.TCanvas()
 	multicanvas.cd()
@@ -269,8 +269,8 @@ if doBiasStudy:
 			canvas_index += 1
 
 			#ROOT.RooFit.FitModel(fitPDF)
-			mcstudy = ROOT.RooMCStudy(genPDF, ROOT.RooArgSet(mass), ROOT.RooFit.Silence(),ROOT.RooFit.FitModel(fitPDF), ROOT.RooFit.Extended(1), ROOT.RooFit.FitOptions(ROOT.RooFit.Save(1), ROOT.RooFit.PrintEvalErrors(0)))
-			mcstudy.generateAndFit(5000)
+			mcstudy = ROOT.RooMCStudy(genPDF, ROOT.RooArgSet(mass), ROOT.RooFit.Silence(),ROOT.RooFit.FitModel(fitPDF), ROOT.RooFit.Extended(), ROOT.RooFit.FitOptions(ROOT.RooFit.Save(1), ROOT.RooFit.PrintEvalErrors(0)))
+			mcstudy.generateAndFit(100)
 	
 			#set the frame
 

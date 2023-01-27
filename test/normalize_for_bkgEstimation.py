@@ -1,11 +1,11 @@
 import ROOT
 
 #Take data rootfiles for control regions
-DataSR = ROOT.TFile("histos/latest_production/histos_SR_Data.root")
-Sidebands = ROOT.TFile("histos/latest_production/histos_CR_Sidebands.root")
+DataSR = ROOT.TFile("histos/latest_production/histos_SR_preselection_Data.root")
+Sidebands = ROOT.TFile("histos/latest_production/histos_CR_preselection_Sidebands.root")
 
 #Output file creation
-fOut = ROOT.TFile("histos/latest_production/histos_CR_SidebandsNorm.root","RECREATE")
+fOut = ROOT.TFile("histos/latest_production/histos_CR_preselection_SidebandsNorm.root","RECREATE")
 fOut.cd()
 
 list_histos = ["h_InvMass_TwoTrk_Photon","h_meson_InvMass_TwoTrk","h_firstTrk_pT","h_secondTrk_pT","h_firstTrk_Eta","h_secondTrk_Eta","h_firstTrk_Phi","h_secondTrk_Phi","h_bestCouplePt","h_bestCoupleEta","h_bestCoupleDeltaR","h_bestJetPt","h_bestJetEta","h_firstTrk_Iso","h_firstTrk_Iso_ch","h_secondTrk_Iso","h_secondTrk_Iso_ch","h_couple_Iso","h_couple_Iso_ch","h_photon_energy","h_photon_eta","h_nJets_25","h_nMuons","h_nElectrons","h_nPhotons","h_decayChannel","h_couple_Iso_neutral","h_met_pT","h_dPhiGammaTrk"]#,"h_BDT_out"]

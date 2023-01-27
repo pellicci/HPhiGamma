@@ -580,7 +580,7 @@ if(verbose) cout<< "JETs loop"<<" --------------------------------"<<endl;
     if(jet->chargedHadronEnergyFraction() <= 0.) continue; //reject if chargedHadron-energy fraction is 0                              
     if(jet->chargedHadronMultiplicity() == 0) continue; //reject if there are NOT charged hadrons                              
     if(jet->chargedEmEnergyFraction() > 0.8) continue; //reject if chargedEm-energy fraction is > 0.8   
-    if(jet->pt() < 20. || abs(jet->eta()) > 4.7) continue;
+    if(jet->pt() < 30. || abs(jet->eta()) > 4.7) continue;
     //for VBF veto ----------------------
     nJets20++;
     eta_jets_vector.push_back(jet->eta());

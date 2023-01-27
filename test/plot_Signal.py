@@ -31,7 +31,7 @@ iPeriod = 4
 iPos = 11
 CMS_lumi.lumiTextSize = 0.9
 CMS_lumi.cmsTextSize = 1.2
-CMS_lumi.lumi_13TeV = "39.54 fb^{-1}"
+CMS_lumi.lumi_13TeV = ""
 
 hstack  = dict()
 hsignal = dict()
@@ -40,7 +40,7 @@ histo_container = [] #just for memory management
 
 #Get the list of histograms
 list_histos = []
-signalfile = ROOT.TFile("histos/latest_production/histos_SR_Signal.root")
+signalfile = ROOT.TFile("histos/latest_production/histos_SR_preselection_SignalggH.root")
 keylist = signalfile.GetListOfKeys()
 key = ROOT.TKey()
 for key in keylist :
@@ -153,9 +153,9 @@ for histo_name in list_histos:
         if histo_name == "h_meson_InvMass_TwoTrk" :
             hstack[histo_name].GetXaxis().SetTitle("m_{ditrk} [GeV]")
             if isPhi:
-                hstack[histo_name].GetXaxis().SetLimits(1.00,1.04)
+                hstack[histo_name].GetXaxis().SetLimits(1.00,1.042)
                 leftLine  = ROOT.TLine(1.005,0.,1.005,hsignal[histo_name].GetMaximum()*1.1)
-                rightLine = ROOT.TLine(1.035,0.,1.035,hsignal[histo_name].GetMaximum()*1.1)
+                rightLine = ROOT.TLine(1.037,0.,1.037,hsignal[histo_name].GetMaximum()*1.1)
                 leftLine.SetLineColor(4)
                 leftLine.SetLineStyle(2)
                 leftLine.SetLineWidth(3)
@@ -275,7 +275,7 @@ for histo_name in list_histos:
     else:
         leg1.AddEntry(hsignal[histo_name],"#rho#gamma signal","l")
 
-    CMS_lumi.CMS_lumi(canvas[histo_name], iPeriod, iPos) #Print integrated lumi and energy information
+    #CMS_lumi.CMS_lumi(canvas[histo_name], iPeriod, iPos) #Print integrated lumi and energy information
     leg1.Draw()
 
 
