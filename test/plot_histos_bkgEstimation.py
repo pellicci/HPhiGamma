@@ -76,8 +76,11 @@ else:
     colors_mask["SidebandsNorm"]      = ROOT.kRed-4
     decayChannel = "#rho#gamma "
 
-colors_mask["GammaJets"] = ROOT.kOrange
-colors_mask["QCD"]       = ROOT.kRed
+colors_mask["GammaJets"]           = ROOT.kOrange
+colors_mask["QCD"]                 = ROOT.kRed
+colors_mask["ttbarToSemiLeptonic"] = ROOT.kRed-4
+colors_mask["ttbarlnu"]            = ROOT.kRed+2
+colors_mask["ttbarToHadronic"]     = ROOT.kRed-4
 
 
 
@@ -119,7 +122,7 @@ for filename in list_inputfiles:
 
         histo_container.append(copy.copy(histo))
         
-        if not histo_name == "h_nMuons" and not histo_name == "h_nPhotons" and not histo_name == "h_nJets_25" and not histo_name == "h_nElectrons":
+        if not histo_name == "h_nMuons" and not histo_name == "h_nPhotons38WP80" and not histo_name == "h_nPhotons20WP90" and not histo_name == "h_nJets_25" and not histo_name == "h_nElectrons":
             if isTightSelection and not (histo_name == "h_firstTrk_Iso" or histo_name == "h_firstTrk_Iso_ch" or histo_name == "h_firstTrk_Iso_neutral" or histo_name == "h_secondTrk_Iso" or histo_name == "h_secondTrk_Iso_ch" or histo_name == "h_couple_AbsIsoCh" or histo_name == "h_couple_Iso" or histo_name == "h_couple_Iso_ch"):
                 histo_container[-1].Rebin(10)
             elif histo_name == "h_InvMass_TwoTrk_Photon":
@@ -195,7 +198,7 @@ for histo_name in list_histos:
         pad2.SetBorderMode(0)
         pad1.Draw()
         pad2.Draw()
-        if histo_name == "h_nJets_25" or histo_name == "h_nMuons" or histo_name == "h_nElectrons" or histo_name == "h_nPhotons":
+        if histo_name == "h_nJets_25" or histo_name == "h_nMuons" or histo_name == "h_nElectrons" or histo_name == "h_nPhotons38WP80" or histo_name == "h_nPhotons20WP90":
             pad1.SetLogy()
         
         pad1.cd()
@@ -218,7 +221,7 @@ for histo_name in list_histos:
         hstack[histo_name].GetYaxis().SetMaxDigits(3)
 
         if histo_name == "h_nJets_25" or histo_name == "h_nMuons" or histo_name == "h_nElectrons" or histo_name == "h_nPhotons":
-            hstack[histo_name].SetMaximum(100 * hdata[histo_name].GetMaximum())
+            hstack[histo_name].SetMaximum(10 * hdata[histo_name].GetMaximum())
             hstack[histo_name].SetMinimum(1.)  #cannot use values < 1 otherwise log is negative
         else:
             hstack[histo_name].SetMaximum(2.1 * hdata[histo_name].GetMaximum())
@@ -237,7 +240,7 @@ for histo_name in list_histos:
         if histo_name == "h_meson_InvMass_TwoTrk" :
             hstack[histo_name].GetXaxis().SetTitle("m_{ditrk} [GeV]")
             if isPhi:
-                hstack[histo_name].GetXaxis().SetLimits(1.00,1.042)
+                hstack[histo_name].GetXaxis().SetLimits(1.00,1.05)
             else:
                 hstack[histo_name].GetXaxis().SetLimits(0.501,0.999)
 
@@ -309,8 +312,12 @@ for histo_name in list_histos:
         if histo_name == "h_bestCoupleDeltaR" :
             hstack[histo_name].GetXaxis().SetTitle("#DeltaR_{ditrk}/m_{ditrk}")
 
-        if histo_name == "h_nPhotons" :
-            hstack[histo_name].GetXaxis().SetTitle("n.#gamma")
+        if histo_name == "h_nPhotons38WP80" :
+            hstack[histo_name].GetXaxis().SetTitle("n.#gamma_{38WP80}")
+            hstack[histo_name].GetXaxis().SetLimits(-0.5,4.5)
+
+        if histo_name == "h_nPhotons20WP90" :
+            hstack[histo_name].GetXaxis().SetTitle("n.#gamma_{20WP90}")
             hstack[histo_name].GetXaxis().SetLimits(-0.5,4.5)
 
         if histo_name == "h_photon_energy" :
@@ -335,7 +342,11 @@ for histo_name in list_histos:
         if histo_name == "h_dPhiGammaTrk":
             hstack[histo_name].GetXaxis().SetTitle("#Delta#phi_{#gamma,Trk_{1}} [rad]")
                 
+        if histo_name == "h_eTOverHmass" :
+            hstack[histo_name].GetXaxis().SetTitle("E_{T}^{#gamma}/m_{ditrk#gamma}")
 
+        if histo_name == "h_pTOverHmass" :
+            hstack[histo_name].GetXaxis().SetTitle("p_{T}^{ditrk}/m_{ditrk#gamma}")
 
         hstack[histo_name].Draw("SAME,histo")
 
@@ -406,14 +417,14 @@ for histo_name in list_histos:
             #Set MC error band to MC relative uncertainty
             if not totalMC.GetBinContent(bin) == 0:
                 new_MC_BinError = totalMC.GetBinError(bin)/totalMC.GetBinContent(bin)
-            #else:
-             #   new_MC_BinError = 0.
+            else:
+                new_MC_BinError = 0.
 
             #Set data/MC ratio points error bar to data relative uncertainty
             if not totalData_forErrors.GetBinContent(bin) == 0:
                 new_Data_BinError = totalData_forErrors.GetBinError(bin)/totalData_forErrors.GetBinContent(bin)
-            #else:
-             #   new_Data_BinError = 0.
+            else:
+                new_Data_BinError = 0.
 
             totalMC.SetBinError(bin,new_MC_BinError)
             totalMC.SetBinContent(bin,1.)
@@ -428,7 +439,7 @@ for histo_name in list_histos:
         totalData.GetYaxis().SetTitleSize(0.16)
         totalData.GetYaxis().SetTitleOffset(0.3)
         totalData.GetYaxis().SetRangeUser(0.8,1.2)
-        if isPhi: totalData.GetYaxis().SetRangeUser(0.5,1.5)
+        if (isPhi or CAT == "BDTcat0"): totalData.GetYaxis().SetRangeUser(0.5,1.5)
         totalData.GetYaxis().SetNdivisions(502,ROOT.kFALSE)
         totalData.GetXaxis().SetLabelSize(0.10)
         totalData.GetXaxis().SetTitleSize(0.12)

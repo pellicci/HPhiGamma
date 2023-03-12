@@ -154,8 +154,8 @@ for histo_name in list_histos:
             hstack[histo_name].GetXaxis().SetTitle("m_{ditrk} [GeV]")
             if isPhi:
                 hstack[histo_name].GetXaxis().SetLimits(1.00,1.042)
-                leftLine  = ROOT.TLine(1.005,0.,1.005,hsignal[histo_name].GetMaximum()*1.1)
-                rightLine = ROOT.TLine(1.037,0.,1.037,hsignal[histo_name].GetMaximum()*1.1)
+                leftLine  = ROOT.TLine(1.008,0.,1.008,hsignal[histo_name].GetMaximum()*1.1)
+                rightLine = ROOT.TLine(1.032,0.,1.032,hsignal[histo_name].GetMaximum()*1.1)
                 leftLine.SetLineColor(4)
                 leftLine.SetLineStyle(2)
                 leftLine.SetLineWidth(3)
@@ -167,8 +167,8 @@ for histo_name in list_histos:
 
             else:
                 hstack[histo_name].GetXaxis().SetLimits(0.5,1.)
-                leftLine  = ROOT.TLine(0.55,0.,0.55,hsignal[histo_name].GetMaximum()*1.1)
-                rightLine = ROOT.TLine(0.95,0.,0.95,hsignal[histo_name].GetMaximum()*1.1)
+                leftLine  = ROOT.TLine(0.62,0.,0.62,hsignal[histo_name].GetMaximum()*1.1)
+                rightLine = ROOT.TLine(0.92,0.,0.92,hsignal[histo_name].GetMaximum()*1.1)
                 leftLine.SetLineColor(2)
                 leftLine.SetLineStyle(2)
                 leftLine.SetLineWidth(3)

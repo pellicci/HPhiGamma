@@ -23,7 +23,7 @@ else:
     print "H -> RhoGamma analysis"
 
 
-fileInput_ggH = ROOT.TFile("histos/latest_production/histos_SR_SignalggH.root")
+fileInput_ggH = ROOT.TFile("histos/latest_production/histos_SR_BDTcat0_SignalggH.root")
 
 
 #Some useful things before starting --------------------------------------------------------------------
@@ -44,12 +44,12 @@ CMS_lumi.lumi_13TeV = "39.54 fb^{-1}"
 mass = ROOT.RooRealVar("mesonGammaMass","mesonGammaMass",100.,170.,"GeV")
 
 #Data input -------------------------------------------------------------
-fileInputData = ROOT.TFile("histos/latest_production/histos_SR_Data.root")
+fileInputData = ROOT.TFile("histos/latest_production/histos_SR_BDTcat0_Data.root")
 fileInputData.cd()
 mytreeData = fileInputData.Get("tree_output")
 
 #Signal input -------------------------------------------------------------
-fileInputSignal_ggH = ROOT.TFile("histos/latest_production/histos_SR_SignalggH.root")
+fileInputSignal_ggH = ROOT.TFile("histos/latest_production/histos_SR_BDTcat0_SignalggH.root")
 fileInputSignal_ggH.cd()
 mytreeSignal_ggH = fileInputSignal_ggH.Get("tree_output")
 
@@ -80,6 +80,7 @@ workspaceSidebands   = fInputSidebandsPDF.Get("workspace_STAT_"+CHANNEL+"_GFcat_
 bkgPDF_chebychev     = workspaceSidebands.pdf("chebychev_GFcat_bkg") #BKG PDF from the workspace
 bkgPDF_exponential   = workspaceSidebands.pdf("exponential_GFcat_bkg") #BKG PDF from the workspace
 bkgPDF_bernstein     = workspaceSidebands.pdf("bernstein_GFcat_bkg") #BKG PDF from the workspace
+bkgPDF_chebychev4    = workspaceSidebands.pdf("chebychev4_GFcat_bkg") #BKG PDF from the workspace
 
 print "############################### WORKSPACE BKG ##############################################################"
 workspaceSidebands.Print()
@@ -101,7 +102,7 @@ sigEfficiency_ggH  = float(NsigPassed_ggH/totalSigEvents_ggH)
 Ndata = mytreeData.GetEntriesFast()
 
 #N bkg estimation
-Nbkg = ROOT.RooRealVar("Nbkg", "N of bkg events",Ndata, 0.5*Ndata, 3*Ndata)
+Nbkg = ROOT.RooRealVar("Nbkg", "N of bkg events",Ndata, 0.5*Ndata, 2*Ndata)
 
 #Define PDFs for the fit --------------------------------------------------------------------------------------------------
 cross_sig_ggH = ROOT.RooRealVar("cross_sig","The signal cross section",48.85)#46.87pb (gluon fusion)
@@ -117,11 +118,13 @@ print "arg list N size = ",argListN.getSize()
 argListPDFs_chebychev   = ROOT.RooArgList(signalPDF_ggH,bkgPDF_chebychev)
 argListPDFs_exponential = ROOT.RooArgList(signalPDF_ggH,bkgPDF_exponential)
 argListPDFs_bernstein   = ROOT.RooArgList(signalPDF_ggH,bkgPDF_bernstein)
+argListPDFs_chebychev4  = ROOT.RooArgList(signalPDF_ggH,bkgPDF_chebychev4)
 
 print "arg lists created!"
 totPDF_chebychev   = ROOT.RooAddPdf("totPDF_chebychev","Cheby",argListPDFs_chebychev,argListN)
 totPDF_exponential = ROOT.RooAddPdf("totPDF_exponential","Exp",argListPDFs_exponential,argListN)
 totPDF_bernstein   = ROOT.RooAddPdf("totPDF_bernstein","Bern",argListPDFs_bernstein,argListN)
+totPDF_chebychev4  = ROOT.RooAddPdf("totPDF_chebychev4","Cheby4",argListPDFs_chebychev,argListN)
 
 print "PDFs added!"
 
@@ -129,6 +132,7 @@ print "PDFs added!"
 datasetGenerated_chebychev   = totPDF_chebychev.generate(ROOT.RooArgSet(mass),Ndata)
 datasetGenerated_exponential = totPDF_exponential.generate(ROOT.RooArgSet(mass),Ndata)
 datasetGenerated_bernstein   = totPDF_bernstein.generate(ROOT.RooArgSet(mass),Ndata)
+datasetGenerated_chebychev4  = totPDF_chebychev4.generate(ROOT.RooArgSet(mass),Ndata)
 
 print "Dataset generated!"
 

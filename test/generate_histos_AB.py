@@ -38,7 +38,7 @@ h_Events = fInput.Get("HPhiGammaAnalysis/h_Events")
 
 #Trigger eff scale factors
 fInput_TwoProngsTriggerSF = ROOT.TFile("scale_factors/TwoProngsTriggerSF.root") 
-fInput_PhotonTriggerSF    = ROOT.TFile("scale_factors/PhotonTriggerSF.root") 
+fInput_PhotonTriggerSF    = ROOT.TFile("scale_factors/Photon35TriggerSF.root") #Photon35 is the new histo containing SFs calculated changing the Photon eT threshold to 35 GeV at HLT level
 h_TwoProngsTriggerSF = fInput_TwoProngsTriggerSF.Get("h_trigger_efficiency")
 h_PhotonTriggerSF    = fInput_PhotonTriggerSF.Get("h_triggerEff_eT")
 
@@ -78,6 +78,7 @@ if (args.isBDT_option == "BDT0" or args.isBDT_option == "BDT1"):
     BDTtree = fInputBDT.Get("BDTtree")
     BDTtree.GetEntry(0)
     BDT_OUT = BDTtree._BDT_output
+    #BDT_OUT = 0.
     print "BDT_OUT = ",BDT_OUT
     fInputBDT.Close()
 
@@ -88,7 +89,7 @@ else:
     PHOTONCAT = "No photon cat"
 
 
-print "Category = ",args.isBDT_option, ", ",PHOTONCAT," photons"
+print "Category = ",args.isBDT_option, ", ",PHOTONCAT
 print "-----------------------------------------------"
 
 ################################################################################################################
@@ -118,7 +119,7 @@ else: weightSum = 1.
 
 #HISTOS ###########################################################################################################
 histo_map = dict()
-list_histos = ["h_InvMass_TwoTrk_Photon","h_meson_InvMass_TwoTrk","h_firstTrk_pT","h_secondTrk_pT","h_firstTrk_Eta","h_secondTrk_Eta","h_firstTrk_Phi","h_secondTrk_Phi","h_bestCouplePt","h_bestCoupleEta","h_bestCoupleDeltaR","h_bestJetPt","h_bestJetEta","h_firstTrk_Iso","h_firstTrk_Iso_ch","h_secondTrk_Iso","h_secondTrk_Iso_ch","h_couple_Iso","h_couple_Iso_ch","h_photon_energy","h_photon_eta","h_nJets_25","h_nMuons","h_nElectrons","h_nPhotons","h_efficiency","h_decayChannel","h_couple_Iso_neutral","h_cutOverflow","h_met_pT","h_dPhiGammaTrk"]#,"h_BDT_out"]
+list_histos = ["h_InvMass_TwoTrk_Photon","h_meson_InvMass_TwoTrk","h_firstTrk_pT","h_secondTrk_pT","h_firstTrk_Eta","h_secondTrk_Eta","h_firstTrk_Phi","h_secondTrk_Phi","h_bestCouplePt","h_bestCoupleEta","h_bestCoupleDeltaR","h_bestJetPt","h_bestJetEta","h_firstTrk_Iso","h_firstTrk_Iso_ch","h_secondTrk_Iso","h_secondTrk_Iso_ch","h_couple_Iso","h_couple_Iso_ch","h_photon_energy","h_photon_eta","h_nJets_25","h_nMuons","h_nElectrons","h_nPhotons38WP80","h_efficiency","h_decayChannel","h_couple_Iso_neutral","h_cutOverflow","h_met_pT","h_dPhiGammaTrk","h_nPhotons20WP90","h_pTOverHmass","h_eTOverHmass"]#,"h_BDT_out"]
 
 histo_map[list_histos[0]]  = ROOT.TH1F(list_histos[0],"M_{H}",280,100.,170.) 
 if   isPhiAnalysis: histo_map[list_histos[1]]  = ROOT.TH1F(list_histos[1],"M_{meson}", 100, 1., 1.05) 
@@ -147,13 +148,16 @@ histo_map[list_histos[20]] = ROOT.TH1F(list_histos[20],"#eta_{#gamma}", 100, -2.
 histo_map[list_histos[21]] = ROOT.TH1F(list_histos[21],"n. of jets over pre-filters",  7, -0.5,6.5)
 histo_map[list_histos[22]] = ROOT.TH1F(list_histos[22],"n. of muons", 6, -0.5,5.5)
 histo_map[list_histos[23]] = ROOT.TH1F(list_histos[23],"n. of electrons", 5, -0.5,4.5)
-histo_map[list_histos[24]] = ROOT.TH1F(list_histos[24],"n. of #gamma", 6, -0.5,5.5)
+histo_map[list_histos[24]] = ROOT.TH1F(list_histos[24],"n. of #gamma 38wp80", 6, -0.5,5.5)
 histo_map[list_histos[25]] = ROOT.TH1F(list_histos[25],"Efficiency steps", 7, 0.,7.)
 histo_map[list_histos[26]] = ROOT.TH1F(list_histos[26],"Phi or Rho channel", 2, -0.5,1.5)
 histo_map[list_histos[27]] = ROOT.TH1F(list_histos[27],"Iso_neutral of the meson", 100, 0.6,1.)
 histo_map[list_histos[28]] = ROOT.TH1F(list_histos[28],"Data cut overflow", 5, 0.,5.)
 histo_map[list_histos[29]] = ROOT.TH1F(list_histos[29],"p_{T} of the met", 200, 0.,120.)
 histo_map[list_histos[30]] = ROOT.TH1F(list_histos[30],"#Delta#phi between leading track and photon", 100, 0.,3.14)
+histo_map[list_histos[31]] = ROOT.TH1F(list_histos[31],"n. of #gamma 20wp90", 6, -0.5,5.5)
+histo_map[list_histos[32]] = ROOT.TH1F(list_histos[32],"p_{T} of the meson divided by m_{ditrk#gamma}", 100, 0.2,1.1)
+histo_map[list_histos[33]] = ROOT.TH1F(list_histos[33],"E_{T} of the #gamma divided by m_{ditrk#gamma}", 100, 0.2,1.6)
 
 
 #histo_map[list_histos[29]] = ROOT.TH1F(list_histos[29],"BDT output", 40, -1.,1.)
@@ -165,6 +169,7 @@ fOut.cd()
 #Variables to go in the output tree #############################################################################################
 mesonGammaMass       = np.zeros(1, dtype=float)
 mesonMass            = np.zeros(1, dtype=float)
+mesonGammaMassReduced= np.zeros(1, dtype=float)
 _coupleIsoCh         = np.zeros(1, dtype=float)
 _coupleIso           = np.zeros(1, dtype=float)
 _coupleIso0          = np.zeros(1, dtype=float)
@@ -186,9 +191,12 @@ _eventWeight         = np.zeros(1, dtype=float)
 _metPt               = np.zeros(1, dtype=float)
 _nJets               = np.zeros(1, dtype=float)
 _dPhiGammaTrk        = np.zeros(1, dtype=float)
+_runNumber           = np.zeros(1, dtype=float)
+_eventNumber         = np.zeros(1, dtype=float)
 
 tree_output = ROOT.TTree('tree_output','tree_output')
 tree_output.Branch('mesonGammaMass',mesonGammaMass,'mesonGammaMass/D')
+tree_output.Branch('mesonGammaMassReduced',mesonGammaMassReduced,'mesonGammaMassReduced/D')
 tree_output.Branch('mesonMass',mesonMass,'mesonMass/D')
 tree_output.Branch('_coupleIsoCh',_coupleIsoCh,'_coupleIsoCh/D')
 tree_output.Branch('_coupleIso',_coupleIso,'_coupleIso/D')
@@ -211,13 +219,16 @@ tree_output.Branch('_eventWeight',_eventWeight,'_eventWeight/D')
 tree_output.Branch('_metPt',_metPt,'_metPt/D')
 tree_output.Branch('_nJets',_nJets,'_nJets/D')
 tree_output.Branch('_dPhiGammaTrk',_dPhiGammaTrk,'_dPhiGammaTrk/D')
-    
+tree_output.Branch('_runNumber',_runNumber,'_runNumber/D')
+tree_output.Branch('_eventNumber',_eventNumber,'_eventNumber/D')
+
 print "This sample has ", mytree.GetEntriesFast(), " events"
 nentries = mytree.GetEntriesFast()
 
 #------------- counters -----------------
 nEventsMesonAnalysis      = 0
 nEventsOverLeptonVeto     = 0
+nEventsOverDiPhotonVeto   = 0
 nEventsOverVBFOrt         = 0
 nEventsAfterRegionDefiner = 0
 nEventsInHmassRange       = 0
@@ -265,7 +276,8 @@ for jentry in xrange(nentries):
     secondTrkisoCh = mytree.iso_K2_ch
     photonEta      = mytree.photon_eta
     nJets          = mytree.nJets_25
-    nPhotons       = mytree.nPhotonsOverSelection
+    nPhotons38WP80 = mytree.nPhotons38WP80
+    nPhotons20WP90 = mytree.nPhotons20WP90
     MesonEta       = mytree.bestCoupleEta
     isPhiEvent     = mytree.isPhi
     isRhoEvent     = mytree.isRho
@@ -274,7 +286,10 @@ for jentry in xrange(nentries):
     MesonIso0      = MesonPt/(MesonPt + (mytree.Couple_sum_pT_05 - mytree.Couple_sum_pT_05_ch))
     metPt          = mytree.met_pT
     dPhiGammaTrk   = math.fabs(firstTrkphi - mytree.photon_phi)
-    
+    if samplename == "Data":
+        eventNumber    = mytree.event_number
+        runNumber      = mytree.run_number
+
     #If I'm performing a PhiGamma analysis I don't want to choose those events tagged as a RhoGamma events, and viceversa
     if isPhiAnalysis and not isPhiEvent: 
         continue
@@ -289,21 +304,27 @@ for jentry in xrange(nentries):
 
     #Define Control and Signal regions: ------------------------------------------
     if isPhiAnalysis: #for Phi meson
-        if CRflag == 0 and not (MesonMass > 1.005 and MesonMass < 1.037) :
+        if CRflag == 0 and not (MesonMass > 1.008 and MesonMass < 1.032) :
             continue
 
-        if CRflag == 1 and (MesonMass > 1.005 and MesonMass < 1.037) :
+        if CRflag == 1 and (MesonMass > 1.008 and MesonMass < 1.032) :
+            continue
+
+        if CRflag == 3 and (MesonMass > 1.008): #left sideband tests
+            continue
+
+        if CRflag == 4 and (MesonMass < 1.032): #right sideband tests
             continue
 
     if isRhoAnalysis: #for Rho meson
-        if CRflag == 0 and not (MesonMass > 0.55 and MesonMass < 0.95) :
+        if CRflag == 0 and not (MesonMass > 0.62 and MesonMass < 0.92) :
             continue
 
-        if CRflag == 1 and (MesonMass > 0.55 and MesonMass < 0.95) :
+        if CRflag == 1 and (MesonMass > 0.62 and MesonMass < 0.92) :
             continue
 
 ################### line used to take simmetrical sidebands ################
-    if (isPhiAnalysis and MesonMass > 1.042): continue
+    if (isPhiAnalysis and MesonMass > 1.05): continue
     nEventsAfterRegionDefiner+=1
 ############################################################################
     
@@ -405,6 +426,10 @@ for jentry in xrange(nentries):
     nEventsOverLeptonVeto += 1
 
 
+    #DiPhoton veto ------------------------------------------
+    if nPhotons20WP90 > 1: continue
+    nEventsOverDiPhotonVeto += 1
+
     #-------------- n events in the sidebands -----------------------------
     if (Hmass < 100. or Hmass > 170.): continue
 
@@ -424,6 +449,7 @@ for jentry in xrange(nentries):
                 if debug: print "BDT cut NOT passed"
                 continue
 
+    '''
     #Photon category -------------------------------------------------
     if isPhotonEtaCat:
         if PHOTONCAT == "EB":
@@ -431,13 +457,14 @@ for jentry in xrange(nentries):
         
         elif PHOTONCAT == "EE":
             if (abs(photonEta) < 1.566 or abs(photonEta) > 2.5): continue
-
+    '''
     nEventsInHmassRange+=1
 
     if samplename == 'Data':
          if (CRflag == 0 and Hmass > 100. and Hmass < 115.) : nEventsLeftSB  += 1
          if (CRflag == 0 and Hmass > 135. and Hmass < 170.) : nEventsRightSB += 1
-
+    
+    if (abs(photonEta) > 1.444 and abs(photonEta) < 1.566): continue
 
     #FILL HISTOS --------------------------------------------------------------------------
     #if DATA -> Blind Analysis on H inv mass plot
@@ -470,19 +497,22 @@ for jentry in xrange(nentries):
     histo_map["h_secondTrk_Iso_ch"].Fill(secondTrkisoCh, eventWeight)
     histo_map["h_photon_eta"].Fill(photonEta, eventWeight)
     histo_map["h_nJets_25"].Fill(nJets, eventWeight)
-    histo_map["h_nPhotons"].Fill(nPhotons, eventWeight)
+    histo_map["h_nPhotons38WP80"].Fill(nPhotons38WP80, eventWeight)
+    histo_map["h_nPhotons20WP90"].Fill(nPhotons20WP90, eventWeight)
     histo_map["h_bestCoupleEta"].Fill(MesonEta, eventWeight)
     histo_map["h_decayChannel"].Fill(isPhiEvent, eventWeight)
     histo_map["h_couple_Iso_neutral"].Fill(MesonIso0, eventWeight)
     histo_map["h_met_pT"].Fill(metPt, eventWeight)
     histo_map["h_dPhiGammaTrk"].Fill(dPhiGammaTrk,eventWeight)
-
+    histo_map["h_pTOverHmass"].Fill(MesonPt/Hmass, eventWeight)
+    histo_map["h_eTOverHmass"].Fill(photonEt/Hmass, eventWeight)
 
 
     #------------------------------------------------------------------------------------
     
     #FILL TREE
     mesonGammaMass[0]     = Hmass
+    if(Hmass > 110. and Hmass < 140.): mesonGammaMassReduced[0] = Hmass
     mesonMass[0]          = MesonMass
     _coupleIsoCh[0]       = MesonIsoCh
     _coupleIso[0]         = MesonIso
@@ -505,6 +535,9 @@ for jentry in xrange(nentries):
     _metPt[0]             = metPt
     _nJets[0]             = nJets
     _dPhiGammaTrk[0]      = dPhiGammaTrk
+    if samplename == "Data":
+        _eventNumber[0]       = eventNumber
+        _runNumber[0]         = runNumber
     
     tree_output.Fill()
 
@@ -566,8 +599,10 @@ histo_map["h_photon_eta"].GetXaxis().SetTitle("#eta_{#gamma}")
 histo_map["h_photon_eta"].SetTitle("Eta of the photon")
 histo_map["h_nJets_25"].GetXaxis().SetTitle("nJets over 25 GeV")
 histo_map["h_nJets_25"].SetTitle("# of jets with pT > 25 GeV")
-histo_map["h_nPhotons"].GetXaxis().SetTitle("n.#gamma")
-histo_map["h_nPhotons"].SetTitle("n.#gamma over selections")
+histo_map["h_nPhotons38WP80"].GetXaxis().SetTitle("n.#gamma_{38wp80}")
+histo_map["h_nPhotons38WP80"].SetTitle("n.#gamma over selections")
+histo_map["h_nPhotons20WP90"].GetXaxis().SetTitle("n.#gamma_{20wp90}")
+histo_map["h_nPhotons20WP90"].SetTitle("n.#gamma over selections")
 histo_map["h_efficiency"].GetXaxis().SetTitle("")
 histo_map["h_efficiency"].GetYaxis().SetTitle("#epsilon (%)")
 histo_map["h_decayChannel"].SetTitle("Decay channel")
@@ -579,6 +614,10 @@ histo_map["h_met_pT"].GetXaxis().SetTitle("pT_{met} [GeV/c]")
 histo_map["h_met_pT"].SetTitle("Transverse momentum of the missing energy")
 histo_map["h_dPhiGammaTrk"].GetXaxis().SetTitle("#Delta#Phi_{#gamma,Trk_1} [rad]")
 histo_map["h_dPhiGammaTrk"].SetTitle("Transverse momentum of the missing energy")
+histo_map["h_pTOverHmass"].GetXaxis().SetTitle("p_T^{trk^{+}trk^{-}}/m_{ditrk#gamma}")
+histo_map["h_pTOverHmass"].SetTitle("pT of the meson divided by Hmass")
+histo_map["h_eTOverHmass"].GetXaxis().SetTitle("eT_{#gamma}/m_{ditrk#gamma}")
+histo_map["h_eTOverHmass"].SetTitle("eT of the photon divided by Hmass")
 
 #########################################################################
 #Tree writing
@@ -660,6 +699,7 @@ else: #Only if data
     print "nEventsOverVBFOrt         = ",nEventsOverVBFOrt," (n. events over the VBF orthogonality: events with more than one jet are discarded)"
     print "nEventsAfterRegionDefiner = ",nEventsAfterRegionDefiner," (split in SR or CR of the ditrack inv mass)"
     print "nEventsOverLeptonVeto     = ",nEventsOverLeptonVeto," (n. events without any electron or muon)"
+    print "nEventsOverDiPhotonVeto   = ",nEventsOverDiPhotonVeto," (n. events with just one photon)"
     print "nEventsInHmassRange       = ",nEventsInHmassRange," (n. events in 100 < Hmass < 170 GeV)"
     print "nEventsMesonMassSR        = ",nEventsMesonMassSR," (Events in SR of MesonMass and in SBs of Hmass)"
     print "---------------------------------------"

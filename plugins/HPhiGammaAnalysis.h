@@ -27,6 +27,7 @@ private:
   const edm::InputTag bsCollection_;  
   const edm::InputTag PileupSrc_;
   const edm::InputTag GenInfo_;
+  const edm::InputTag lheProduct_; //LHE reader
 
   edm::LumiReWeighting Lumiweights_;
 
@@ -52,7 +53,8 @@ private:
   int nElectrons10;
   int nElectrons20;
   int nPhotonsChosen;
-  int nPhotonsOverSelection;
+  int nPhotons20WP90;
+  int nPhotons38WP80;
   int nJets;
   int nJets_25;
   int _Nevents_triggered;
@@ -72,6 +74,7 @@ private:
   TTree *mytree;
 
   int run_number;
+  int event_number;
 
   float ph_eT;
   float ph_en_sigmaUP;
@@ -183,6 +186,7 @@ private:
   edm::EDGetTokenT<std::vector<PileupSummaryInfo> > pileupSummaryToken_;
   edm::EDGetTokenT<GenEventInfoProduct> GenInfoToken_;
   edm::EDGetTokenT<edm::TriggerResults> triggerBitsToken_;
+  edm::EDGetTokenT<LHERunInfoProduct> lheToken_; //LHE reader
 
   //Ele ID decisions objects
   edm::EDGetToken electronsMiniAODToken_;

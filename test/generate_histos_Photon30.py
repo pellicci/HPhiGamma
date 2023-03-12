@@ -8,7 +8,7 @@ import tdrstyle, CMS_lumi
 
 
 #bools
-debug = True #Bool for verbose
+debug = False #Bool for verbose
 
 #Supress the opening of many Canvas's
 ROOT.gROOT.SetBatch(True)   
@@ -34,6 +34,17 @@ output_filename = args.outputfile_option
 fOut = ROOT.TFile(output_filename,"RECREATE")
 fOut.cd()
 
+#Normalization for MC dataset ################################################################################
+normalization_InputFile = open("rootfiles/latest_production/MC/normalizations/Normalizations_table_Photon30.txt","r")
+norm_map = dict()
+for line in normalization_InputFile:
+    data_norm = line.split()
+    norm_map[data_norm[0]] = float(data_norm[1])
+
+normalization_weight = norm_map["DY50"]
+print "normalization_weight = ",normalization_weight
+luminosity = 57.22 #activity of Photon30 trigger in 2018
+
 #HISTOS ###########################################################################################################
 histo_map = dict()
 list_histos = ["h_mass_mumu","h_gamma_eT","h_nPhotonTriggered_eT","h_nPhotonOffline_eT","h_triggerEff_eT"]
@@ -45,10 +56,11 @@ histo_map[list_histos[3]]  = ROOT.TH1F(list_histos[3],"n. events #gamma over off
 histo_map[list_histos[4]]  = ROOT.TH1F(list_histos[4],"Trigger efficiency as function of E_{#gamma} in "+CONST_NAME+" (Photon leg)", 10, 35.,90.)
 
 #VARIABLES INITIALIZATION ##################################################################################################
-nEventsIsoMuTrigger  = 0
-nEventsPhotonTrigger = 0
-nEventsOfflinePhoton = 0
-triggerFraction      = 0
+nEventsIsoMuTrigger    = 0
+nEventsPhotonTrigger   = 0
+nEventsPhoton35Trigger = 0
+nEventsOfflinePhoton   = 0
+triggerFraction        = 0
 
 #EVENTS LOOP ##################################################################################################################### 
 print "This sample has ", mytree.GetEntriesFast(), " events"
@@ -67,7 +79,13 @@ for jentry in xrange(nentries):
     gammaEt               = mytree.photon_eT
     isIsoMuTrigger        = mytree.isIsoMuTrigger
     isPhoton30Mu17Trigger = mytree.isPhotonTrigger      
+    isPhoton35Trigger     = mytree.isPhoton35Trigger      
     isbestPhotonFound     = mytree.cand_photon_found
+
+    if not CONST_NAME == "Data" :
+        eventWeight = luminosity * normalization_weight
+    else:
+        eventWeight = 1.
     
     if isbestPhotonFound == 0: continue
 
@@ -79,16 +97,19 @@ for jentry in xrange(nentries):
         print "isbestPhotonFound = ",isbestPhotonFound
     
     if isIsoMuTrigger:
-        nEventsIsoMuTrigger  = nEventsIsoMuTrigger  + 1
+        nEventsIsoMuTrigger    = nEventsIsoMuTrigger  + 1
     if isPhoton30Mu17Trigger:
-        nEventsPhotonTrigger = nEventsPhotonTrigger + 1
+        nEventsPhotonTrigger   = nEventsPhotonTrigger + 1
+    if isPhoton35Trigger:
+        nEventsPhoton35Trigger = nEventsPhoton35Trigger + 1
     if isbestPhotonFound:
-        nEventsOfflinePhoton = nEventsOfflinePhoton + 1
+        nEventsOfflinePhoton   = nEventsOfflinePhoton + 1
 
 
-    histo_map["h_mass_mumu"].Fill(MuMuMass)
+    histo_map["h_mass_mumu"].Fill(MuMuMass,eventWeight)
     histo_map["h_gamma_eT"].Fill(gammaEt)
-    if isPhoton30Mu17Trigger:
+    #if isPhoton30Mu17Trigger:
+    if isPhoton35Trigger:
         histo_map["h_nPhotonTriggered_eT"].Fill(gammaEt)
         histo_map["h_triggerEff_eT"].Fill(gammaEt) #create the histo starting from the numerator
 
@@ -119,9 +140,10 @@ print "##########################################"
 if debug:
     print "########################################"
     print CONST_NAME + " sample"
-    print "nEventsPhotonTrigger = ",nEventsPhotonTrigger
-    print "nEventsOfflinePhoton = ",nEventsOfflinePhoton
-    print "Trigger fraction = ",triggerFraction
+    print "nEventsPhotonTrigger   = ",nEventsPhotonTrigger
+    print "nEventsPhoton35Trigger = ",nEventsPhoton35Trigger
+    print "nEventsOfflinePhoton   = ",nEventsOfflinePhoton
+    print "Trigger fraction       = ",triggerFraction
     print "########################################"
 
 #HISTO LABELS #####################################################################################################################

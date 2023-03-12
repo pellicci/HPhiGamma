@@ -11,6 +11,7 @@
 
 #include "DataFormats/Candidate/interface/Candidate.h"
 #include "DataFormats/Common/interface/TriggerResults.h"
+#include "DataFormats/PatCandidates/interface/TriggerObjectStandAlone.h"
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 #include "DataFormats/PatCandidates/interface/Muon.h"
@@ -65,7 +66,9 @@ HPhiGammaTriggerAnalysis::HPhiGammaTriggerAnalysis(const edm::ParameterSet& iCon
   offlineSlimmedPrimaryVerticesToken_ = consumes<std::vector<reco::Vertex> > (edm::InputTag("offlineSlimmedPrimaryVertices"));  
   offlineBeamSpotToken_               = consumes<reco::BeamSpot> (edm::InputTag("offlineBeamSpot"));
   pileupSummaryToken_                 = consumes<std::vector<PileupSummaryInfo> >(edm::InputTag("slimmedAddPileupInfo"));
+  GenInfoToken_                       = consumes<GenEventInfoProduct> (edm::InputTag("generator"));
   triggerBitsToken_                   = consumes<edm::TriggerResults> (edm::InputTag("TriggerResults","","HLT"));
+  triggerObjectsToken_                = consumes<std::vector<pat::TriggerObjectStandAlone> > (edm::InputTag("slimmedPatTrigger","","PAT")); //triggObj
   rhoToken_                           = consumes<double> (iConfig.getParameter <edm::InputTag>("rho"));
 
 
@@ -73,6 +76,7 @@ HPhiGammaTriggerAnalysis::HPhiGammaTriggerAnalysis(const edm::ParameterSet& iCon
 
   _Nevents_processed  = 0;
   _Nevents_isPhoton   = 0;
+  nHLTphotons         = 0;
 
   debug=false;  //DEBUG datamember 
   verbose=false; 
@@ -105,6 +109,12 @@ void HPhiGammaTriggerAnalysis::analyze(const edm::Event& iEvent, const edm::Even
 
   edm::Handle<edm::TriggerResults> triggerBits;
   iEvent.getByToken(triggerBitsToken_, triggerBits);
+
+  edm::Handle<std::vector<pat::TriggerObjectStandAlone> > triggerObjects; //triggObj
+  iEvent.getByToken(triggerObjectsToken_, triggerObjects); //triggObj
+  
+  std::vector<pat::TriggerObjectStandAlone> unpackedTrigObjs; //triggObj
+
 
   _Nevents_processed++;
 
@@ -146,6 +156,7 @@ void HPhiGammaTriggerAnalysis::analyze(const edm::Event& iEvent, const edm::Even
   //                                                             //
   //*************************************************************//
 
+  PU_Weight = -1.;
   float npT = -1.;
 
   if(!runningOnData_){
@@ -166,10 +177,33 @@ void HPhiGammaTriggerAnalysis::analyze(const edm::Event& iEvent, const edm::Even
       abort();
     }
 
+    // Calculate weight using above code
+    PU_Weight = Lumiweights_.weight(npT);
+
     // Fill histogram with PU distribution
     h_pileup->Fill(npT);
   }
 
+  //*************************************************************//
+  //                                                             //
+  //-------------------------- MC Weight ------------------------//
+  //                                                             //
+  //*************************************************************//
+
+  MC_Weight = -10000000.;
+
+  if(!runningOnData_){
+    edm::Handle<GenEventInfoProduct> GenInfo;
+    iEvent.getByToken(GenInfoToken_, GenInfo);
+    
+    float _aMCatNLOweight = GenInfo->weight();
+    MC_Weight = _aMCatNLOweight;
+
+    if(MC_Weight == -10000000.) {
+      std::cout << "!!!! MC_Weight = -10000000 !!!!" << std::endl;
+      abort();
+    }
+  }
 
   //*************************************************************//
   //                                                             //
@@ -180,8 +214,9 @@ void HPhiGammaTriggerAnalysis::analyze(const edm::Event& iEvent, const edm::Even
   if (verbose) cout<<"Checking triggers..."<<endl;
 
   //Examine the trigger information
-  isIsoMuTrigger = false;
-  isPhotonTrigger = false;
+  isIsoMuTrigger    = false;
+  isPhotonTrigger   = false;
+  isPhoton35Trigger = false;
 
   const edm::TriggerNames &names = iEvent.triggerNames(*triggerBits);
   for(unsigned int i = 0, n = triggerBits->size(); i < n; ++i){ //trigger forloop start
@@ -199,12 +234,29 @@ void HPhiGammaTriggerAnalysis::analyze(const edm::Event& iEvent, const edm::Even
     }
 
   } //trigger forloop end
+
   
-  //RETURN if muon trigger does not switch on
   if(!isIsoMuTrigger) {
   if (verbose) cout<<"RETURN: IsoMu24 not triggered."<<endl<<endl;
   return; //Return only if there're not any muons
   }
+
+  //Move photon HLT eT threshold to 35 GeV ---------------------------------
+  float photonPtMax = -1.;
+
+  for (pat::TriggerObjectStandAlone obj : *triggerObjects){ //loop over trigger objects: type(81) means HLT photons. Check other IDs here: https://github.com/cms-sw/cmssw/blob/42bac2f29cb5da3254f0478f330bf7d091e13fcb/DataFormats/HLTReco/interface/TriggerTypeDefs.h
+    if (isPhotonTrigger && obj.type(81) && obj.pt() >= photonPtMax) {
+      photonPtMax = obj.pt();
+      if (verbose) cout<<"This is a photon with pT = "<<obj.pt()<<endl;
+    }
+  }
+
+  if (photonPtMax >= 35.) {
+    isPhoton35Trigger = true;
+    if (verbose) cout<<"HLT photon over 35 triggered"<<endl;
+  }
+  //-------------------------------------------------------------------------
+
 
   //*************************************************************//
   //                                                             //
@@ -297,16 +349,16 @@ void HPhiGammaTriggerAnalysis::analyze(const edm::Event& iEvent, const edm::Even
 
   for(auto photon = slimmedPhotons->begin(); photon != slimmedPhotons->end(); ++photon){ //Photons forloop start
 
-    corr_et = photon->et(); // * photon->userFloat("ecalEnergyPostCorr")/photon->energy();
+    corr_et   = photon->et(); // * photon->userFloat("ecalEnergyPostCorr") / photon->energy(); 
 
     //std::cout << "photon et " << corr_et << std::endl;
 
     if(corr_et < 35. || fabs(photon->eta()) > 2.5) continue;
     if(verbose) cout<<"corr_et = "<<corr_et<<endl; //FIXME
-    if(photon->hasPixelSeed()) continue;   //electron veto
+    if(!photon->passElectronVeto()) continue; 
 
     //std::cout << "photon" << photon->photonID("mvaPhoID-RunIIFall17-v1-wp90") << " " << photon->photonID("mvaPhoID-RunIIFall17-v1p1-wp90") << std::endl;
-    if(photon->photonID("mvaPhoID-RunIIFall17-v1p1-wp90") == 0) continue;
+    if(photon->photonID("mvaPhoID-RunIIFall17-v2-wp80") == 0) continue;
     if(verbose) cout<<"photonID = "<<corr_et<<endl; //FIXME
 
     float abseta = fabs(photon->superCluster()->eta());
@@ -344,9 +396,13 @@ void HPhiGammaTriggerAnalysis::analyze(const edm::Event& iEvent, const edm::Even
     if (verbose) cout<<"RETURN: No best photon found."<<endl<<endl;
     return;
   }
-  if(cand_photon_found){
+  if(cand_photon_found && verbose){
   cout<<"Photon found, with eT = "<<ph_eT<<endl;
   _Nevents_isPhoton++;
+  if (!runningOnData_){
+    cout<<"MC_Weight = "<<MC_Weight<<endl;
+    cout<<"PU_Weight = "<<PU_Weight<<endl;
+    }
   }
   if(verbose) cout<<_Nevents_isPhoton<<" best photons chosen after offline selection"<<endl;
 
@@ -370,6 +426,7 @@ void HPhiGammaTriggerAnalysis::create_trees()
   mytree->Branch("nPV",&nPV);
   mytree->Branch("isIsoMuTrigger",&isIsoMuTrigger);
   mytree->Branch("isPhotonTrigger",&isPhotonTrigger);
+  mytree->Branch("isPhoton35Trigger",&isPhoton35Trigger);
 
   //Save run number info when running on data
   if(runningOnData_){
@@ -392,6 +449,12 @@ void HPhiGammaTriggerAnalysis::create_trees()
   mytree->Branch("photon_iso_NeutralHadron",&ph_iso_NeutralHadron);
   mytree->Branch("photon_iso_Photon",&ph_iso_Photon);
   mytree->Branch("photon_iso_eArho",&ph_iso_eArho);
+
+  //Save MC info
+  if(!runningOnData_){ //NO INFO FOR DATA
+    mytree->Branch("PU_Weight",&PU_Weight);
+    mytree->Branch("MC_Weight",&MC_Weight);
+  }
 }
   
 void HPhiGammaTriggerAnalysis::beginJob()

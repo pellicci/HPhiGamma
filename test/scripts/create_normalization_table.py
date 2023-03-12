@@ -15,16 +15,16 @@ secs_table = dict()
 #secs_table["Wlnu"]                = 52850.0
 
 #Signal
-secs_table["Signal_Phi_ggH"]       = 48.58*10**(-5)*0.49 #cross section * B.R.(10^-5) * BR(Phi->KK)
-secs_table["Signal_Rho_ggH"]       = 48.58*10**(-5) #cross section * B.R.(10^-5)
-secs_table["Signal_Phi_VBF"]       =  3.78*10**(-5)*0.49
-secs_table["Signal_Rho_VBF"]       =  3.78*10**(-5)
-'''
-#ttbar
-#secs_table["ttbarToSemiLeptonic"] = 687.1 #OLD = 365.34 # accounting for the 2 possible charge signs of the W
-#secs_table["ttbarToHadronic"]     = 687.1 #OLD = 377.96
-#secs_table["ttbarlnu"]            = 687.1 #OLD = 88.29 #NNLO-2018
+secs_table["Signal_Phi_ggH"]       = 48.58*0.49 #cross section * B.R.( = 1) * BR(Phi->KK)
+secs_table["Signal_Rho_ggH"]       = 48.58 #cross section * B.R.( = 1)
+secs_table["Signal_Phi_VBF"]       =  3.78*0.49
+secs_table["Signal_Rho_VBF"]       =  3.78
 
+#ttbar
+secs_table["ttbarToSemiLeptonic"] = 687.1 #OLD = 365.34 # accounting for the 2 possible charge signs of the W
+secs_table["ttbarToHadronic"]     = 687.1 #OLD = 377.96
+#secs_table["ttbarlnu"]            = 687.1 #OLD = 88.29 #NNLO-2018
+'''
 #Drell-Yan
 secs_table["DY10to50"]            = 15890.0 #OLD = 18810.0
 secs_table["DY50"]                =  6404.0 #OLD = 2075.14*3 #amcatnlo 2017
@@ -75,12 +75,12 @@ frac_table["Signal_Phi_ggH"]       = 0.
 frac_table["Signal_Rho_ggH"]       = 0.
 frac_table["Signal_Phi_VBF"]       = 0.
 frac_table["Signal_Rho_VBF"]       = 0.
-'''
+
 #ttbar
 frac_table["ttbarToSemiLeptonic"] = 0.003957 #OLD = 0.
 frac_table["ttbarToHadronic"]     = 0.00388 #OLD = 0.
 frac_table["ttbarlnu"]            = 0.00379 #OLD = 0.
-
+'''
 #Drell-Yan
 frac_table["DY50"]                = 0.1643 #UL
 frac_table["DY10to50"]            = 0.     #OLD = 0.1367

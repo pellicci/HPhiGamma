@@ -45,7 +45,7 @@ private:
   int nPhotonsOverSelection;
   int _Nevents_processed;
   int _Nevents_isPhoton;
-  
+  int nHLTphotons;
   //TTree and TTree variables
   TTree *mytree;
 
@@ -68,11 +68,16 @@ private:
   
   bool isIsoMuTrigger;
   bool isPhotonTrigger;
+  bool isPhoton35Trigger;
   bool isBestMuMu_Found;
   bool cand_photon_found;
 
 //rho for isolation
   float rho_;
+
+  //MC truth
+  float PU_Weight;
+  float MC_Weight;
 
   //Tokens
   edm::EDGetTokenT<std::vector<pat::PackedCandidate> > packedPFCandidatesToken_; 
@@ -82,6 +87,7 @@ private:
   edm::EDGetTokenT<std::vector<PileupSummaryInfo> > pileupSummaryToken_;
   edm::EDGetTokenT<GenEventInfoProduct> GenInfoToken_;
   edm::EDGetTokenT<edm::TriggerResults> triggerBitsToken_;
+  edm::EDGetTokenT<std::vector<pat::TriggerObjectStandAlone> > triggerObjectsToken_;
 
   //Ele ID decisions objects
   edm::EDGetToken electronsMiniAODToken_;

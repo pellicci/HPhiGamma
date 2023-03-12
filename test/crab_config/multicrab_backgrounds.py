@@ -64,29 +64,29 @@ p = Process(target=submit, args=(config,))
 p.start()
 p.join()
 """
-#config.General.requestName = 'HPhiGammaAnalysis_ttbarToHadronic'
+config.General.requestName = 'HPhiGammaAnalysis_ttbarToHadronic'
 #config.Data.unitsPerJob = 5
 #config.Data.inputDataset = '/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15_ext2-v2/MINIAODSIM' #OLD
-#config.Data.inputDataset = '/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v1/MINIAODSIM' #NEW
-#p = Process(target=submit, args=(config,))
-#p.start()
-#p.join()
+config.Data.inputDataset = '/TTToHadronic_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v1/MINIAODSIM' #NEW
+p = Process(target=submit, args=(config,))
+p.start()
+p.join()
 
-#config.General.requestName = 'HPhiGammaAnalysis_ttbarToSemiLeptonic' #Requires FileBased splitting
+config.General.requestName = 'HPhiGammaAnalysis_ttbarToSemiLeptonic' #Requires FileBased splitting
 #config.Data.unitsPerJob = 5
 #config.Data.inputDataset = '/TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15_ext3-v2/MINIAODSIM' #OLD
-#config.Data.inputDataset = '/TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v2/MINIAODSIM'#NEW
-#p = Process(target=submit, args=(config,))
-#p.start()
-#p.join()
+config.Data.inputDataset = '/TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v2/MINIAODSIM'#NEW
+p = Process(target=submit, args=(config,))
+p.start()
+p.join()
 
-#config.General.requestName = 'HPhiGammaAnalysis_ttbarlnu'
+config.General.requestName = 'HPhiGammaAnalysis_ttbarlnu'
 #config.Data.unitsPerJob = 5
 #config.Data.inputDataset = '/TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM' #OLD
-#config.Data.inputDataset = '/TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v1/MINIAODSIM'#NEW
-#p = Process(target=submit, args=(config,))
-#p.start()
-#p.join()
+config.Data.inputDataset = '/TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v1/MINIAODSIM'#NEW
+p = Process(target=submit, args=(config,))
+p.start()
+p.join()
 
 #config.General.requestName = 'HPhiGammaAnalysis_DY10to50'
 #config.Data.unitsPerJob = 5
@@ -102,7 +102,7 @@ p.join()
 #p = Process(target=submit, args=(config,))
 #p.start()
 #p.join()
-
+'''
 config.General.requestName = 'HPhiGammaAnalysis_QCDpT15to20'
 config.Data.unitsPerJob = 5
 config.Data.inputDataset = '/QCD_Pt-15to20_EMEnriched_TuneCP5_13TeV-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v2/MINIAODSIM'#NEW
@@ -201,7 +201,7 @@ config.Data.inputDataset = '/GJets_HT-600ToInf_TuneCP5_13TeV-madgraphMLM-pythia8
 p = Process(target=submit, args=(config,))
 p.start()
 p.join()
-
+'''
 #config.General.requestName = 'HPhiGammaAnalysis_WZ'
 #config.Data.unitsPerJob = 5
 #config.Data.inputDataset = '/WZ_TuneCP5_13TeV-pythia8/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v3/MINIAODSIM'#OLD

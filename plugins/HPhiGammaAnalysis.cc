@@ -48,6 +48,10 @@
 #include "DataFormats/PatCandidates/interface/VIDCutFlowResult.h"
 #include "RecoEgamma/EgammaTools/interface/ConversionTools.h"
 
+//Parton distribution and QCD scale variations stuff 
+#include "FWCore/Framework/interface/Run.h"
+#include "SimDataFormats/GeneratorProducts/interface/LHEEventProduct.h" //LHE reader
+#include "SimDataFormats/GeneratorProducts/interface/LHERunInfoProduct.h" //LHE reader
 
 typedef math::XYZTLorentzVector LorentzVector;
 
@@ -63,13 +67,14 @@ runningOnData_(iConfig.getParameter<bool>("runningOnData")),
 verboseIdFlag_(iConfig.getParameter<bool>("phoIdVerbose")),
 effectiveAreas_el_( (iConfig.getParameter<edm::FileInPath>("effAreasConfigFile_el")).fullPath() ),
 effectiveAreas_ph_( (iConfig.getParameter<edm::FileInPath>("effAreasConfigFile_ph")).fullPath() )
+//lheProduct_( iConfig.getParameter<edm::InputTag>("lheProduct") ) //LHE reader
 {
   packedPFCandidatesToken_            = consumes<std::vector<pat::PackedCandidate> >(edm::InputTag("packedPFCandidates")); 
   slimmedMuonsToken_                  = consumes<std::vector<pat::Muon> >(edm::InputTag("slimmedMuons"));
   prunedGenParticlesToken_            = consumes<std::vector<reco::GenParticle> >(edm::InputTag("prunedGenParticles"));
   photonsMiniAODToken_                = consumes<std::vector<pat::Photon> > (edm::InputTag("slimmedPhotons"));
   electronsMiniAODToken_              = consumes<std::vector<pat::Electron> > (edm::InputTag("slimmedElectrons"));
-        slimmedJetsToken_                   = consumes<std::vector<pat::Jet> >(edm::InputTag("slimmedJets"));
+  slimmedJetsToken_                   = consumes<std::vector<pat::Jet> >(edm::InputTag("slimmedJets"));
   slimmedMETsToken_                   = consumes<std::vector<pat::MET> >(edm::InputTag("slimmedMETs"));
   slimmedMETsPuppiToken_              = consumes<std::vector<pat::MET> >(edm::InputTag("slimmedMETsPuppi"));
   offlineSlimmedPrimaryVerticesToken_ = consumes<std::vector<reco::Vertex> > (edm::InputTag("offlineSlimmedPrimaryVertices"));  
@@ -78,6 +83,8 @@ effectiveAreas_ph_( (iConfig.getParameter<edm::FileInPath>("effAreasConfigFile_p
   GenInfoToken_                       = consumes<GenEventInfoProduct> (edm::InputTag("generator"));
   triggerBitsToken_                   = consumes<edm::TriggerResults> (edm::InputTag("TriggerResults","","HLT"));
   rhoToken_                           = consumes<double> (iConfig.getParameter <edm::InputTag>("rho"));
+  lheToken_                           = consumes <LHERunInfoProduct,edm::InRun> (edm::InputTag(lheProduct_)); //LHE reader
+ //LHE reader
 
   h_Events = fs->make<TH1F>("h_Events", "Event counting in different steps", 8, 0., 8.);
 
@@ -93,7 +100,7 @@ effectiveAreas_ph_( (iConfig.getParameter<edm::FileInPath>("effAreasConfigFile_p
   _Nevents_VBFVeto               = 0;
 
 
-  debug=false;  //DEBUG datamember 
+  debug=true;  //DEBUG datamember 
   verbose=false; 
 
   h_pileup   = fs->make<TH1F>("pileup", "pileup", 75,0,75);
@@ -140,12 +147,17 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
   edm::Handle<edm::TriggerResults> triggerBits;
   iEvent.getByToken(triggerBitsToken_, triggerBits);
 
+  //edm::Handle<LHERunInfoProduct> run; //LHE reader
+  //iRun.getByToken(lheToken_, run); //LHE reader
+
   _Nevents_processed++; //This will be saved in the output tree, giving the number of processed events
 
   //Retrieve the run number
   if(runningOnData_){
     run_number = iEvent.id().run();
+    event_number = iEvent.id().event();
   }
+
 
   //*************************************************************//
   //                                                             //
@@ -260,7 +272,8 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
  nElectrons10          = 0;
  nMuons20              = 0;
  nElectrons20          = 0;
- nPhotonsOverSelection = 0;
+ nPhotons38WP80        = 0;
+ nPhotons20WP90        = 0;
  nPhotonsChosen        = 0;
  nJets                 = 0;
  nJets_25              = 0;
@@ -365,13 +378,13 @@ for(auto el = slimmedElectrons->begin(); el != slimmedElectrons->end(); ++el){
 
     if(corr_pt < 10. || fabs(el->eta()) > 2.5 || fabs(el->gsfTrack()->dxy((&slimmedPV->at(0))->position())) >= 0.2 || fabs(el->gsfTrack()->dz((&slimmedPV->at(0))->position())) >= 0.5) continue;
 
-    float abseta = fabs(el->superCluster()->eta());
-    float eA     = effectiveAreas_el_.getEffectiveArea(abseta);
-    float el_iso   = (el->pfIsolationVariables().sumChargedHadronPt + std::max( 0.0f, el->pfIsolationVariables().sumNeutralHadronEt + el->pfIsolationVariables().sumPhotonEt - eA*rho_))/corr_pt;
-    if(el_iso > 0.35) continue;
+    //float abseta = fabs(el->superCluster()->eta());
+    //float eA     = effectiveAreas_el_.getEffectiveArea(abseta);
+    //float el_iso   = (el->pfIsolationVariables().sumChargedHadronPt + std::max( 0.0f, el->pfIsolationVariables().sumNeutralHadronEt + el->pfIsolationVariables().sumPhotonEt - eA*rho_))/corr_pt;
+    //if(el_iso > 0.35) continue;
 
     //-------------Conditions on loose/medium MVA electron ID-------------//
-    if(el->electronID("mvaEleID-Fall17-iso-V1-wp80") == 0) continue;
+    if(el->electronID("mvaEleID-Fall17-iso-V2-wp80") == 0) continue;
     nElectrons10++;
     if (corr_pt < 20.) continue;
     nElectrons20++;
@@ -422,20 +435,23 @@ for(auto el = slimmedElectrons->begin(); el != slimmedElectrons->end(); ++el){
     // Apply energy scale corrections
     corr_et   = photon->et() * photon->userFloat("ecalEnergyPostCorr") / photon->energy(); 
 
-    if(corr_et < 38. || fabs(photon->eta()) > 2.5) continue; //
-    //if(photon->hasPixelSeed()) continue;   //electron veto
+    if(corr_et < 20. || fabs(photon->eta()) > 2.5) continue; //loose selection to reject diphoton bkg 
+    if(photon->photonID("mvaPhoID-RunIIFall17-v2-wp90") == 0) continue; //WP90
     if(!photon->passElectronVeto()) continue; 
 
-    if(photon->photonID("mvaPhoID-RunIIFall17-v1p1-wp80") == 0) continue; //WP80
+    nPhotons20WP90++;
+
+    if(corr_et < 38.) continue;
+    if(photon->photonID("mvaPhoID-RunIIFall17-v2-wp80") == 0) continue; //WP80
 
     float abseta = fabs(photon->superCluster()->eta());
     float eA = effectiveAreas_ph_.getEffectiveArea(abseta);
 
     //photon_iso = (pfIso.sumChargedHadronPt + std::max( 0.0f, pfIso.sumNeutralHadronEt + pfIso.sumPhotonEt - eA*rho_))/photon->et();
 
-    if(photon->chargedHadronIso()/corr_et > 0.3 || photon->photonIso() > 4.) continue; //|| photon->trackIso() > 6
+    //if(photon->chargedHadronIso()/corr_et > 0.3 || photon->photonIso() > 4.) continue; //|| photon->trackIso() > 6
 
-    nPhotonsOverSelection++;
+    nPhotons38WP80++;
 
     // Apply energy scale corrections
     ph_p4 = photon->p4() * photon->userFloat("ecalEnergyPostCorr") / photon->energy();
@@ -1024,6 +1040,7 @@ cout<<"ph_en_scaleDW = "<<ph_en_scaleDW<<endl;
 }
  }
 
+  //cout<<endl<<"Event n = "<<event_number<<endl;
   mytree->Fill();
 
 }
@@ -1045,13 +1062,15 @@ void HPhiGammaAnalysis::create_trees()
 //Save run number info when running on data
   if(runningOnData_){
     mytree->Branch("run_number",&run_number);
+    mytree->Branch("event_number",&event_number);
   }
 
   mytree->Branch("nMuons10",&nMuons10);
   mytree->Branch("nMuons20",&nMuons20);
   mytree->Branch("nElectrons10",&nElectrons10);
   mytree->Branch("nElectrons20",&nElectrons20);
-  mytree->Branch("nPhotonsOverSelection",&nPhotonsOverSelection);
+  mytree->Branch("nPhotons38WP80",&nPhotons38WP80);
+  mytree->Branch("nPhotons20WP90",&nPhotons20WP90);
   mytree->Branch("nPhotonsChosen",&nPhotonsChosen);
   mytree->Branch("nJets",&nJets);
   mytree->Branch("nJets_25",&nJets_25);

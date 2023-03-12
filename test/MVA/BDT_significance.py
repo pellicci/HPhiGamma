@@ -11,27 +11,50 @@ BR_inj = 0.00001
 
 #Input files
 fInputSignal = ROOT.TFile("../histos/latest_production/histos_SR_preselection_SignalggH.root")
-mytree       = fInputSignal.Get("tree_output")
+sig_tree     = fInputSignal.Get("tree_output")
 
 fInputData  = ROOT.TFile("../histos/latest_production/histos_SR_preselection_Data.root")
+data_tree   = fInputData.Get("tree_output")
 h_mesonMass = fInputData.Get("h_meson_InvMass_TwoTrk")
 
-Nbkg_passed = h_mesonMass.GetEntries()
-Nsig_passed = 0 #Initialize the number of signal events from the sum of the weights (before applying BDT cuts), take this number running the generate_histos for signal
+Nbkg_passed = 0
+nEntriesData = int(h_mesonMass.GetEntries())
 
-#EVENTS LOOP 
-nentries = mytree.GetEntriesFast()
-
-for jentry in xrange(nentries):
-    ientry = mytree.LoadTree( jentry )  
+for dataEntry in xrange(nEntriesData):
+    ientry = data_tree.LoadTree( dataEntry )  
     if ientry < 0:
         break
-    nb = mytree.GetEntry(jentry )
+    nb = data_tree.GetEntry(dataEntry )
     if nb <= 0:
         print "nb < 0"
         continue
+    
+    Hmass = data_tree.mesonGammaMass
+    #if (Hmass < 110. or Hmass > 140.): continue
+    Nbkg_passed += 1
 
-    Nsig_passed += mytree._eventWeight * BR_inj
+Nsig_passed = 0 #Initialize the number of signal events from the sum of the weights (before applying BDT cuts), take this number running the generate_histos for signal
+
+#EVENTS LOOP 
+nEntriesSig = sig_tree.GetEntriesFast()
+for sigEntry in xrange(nEntriesSig):
+    ientry = sig_tree.LoadTree( sigEntry )  
+    if ientry < 0:
+        break
+    nb = sig_tree.GetEntry(sigEntry )
+    if nb <= 0:
+        print "nb < 0"
+        continue
+    Hmass = sig_tree.mesonGammaMass
+    if (Hmass < 120. or Hmass > 130.): continue
+    #print Hmass
+    Nsig_passed += sig_tree._eventWeight * BR_inj
+
+print "nEntriesSig  = ",nEntriesSig
+print "Nsig_passed  = ",Nsig_passed
+print "nEntriesData = ",nEntriesData
+print "Nbkg_passed  = ",Nbkg_passed
+
 
 BDT_file = ROOT.TFile("outputs/Nominal_training.root")
 
@@ -40,13 +63,13 @@ h_BDT_effB_effS = BDT_file.Get("default/Method_BDT/BDT/MVA_BDT_effBvsS")
 canvas1 = ROOT.TCanvas()
 sig_eff = []
 bkg_eff = []
-signif = []
-_effS = 0
+signif  = []
+_effS   = 0
 
 for jbin in range(1,h_BDT_effB_effS.GetNbinsX()+1):
-    if h_BDT_effB_effS.GetBinCenter(jbin) > 0.11    : #insert the number before whom the function fluctuates too much to estimate the maximum
+    if h_BDT_effB_effS.GetBinCenter(jbin) > 0.1: #insert the number before whom the function fluctuates too much to estimate the maximum
         sig_eff.append(h_BDT_effB_effS.GetBinCenter(jbin))
-        if h_BDT_effB_effS.GetBinContent(jbin) < 0.:
+        if h_BDT_effB_effS.GetBinContent(jbin) <= 0.:
             bkg_eff.append(0.)
             signif.append(0)
         else:
