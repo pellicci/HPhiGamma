@@ -27,7 +27,7 @@ private:
   const edm::InputTag bsCollection_;  
   const edm::InputTag PileupSrc_;
   const edm::InputTag GenInfo_;
-  const edm::InputTag lheProduct_; //LHE reader
+  //const edm::InputTag LHEEventProduct_; //LHE reader
 
   edm::LumiReWeighting Lumiweights_;
 
@@ -112,6 +112,10 @@ private:
   float _bestCouplePt;
   float _bestCoupleEta;
   float _bestCouplePhi;
+  float minPDFWeight;
+  float maxPDFWeight;
+  float minQCDWeight;
+  float maxQCDWeight;
 
   float _Jet_Photon_invMass;
   float _MesonMass;
@@ -174,6 +178,7 @@ private:
   //for VBF veto
   int nJets20;
 
+
   //Tokens
   edm::EDGetTokenT<std::vector<pat::PackedCandidate> > packedPFCandidatesToken_; 
   edm::EDGetTokenT<std::vector<pat::Muon> > slimmedMuonsToken_; 
@@ -186,7 +191,12 @@ private:
   edm::EDGetTokenT<std::vector<PileupSummaryInfo> > pileupSummaryToken_;
   edm::EDGetTokenT<GenEventInfoProduct> GenInfoToken_;
   edm::EDGetTokenT<edm::TriggerResults> triggerBitsToken_;
-  edm::EDGetTokenT<LHERunInfoProduct> lheToken_; //LHE reader
+  edm::EDGetTokenT<LHEEventProduct> LHEEventProduct_; //LHE reader
+  //edm::EDGetTokenT<reco::JetCorrector> jetCorrectorToken_;
+  //edm::EDGetTokenT<JetCorrectionUncertainty> mJetCorrectorUnc;
+
+//  edm::EDGetTokenT<reco::JetCorrector> jetCorrectorToken_;
+
 
   //Ele ID decisions objects
   edm::EDGetToken electronsMiniAODToken_;

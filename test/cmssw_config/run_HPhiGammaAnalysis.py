@@ -121,6 +121,7 @@ updateJetCollection(
    jetCorrections = jetCorrectionsList
 )
 
+
 process.load("HiggsAnalysis.HPhiGamma.HPhiGammaAnalysis_cfi")
 process.HPhiGammaAnalysis.runningOnData = options.runningOnData
 

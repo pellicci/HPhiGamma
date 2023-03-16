@@ -11,6 +11,7 @@ doBiasStudy = True
 #Input
 p = argparse.ArgumentParser(description='Select rootfile to plot')
 p.add_argument('Decay_channel_option', help='Type <<Phi>> for Phi, <<Rho>> for Rho') #flag for bkg estimation
+p.add_argument('CAT_option', help='Type the category') #flag for bkg estimation
 args = p.parse_args()
 
 if args.Decay_channel_option == "Phi":
@@ -22,8 +23,11 @@ else:
     CHANNEL = "Rho"
     print "H -> RhoGamma analysis"
 
+CATEGORY = args.CAT_option
 
-fileInput_ggH = ROOT.TFile("histos/latest_production/histos_SR_BDTcat0_SignalggH.root")
+
+if CATEGORY == "bdt0": fileInput_ggH = ROOT.TFile("histos/latest_production/histos_SR_BDTcat0_SignalggH.root")
+if CATEGORY == "bdt1": fileInput_ggH = ROOT.TFile("histos/latest_production/histos_SR_BDTcat1_SignalggH.root")
 
 
 #Some useful things before starting --------------------------------------------------------------------
@@ -44,20 +48,22 @@ CMS_lumi.lumi_13TeV = "39.54 fb^{-1}"
 mass = ROOT.RooRealVar("mesonGammaMass","mesonGammaMass",100.,170.,"GeV")
 
 #Data input -------------------------------------------------------------
-fileInputData = ROOT.TFile("histos/latest_production/histos_SR_BDTcat0_Data.root")
+if CATEGORY == "bdt0": fileInputData = ROOT.TFile("histos/latest_production/histos_SR_BDTcat0_Data.root")
+if CATEGORY == "bdt1": fileInputData = ROOT.TFile("histos/latest_production/histos_SR_BDTcat1_Data.root")
 fileInputData.cd()
 mytreeData = fileInputData.Get("tree_output")
 
 #Signal input -------------------------------------------------------------
-fileInputSignal_ggH = ROOT.TFile("histos/latest_production/histos_SR_BDTcat0_SignalggH.root")
+if CATEGORY == "bdt0": fileInputSignal_ggH = ROOT.TFile("histos/latest_production/histos_SR_BDTcat0_SignalggH.root")
+if CATEGORY == "bdt1": fileInputSignal_ggH = ROOT.TFile("histos/latest_production/histos_SR_BDTcat1_SignalggH.root")
 fileInputSignal_ggH.cd()
 mytreeSignal_ggH = fileInputSignal_ggH.Get("tree_output")
 
 
 #Import from workspaces --------------------------------------------------------------------
-fInputSignalPDF = ROOT.TFile("workspaces/workspace_STAT_"+CHANNEL+"_GFcat_2018.root") #there's only one ws for both ggH and VBF 
+fInputSignalPDF = ROOT.TFile("workspaces/workspace_STAT_"+CHANNEL+"_GFcat_"+CATEGORY+"_2018.root") #there's only one ws for both ggH and VBF 
 fInputSignalPDF.cd()
-workspaceSignal = fInputSignalPDF.Get("workspace_STAT_"+CHANNEL+"_GFcat_2018")
+workspaceSignal = fInputSignalPDF.Get("workspace_STAT_"+CHANNEL+"_GFcat_"+CATEGORY+"_2018")
 
 print "################################ WORKSPACE SIGNAL #############################################################"
 workspaceSignal.Print() #print some info of the workspace content
@@ -65,22 +71,22 @@ print "#########################################################################
 print ""
 
 #Signal PDF
-signalPDF_ggH = workspaceSignal.pdf("crystal_ball_"+CHANNEL+"_GFcat_ggH") #SIGNAL PDF from the workspace
-workspaceSignal.var("dCB_nL_"+CHANNEL+"_GFcat_ggH").setConstant(1) 
-workspaceSignal.var("dCB_nR_"+CHANNEL+"_GFcat_ggH").setConstant(1)
-workspaceSignal.var("dCB_aL_"+CHANNEL+"_GFcat_ggH").setConstant(1)
-workspaceSignal.var("dCB_aR_"+CHANNEL+"_GFcat_ggH").setConstant(1)
-workspaceSignal.var("dCB_pole_"+CHANNEL+"_GFcat_ggH").setConstant(1)
-workspaceSignal.var("dCB_width_"+CHANNEL+"_GFcat_ggH").setConstant(1)
+signalPDF_ggH = workspaceSignal.pdf("crystal_ball_"+CHANNEL+"_GFcat_"+CATEGORY+"_ggH") #SIGNAL PDF from the workspace
+workspaceSignal.var("dCB_nL_"+CHANNEL+"_GFcat_"+CATEGORY+"_ggH").setConstant(1) 
+workspaceSignal.var("dCB_nR_"+CHANNEL+"_GFcat_"+CATEGORY+"_ggH").setConstant(1)
+workspaceSignal.var("dCB_aL_"+CHANNEL+"_GFcat_"+CATEGORY+"_ggH").setConstant(1)
+workspaceSignal.var("dCB_aR_"+CHANNEL+"_GFcat_"+CATEGORY+"_ggH").setConstant(1)
+workspaceSignal.var("dCB_pole_"+CHANNEL+"_GFcat_"+CATEGORY+"_ggH").setConstant(1)
+workspaceSignal.var("dCB_width_"+CHANNEL+"_GFcat_"+CATEGORY+"_ggH").setConstant(1)
 
 #Background PDF
-fInputSidebandsPDF = ROOT.TFile("workspaces/workspace_STAT_"+CHANNEL+"_GFcat_2018.root")
+fInputSidebandsPDF = ROOT.TFile("workspaces/workspace_STAT_"+CHANNEL+"_GFcat_"+CATEGORY+"_2018.root")
 fInputSidebandsPDF.cd()
-workspaceSidebands   = fInputSidebandsPDF.Get("workspace_STAT_"+CHANNEL+"_GFcat_2018")
-bkgPDF_chebychev     = workspaceSidebands.pdf("chebychev_GFcat_bkg") #BKG PDF from the workspace
-bkgPDF_exponential   = workspaceSidebands.pdf("exponential_GFcat_bkg") #BKG PDF from the workspace
-bkgPDF_bernstein     = workspaceSidebands.pdf("bernstein_GFcat_bkg") #BKG PDF from the workspace
-bkgPDF_chebychev4    = workspaceSidebands.pdf("chebychev4_GFcat_bkg") #BKG PDF from the workspace
+workspaceSidebands   = fInputSidebandsPDF.Get("workspace_STAT_"+CHANNEL+"_GFcat_"+CATEGORY+"_2018")
+bkgPDF_chebychev     = workspaceSidebands.pdf("chebychev_GFcat_"+CATEGORY+"_bkg") #BKG PDF from the workspace
+bkgPDF_bernstein     = workspaceSidebands.pdf("bernstein_GFcat_"+CATEGORY+"_bkg") #BKG PDF from the workspace
+bkgPDF_chebychev4    = workspaceSidebands.pdf("chebychev4_GFcat_"+CATEGORY+"_bkg") #BKG PDF from the workspace
+#bkgPDF_exponential   = workspaceSidebands.pdf("exponential_GFcat_"+CATEGORY+"_bkg") #BKG PDF from the workspace
 
 print "############################### WORKSPACE BKG ##############################################################"
 workspaceSidebands.Print()
@@ -116,23 +122,23 @@ Nsig_ggH = ROOT.RooFormulaVar("Nsig_ggH","@0*@1*@2*@3*@4",ROOT.RooArgList(lumi,c
 argListN = ROOT.RooArgList(Nsig_ggH,Nbkg)
 print "arg list N size = ",argListN.getSize()
 argListPDFs_chebychev   = ROOT.RooArgList(signalPDF_ggH,bkgPDF_chebychev)
-argListPDFs_exponential = ROOT.RooArgList(signalPDF_ggH,bkgPDF_exponential)
 argListPDFs_bernstein   = ROOT.RooArgList(signalPDF_ggH,bkgPDF_bernstein)
+#argListPDFs_exponential = ROOT.RooArgList(signalPDF_ggH,bkgPDF_exponential)
 argListPDFs_chebychev4  = ROOT.RooArgList(signalPDF_ggH,bkgPDF_chebychev4)
 
 print "arg lists created!"
 totPDF_chebychev   = ROOT.RooAddPdf("totPDF_chebychev","Cheby",argListPDFs_chebychev,argListN)
-totPDF_exponential = ROOT.RooAddPdf("totPDF_exponential","Exp",argListPDFs_exponential,argListN)
 totPDF_bernstein   = ROOT.RooAddPdf("totPDF_bernstein","Bern",argListPDFs_bernstein,argListN)
-totPDF_chebychev4  = ROOT.RooAddPdf("totPDF_chebychev4","Cheby4",argListPDFs_chebychev,argListN)
+#totPDF_exponential = ROOT.RooAddPdf("totPDF_exponential","Exp",argListPDFs_exponential,argListN)
+totPDF_chebychev4  = ROOT.RooAddPdf("totPDF_chebychev4","Cheby4",argListPDFs_chebychev4,argListN)
 
 print "PDFs added!"
 
 #Generate dataset for blind analysis -----------------------------------------------------------------------------------
 datasetGenerated_chebychev   = totPDF_chebychev.generate(ROOT.RooArgSet(mass),Ndata)
-datasetGenerated_exponential = totPDF_exponential.generate(ROOT.RooArgSet(mass),Ndata)
 datasetGenerated_bernstein   = totPDF_bernstein.generate(ROOT.RooArgSet(mass),Ndata)
 datasetGenerated_chebychev4  = totPDF_chebychev4.generate(ROOT.RooArgSet(mass),Ndata)
+#datasetGenerated_exponential = totPDF_exponential.generate(ROOT.RooArgSet(mass),Ndata)
 
 print "Dataset generated!"
 
@@ -148,8 +154,8 @@ print ""
 multicanvas = ROOT.TCanvas()
 multicanvas.cd()
 
-genPDF = totPDF_chebychev
-fitPDF = totPDF_exponential
+genPDF = totPDF_bernstein
+fitPDF = totPDF_chebychev
 
 mcstudy = ROOT.RooMCStudy(genPDF, ROOT.RooArgSet(mass), ROOT.RooFit.Silence(),ROOT.RooFit.FitModel(fitPDF), ROOT.RooFit.Extended(), ROOT.RooFit.FitOptions(ROOT.RooFit.Save(1), ROOT.RooFit.PrintEvalErrors(0)))
 mcstudy.generateAndFit(5000)
@@ -180,6 +186,6 @@ leg2.Draw()
 
 multicanvas.Draw()
 
-multicanvas.SaveAs("/eos/user/g/gumoret/www/latest_production/massanalysis_latest_production/BRpull_"+genPDF.GetTitle()+"Vs"+fitPDF.GetTitle()+".png")
-multicanvas.SaveAs("/eos/user/g/gumoret/www/latest_production/massanalysis_latest_production/BRpull_"+genPDF.GetTitle()+"Vs"+fitPDF.GetTitle()+".pdf")
+multicanvas.SaveAs("/eos/user/g/gumoret/www/latest_production/massanalysis_latest_production/BRpull_"+genPDF.GetTitle()+"Vs"+fitPDF.GetTitle()+"_"+CATEGORY+".png")
+multicanvas.SaveAs("/eos/user/g/gumoret/www/latest_production/massanalysis_latest_production/BRpull_"+genPDF.GetTitle()+"Vs"+fitPDF.GetTitle()+"_"+CATEGORY+".pdf")
 

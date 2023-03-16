@@ -53,13 +53,32 @@
 #include "SimDataFormats/GeneratorProducts/interface/LHEEventProduct.h" //LHE reader
 #include "SimDataFormats/GeneratorProducts/interface/LHERunInfoProduct.h" //LHE reader
 
+//#include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h" //JEC uncertainties
+//#include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h" //JEC uncertainties
+//#include "JetMETCorrections/JetCorrector/interface/JetCorrector.h"
+
+//JEC uncertainties
+#include "FWCore/Framework/interface/ESHandle.h"
+#include "FWCore/Framework/interface/EventSetup.h"
+#include "FWCore/ParameterSet/interface/FileInPath.h"
+#include "FWCore/Utilities/interface/InputTag.h"
+//#include "JetMETCorrections/Objects/interface/JetCorrectionsRecord.h"
+//#include "CondFormats/JetMETObjects/interface/JetResolution.h"
+//#include "CondFormats/JetMETObjects/interface/JetResolutionObject.h"
+//#include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
+//#include "JetMETCorrections/JetCorrector/interface/JetCorrector.h"
+//#include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
+
+//#include "CondFormats/DataRecord/interface/JetCorrectionsRecord.h"
+
+//#include "CondFormats/JetMETObjects/interface/JetCorrectionsRecord.h"
+
+
 typedef math::XYZTLorentzVector LorentzVector;
 
 using namespace std;  
 
 #include "HPhiGammaAnalysis.h"
-
-
 
 // constructors and destructor
 HPhiGammaAnalysis::HPhiGammaAnalysis(const edm::ParameterSet& iConfig) :
@@ -67,7 +86,6 @@ runningOnData_(iConfig.getParameter<bool>("runningOnData")),
 verboseIdFlag_(iConfig.getParameter<bool>("phoIdVerbose")),
 effectiveAreas_el_( (iConfig.getParameter<edm::FileInPath>("effAreasConfigFile_el")).fullPath() ),
 effectiveAreas_ph_( (iConfig.getParameter<edm::FileInPath>("effAreasConfigFile_ph")).fullPath() )
-//lheProduct_( iConfig.getParameter<edm::InputTag>("lheProduct") ) //LHE reader
 {
   packedPFCandidatesToken_            = consumes<std::vector<pat::PackedCandidate> >(edm::InputTag("packedPFCandidates")); 
   slimmedMuonsToken_                  = consumes<std::vector<pat::Muon> >(edm::InputTag("slimmedMuons"));
@@ -83,8 +101,8 @@ effectiveAreas_ph_( (iConfig.getParameter<edm::FileInPath>("effAreasConfigFile_p
   GenInfoToken_                       = consumes<GenEventInfoProduct> (edm::InputTag("generator"));
   triggerBitsToken_                   = consumes<edm::TriggerResults> (edm::InputTag("TriggerResults","","HLT"));
   rhoToken_                           = consumes<double> (iConfig.getParameter <edm::InputTag>("rho"));
-  lheToken_                           = consumes <LHERunInfoProduct,edm::InRun> (edm::InputTag(lheProduct_)); //LHE reader
- //LHE reader
+  LHEEventProduct_                    = consumes<LHEEventProduct>(edm::InputTag("externalLHEProducer"));
+
 
   h_Events = fs->make<TH1F>("h_Events", "Event counting in different steps", 8, 0., 8.);
 
@@ -100,7 +118,7 @@ effectiveAreas_ph_( (iConfig.getParameter<edm::FileInPath>("effAreasConfigFile_p
   _Nevents_VBFVeto               = 0;
 
 
-  debug=true;  //DEBUG datamember 
+  debug=false;  //DEBUG datamember 
   verbose=false; 
 
   h_pileup   = fs->make<TH1F>("pileup", "pileup", 75,0,75);
@@ -145,10 +163,15 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
   iEvent.getByToken(offlineSlimmedPrimaryVerticesToken_, slimmedPV);
 
   edm::Handle<edm::TriggerResults> triggerBits;
-  iEvent.getByToken(triggerBitsToken_, triggerBits);
+  iEvent.getByToken(triggerBitsToken_, triggerBits); 
 
-  //edm::Handle<LHERunInfoProduct> run; //LHE reader
-  //iRun.getByToken(lheToken_, run); //LHE reader
+  //edm::Handle<reco::JetCorrector> jetCorr;
+  //iEvent.getByToken(jetCorrectorToken_, jetCorr);
+
+  //edm::ESHandle<JetCorrectorParametersCollection> JetCorParColl;
+  //iSetup.get<JetCorrectionsRecord>().get("AK4PFchs",JetCorParColl); 
+  //JetCorrectorParameters const & JetCorPar = (*JetCorParColl)["Uncertainty"];
+  //JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(JetCorPar); 
 
   _Nevents_processed++; //This will be saved in the output tree, giving the number of processed events
 
@@ -213,6 +236,9 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
     // Fill histogram with PU distribution
     h_pileup->Fill(npT);
   }
+
+
+
 
   //*************************************************************//
   //                                                             //
@@ -577,11 +603,13 @@ bool isPhi = false;
 bool isRho = false;
 std::vector<float> eta_jets_vector;   //for VBF veto
 
+
 if(verbose) cout<< "JETs loop"<<" --------------------------------"<<endl;
 
-  for (auto jet = slimmedJets->begin(); jet != slimmedJets->end(); ++jet) { //JET LOOP START --------------------------------------------------------  
+  for (auto jet = slimmedJets->begin(); jet != slimmedJets->end(); ++jet) { //JET LOOP START -------------------------------------------------------- 
 
     jetIndex++;
+
     _Jet_Photon_invMass=(jet->p4()+ph_p4).M(); //calculate inv mass
     // if(debug) cout<<"_Jet_Photon_invMass = "<<_Jet_Photon_invMass<<endl; 
     nDaughters= jet->numberOfDaughters(); //calculate number of daughters
@@ -988,6 +1016,66 @@ if (nJets20 > 2.){
 if(verbose) cout <<"---------------------------------------------"<<endl<<endl;
 _Nevents_VBFVeto++;
 
+
+  //*************************************************************//
+  //                                                             //
+  //-------------------------- LHE access -----------------------//
+  //                                                             //
+  //*************************************************************//
+
+ if(!runningOnData_){
+
+  // Get the LHEEventProduct from the miniAOD
+  edm::Handle<LHEEventProduct> lheEventProduct;
+  iEvent.getByLabel("externalLHEProducer", lheEventProduct);
+
+  // Get the central weight
+  double centralWeight = lheEventProduct->originalXWGTUP();
+
+  // Initialize variables for the minimum and maximum weights
+  minPDFWeight = std::numeric_limits<double>::max();
+  maxPDFWeight = -std::numeric_limits<double>::max();
+  minQCDWeight = std::numeric_limits<double>::max();
+  maxQCDWeight = -std::numeric_limits<double>::max();
+
+  // Loop over the LHE weights and find the minimum and maximum PDF and QCD variations
+  for (unsigned int i = 0; i < lheEventProduct->weights().size(); ++i) {
+      std::string weightId = lheEventProduct->weights()[i].id;
+      if (weightId.find("2") == 0) {
+          int weightIdInt = std::stoi(weightId);
+          if (weightIdInt >= 2001 && weightIdInt <= 2100) {
+              double pdfWeight = lheEventProduct->weights()[i].wgt / centralWeight;
+              if (pdfWeight < minPDFWeight) {
+                  minPDFWeight = pdfWeight;
+              }
+              if (pdfWeight > maxPDFWeight) {
+                  maxPDFWeight = pdfWeight;
+              }
+          }
+          else if (weightIdInt >= 1001 && weightIdInt <= 1009) {
+              double qcdWeight = lheEventProduct->weights()[i].wgt / centralWeight;
+              if (qcdWeight < minQCDWeight) {
+                  minQCDWeight = qcdWeight;
+              }
+              if (qcdWeight > maxQCDWeight) {
+                  maxQCDWeight = qcdWeight;
+              }
+          }
+      }
+  }
+
+  if(verbose){
+  // Print the minimum and maximum PDF and QCD variations
+  cout << "Minimum PDF variation: " << minPDFWeight << endl;
+  cout << "Maximum PDF variation: " << maxPDFWeight << endl;
+  cout << "Minimum QCD variation: " << minQCDWeight << endl;
+  cout << "Maximum QCD variation: " << maxQCDWeight << endl;
+}
+
+}
+
+
+
 //MC TRUTH CHECK
 if(!runningOnData_) //ONLY FOR MC START  
 {
@@ -1138,6 +1226,10 @@ void HPhiGammaAnalysis::create_trees()
   if(!runningOnData_){ //NO INFO FOR DATA
     mytree->Branch("PU_Weight",&PU_Weight);
     mytree->Branch("MC_Weight",&MC_Weight);
+    mytree->Branch("minPDFWeight",&minPDFWeight);
+    mytree->Branch("maxPDFWeight",&maxPDFWeight);
+    mytree->Branch("minQCDWeight",&minQCDWeight);
+    mytree->Branch("maxQCDWeight",&maxQCDWeight);
     //mytree->Branch("isHiggsFound",&_isHiggsFound);
     //mytree->Branch("isKplusfromPhi",&is_Kplus_fromPhi);
     //mytree->Branch("isKminusfromPhi",&is_Kminus_fromPhi);
