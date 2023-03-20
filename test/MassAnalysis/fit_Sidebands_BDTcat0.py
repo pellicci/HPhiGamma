@@ -52,8 +52,8 @@ b_bkg = ROOT.RooRealVar("b_bkg_chebychev_"+CHANNEL+"_GFcat_bdt0","b_bkg",0.3,-1.
 c_bkg = ROOT.RooRealVar("c_bkg_chebychev_"+CHANNEL+"_GFcat_bdt0","c_bkg",-0.01,-1.,1.)
 d_bkg = ROOT.RooRealVar("d_bkg_chebychev_"+CHANNEL+"_GFcat_bdt0","d_bkg",-0.05,-0.1,0.)
 f_bkg = ROOT.RooRealVar("e_bkg_chebychev_"+CHANNEL+"_GFcat_bdt0","e_bkg",-0.05,-0.1,0.)
-bkgPDF_chebychev  = ROOT.RooChebychev("chebychev_GFcat_bdt0_bkg","bkgPDF",mass,ROOT.RooArgList(a_bkg,b_bkg))
-bkgPDF_chebychev4 = ROOT.RooChebychev("chebychev4_GFcat_bdt0_bkg","bkgPDF",mass,ROOT.RooArgList(a_bkg,b_bkg,c_bkg))
+bkgPDF_chebychev  = ROOT.RooChebychev("chebychev_GFcat_bdt0_bkg","bkgPDF",mass,ROOT.RooArgList(a_bkg,b_bkg,c_bkg))
+bkgPDF_chebychev4 = ROOT.RooChebychev("chebychev4_GFcat_bdt0_bkg","bkgPDF",mass,ROOT.RooArgList(a_bkg,b_bkg,c_bkg,d_bkg))
 
 
 #Initialize a exponential pdf
@@ -63,8 +63,8 @@ e2_bkg = ROOT.RooRealVar("e2_bkg_exponential_"+CHANNEL+"_GFcat_bdt0","e2_bkg",-0
 exp2   = ROOT.RooExponential("exponential2_GFcat_bdt0_bkg","bkgPDF",mass,e2_bkg)
 frac_exp = ROOT.RooRealVar("f0_bkg_exponential_"+CHANNEL+"_GFcat_bdt0","frac_exp",0.,1.)
 
-if CHANNEL == "Rho": bkgPDF_exponential = ROOT.RooAddPdf("exponential_GFcat_bdt0_bkg","bkgPDF",ROOT.RooArgList(exp1,exp2),ROOT.RooArgList(frac_exp))
-if CHANNEL == "Phi": bkgPDF_exponential = ROOT.RooExponential("exponential_GFcat_bdt0_bkg","bkgPDF",mass,e1_bkg)
+bkgPDF_exponential = ROOT.RooAddPdf("exponential_GFcat_bdt0_bkg","bkgPDF",ROOT.RooArgList(exp1,exp2),ROOT.RooArgList(frac_exp))
+#if CHANNEL == "Phi": bkgPDF_exponential = ROOT.RooExponential("exponential_GFcat_bdt0_bkg","bkgPDF",mass,e1_bkg)
 
 #Initialize a Bernstein pdf
 bern_c0 = ROOT.RooRealVar('bern_c0', 'bern_c0', 0.1,0.,1.5)
@@ -73,7 +73,7 @@ bern_c2 = ROOT.RooRealVar('bern_c2', 'bern_c2', 0.1, 0.,1.)
 bern_c3 = ROOT.RooRealVar('bern_c3', 'bern_c3', 0.,0., 10.)
 bern_c4 = ROOT.RooRealVar('bern_c4', 'bern_c4', 0.5, 0., 5.)
 bern_c5 = ROOT.RooRealVar('bern_c5', 'bern_c5', 1e-2, 0., 0.1)
-bkgPDF_bernstein = ROOT.RooBernstein("bernstein_GFcat_bdt0_bkg", "bkgPDF", mass, ROOT.RooArgList(bern_c0,bern_c1,bern_c2,bern_c3))
+bkgPDF_bernstein = ROOT.RooBernstein("bernstein_GFcat_bdt0_bkg", "bkgPDF", mass, ROOT.RooArgList(bern_c0,bern_c1,bern_c2,bern_c3,bern_c4))
 
 #bkgPDF_bernstein  = ROOT.RooProdPdf("bkgPDF_bernstein","bkg PDF",ROOT.RooArgSet(e1_bkg,bkgPDF_bernstein1))
 
@@ -292,8 +292,8 @@ cat = ROOT.RooCategory("pdf_index_GFcat_bdt0","Index of Pdf which is active")
 mypdfs = ROOT.RooArgList()
 mypdfs.add(bkgPDF_chebychev)
 mypdfs.add(bkgPDF_bernstein)
-#mypdfs.add(bkgPDF_exponential)
-#mypdfs.add(bkgPDF_chebychev4)
+mypdfs.add(bkgPDF_exponential)
+mypdfs.add(bkgPDF_chebychev4)
 
 multipdf = ROOT.RooMultiPdf("multipdf_"+CHANNEL+"_GFcat_bdt0_bkg","All Pdfs",cat,mypdfs)
 

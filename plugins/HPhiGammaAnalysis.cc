@@ -62,12 +62,12 @@
 #include "FWCore/Framework/interface/EventSetup.h"
 #include "FWCore/ParameterSet/interface/FileInPath.h"
 #include "FWCore/Utilities/interface/InputTag.h"
-//#include "JetMETCorrections/Objects/interface/JetCorrectionsRecord.h"
+#include "JetMETCorrections/Objects/interface/JetCorrectionsRecord.h"
 //#include "CondFormats/JetMETObjects/interface/JetResolution.h"
 //#include "CondFormats/JetMETObjects/interface/JetResolutionObject.h"
-//#include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
+#include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
 //#include "JetMETCorrections/JetCorrector/interface/JetCorrector.h"
-//#include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
+#include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
 
 //#include "CondFormats/DataRecord/interface/JetCorrectionsRecord.h"
 
@@ -119,7 +119,7 @@ effectiveAreas_ph_( (iConfig.getParameter<edm::FileInPath>("effAreasConfigFile_p
 
 
   debug=false;  //DEBUG datamember 
-  verbose=false; 
+  verbose=true; 
 
   h_pileup   = fs->make<TH1F>("pileup", "pileup", 75,0,75);
 
@@ -168,10 +168,10 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
   //edm::Handle<reco::JetCorrector> jetCorr;
   //iEvent.getByToken(jetCorrectorToken_, jetCorr);
 
-  //edm::ESHandle<JetCorrectorParametersCollection> JetCorParColl;
-  //iSetup.get<JetCorrectionsRecord>().get("AK4PFchs",JetCorParColl); 
-  //JetCorrectorParameters const & JetCorPar = (*JetCorParColl)["Uncertainty"];
-  //JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(JetCorPar); 
+  edm::ESHandle<JetCorrectorParametersCollection> JetCorParColl;
+  iSetup.get<JetCorrectionsRecord>().get("AK4PFchs",JetCorParColl); 
+  JetCorrectorParameters const & JetCorPar = (*JetCorParColl)["Uncertainty"];
+  JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(JetCorPar); 
 
   _Nevents_processed++; //This will be saved in the output tree, giving the number of processed events
 
@@ -610,6 +610,11 @@ if(verbose) cout<< "JETs loop"<<" --------------------------------"<<endl;
 
     jetIndex++;
 
+
+    //double ptCor_shifted = ptCor(1+shift*unc) ; // shift = +1(up), or -1(down)
+    //cout<<"jet pT = "<<jet->pt()<<endl;
+    //cout<<"unc = "<<unc<<endl;
+
     _Jet_Photon_invMass=(jet->p4()+ph_p4).M(); //calculate inv mass
     // if(debug) cout<<"_Jet_Photon_invMass = "<<_Jet_Photon_invMass<<endl; 
     nDaughters= jet->numberOfDaughters(); //calculate number of daughters
@@ -624,12 +629,18 @@ if(verbose) cout<< "JETs loop"<<" --------------------------------"<<endl;
     if(jet->chargedHadronEnergyFraction() <= 0.) continue; //reject if chargedHadron-energy fraction is 0                              
     if(jet->chargedHadronMultiplicity() == 0) continue; //reject if there are NOT charged hadrons                              
     if(jet->chargedEmEnergyFraction() > 0.8) continue; //reject if chargedEm-energy fraction is > 0.8   
-    if(jet->pt() < 30. || abs(jet->eta()) > 4.7) continue;
+    if(jet->pt() < 20. || abs(jet->eta()) > 4.7) continue;
     //for VBF veto ----------------------
     nJets20++;
     eta_jets_vector.push_back(jet->eta());
     //-----------------------------------
-    if(jet->pt() < 40.) continue;
+
+    jecUnc->setJetEta(jet->eta());
+    jecUnc->setJetPt(jet->pt()); // here you must use the CORRECTED jet pt
+    double unc = jecUnc->getUncertainty(true);
+
+    double jetPt_shifted = jet->pt() - unc; //just for JEC syst, REMOVE ME
+    if(jetPt_shifted < 40.) continue;
     if(_Jet_Photon_invMass < 100.) continue; //reject jets with inv mass lower then 100 GeV
                            
      //-------------------------------------------------------------------------------------------------      
@@ -871,7 +882,7 @@ _iso_couple_ch = 0.;
 //------------- ISOLATION -------------------------------------------------------------------------  
 for(auto cand_iso = PFCandidates->begin(); cand_iso != PFCandidates->end(); ++cand_iso){ //ISOLATION FORLOOP START
   
-  if(verbose){
+  if(debug){
     cout <<endl<<"ISO CALC DETAILS ---------------------"<<endl;
     cout << "pt cand_iso = "<<cand_iso->pt()<<endl;
   }
@@ -882,7 +893,7 @@ for(auto cand_iso = PFCandidates->begin(); cand_iso != PFCandidates->end(); ++ca
   if (deltaPhi_K1 > 3.14) deltaPhi_K1 = 6.28 - deltaPhi_K1;
 
   float deltaR_K1 = sqrt((_firstCandEta-cand_iso->eta())*(_firstCandEta-cand_iso->eta()) + deltaPhi_K1*deltaPhi_K1);
-  if (verbose) cout << "deltaR_K1 = "<<deltaR_K1<<endl;
+  if (debug) cout << "deltaR_K1 = "<<deltaR_K1<<endl;
   if(deltaR_K1 < 0.0005) continue;
 
   //calculate the deltaR between the track and the second candidate ---------------------------------------
@@ -890,7 +901,7 @@ for(auto cand_iso = PFCandidates->begin(); cand_iso != PFCandidates->end(); ++ca
   if (deltaPhi_K2 > 3.14) deltaPhi_K2 = 6.28 - deltaPhi_K2;
 
   float deltaR_K2 = sqrt((_secondCandEta-cand_iso->eta())*(_secondCandEta-cand_iso->eta()) + deltaPhi_K2*deltaPhi_K2);
-  if (verbose) cout << "deltaR_K2 = "<<deltaR_K2<<endl;
+  if (debug) cout << "deltaR_K2 = "<<deltaR_K2<<endl;
   if(deltaR_K2 < 0.0005) continue;
 
   //calculate the deltaR between the track and the best pair ---------------------------------------
@@ -906,18 +917,18 @@ for(auto cand_iso = PFCandidates->begin(); cand_iso != PFCandidates->end(); ++ca
   //cout<< "charge before = "<<cand_iso->charge()<<endl;
 
   //sum pT of the charged tracks inside a cone of deltaR = 0.3 ---------------------------------------
-  if (verbose) cout << "Charge = "<< cand_iso->charge()<<endl;
+  if (debug) cout << "Charge = "<< cand_iso->charge()<<endl;
   if(cand_iso->charge() == 0) continue;
 // cout << "particle charge = "<<cand_iso->charge()<<endl;
-  if (verbose) cout << "dxy = "<<fabs(cand_iso->dxy())<<" and dz = "<< fabs(cand_iso->dz())<<endl;
+  if (debug) cout << "dxy = "<<fabs(cand_iso->dxy())<<" and dz = "<< fabs(cand_iso->dz())<<endl;
   if(fabs(cand_iso->dxy()) >= 0.2 || fabs(cand_iso->dz()) >= 0.5) continue; // Requesting charged particles to come from PV
   //cout<< "charge after = "<<cand_iso->charge()<<endl;
   if(deltaR_K1 <= 0.3) K1_sum_pT_05_ch += cand_iso->pt();
   if(deltaR_K2 <= 0.3) K2_sum_pT_05_ch += cand_iso->pt();
-  if (verbose) cout <<"deltaR_Couple = "<<deltaR_Couple<<endl;
+  if (debug) cout <<"deltaR_Couple = "<<deltaR_Couple<<endl;
   if(deltaR_Couple <= 0.3){
     couple_sum_pT_05_ch += cand_iso->pt();
-    if (verbose) cout<<"Particle in the cone: SumPt = "<<couple_sum_pT_05_ch<<endl;
+    if (debug) cout<<"Particle in the cone: SumPt = "<<couple_sum_pT_05_ch<<endl;
   }
 } //ISOLATION FORLOOP END
   
@@ -993,7 +1004,7 @@ if (nJets20 > 2.){
     //cout <<"deltaEta(BestJet - jet"<<jet_i<<")  = "<<abs(_bestJet_eta-eta_jets_vector.at(jet_i))<<endl;
     
     if (abs(_bestJet_eta-eta_jets_vector.at(jet_i)) == 0) {
-      if(verbose) cout<<"Best jet index = "<<jet_i<<endl;
+      if(debug) cout<<"Best jet index = "<<jet_i<<endl;
       continue;
     }
 
@@ -1001,19 +1012,19 @@ if (nJets20 > 2.){
 
       //cout <<"deltaEta(BestJet - jet"<<jet_j<<")  = "<<abs(_bestJet_eta-eta_jets_vector.at(jet_j))<<endl;
       if (abs(_bestJet_eta-eta_jets_vector.at(jet_j)) == 0) {
-      if(verbose) cout<<"Best jet index = "<<jet_j<<endl;
+      if(debug) cout<<"Best jet index = "<<jet_j<<endl;
       continue;
       }
 
       deltaEtaJets = abs(eta_jets_vector.at(jet_i) - eta_jets_vector.at(jet_j));
 
-      if(verbose) cout <<"deltaEta(jet"<<jet_i<<" - jet"<<jet_j<<") = "<<deltaEtaJets<<endl;
+      if(debug) cout <<"deltaEta(jet"<<jet_i<<" - jet"<<jet_j<<") = "<<deltaEtaJets<<endl;
       if (deltaEtaJets > 3.) return;
 
     }
   }
 }
-if(verbose) cout <<"---------------------------------------------"<<endl<<endl;
+if(debug) cout <<"---------------------------------------------"<<endl<<endl;
 _Nevents_VBFVeto++;
 
 
@@ -1064,7 +1075,7 @@ _Nevents_VBFVeto++;
       }
   }
 
-  if(verbose){
+  if(debug){
   // Print the minimum and maximum PDF and QCD variations
   cout << "Minimum PDF variation: " << minPDFWeight << endl;
   cout << "Maximum PDF variation: " << maxPDFWeight << endl;
@@ -1119,7 +1130,7 @@ if(!runningOnData_) //ONLY FOR MC START
  else //ONLY FOR DATA
  {
   cout<<"CANDIDATE HIGGS FOUND IN DATA: EVENT RECORDED!"<<endl;
-  if(verbose){
+  if(debug){
 cout<<"Photon eT = "<<ph_eT<<endl;
 cout<<"ph_en_sigmaUP = "<< ph_en_sigmaUP<<endl;
 cout<<"ph_en_sigmaDW = "<< ph_en_sigmaDW<<endl;
@@ -1130,6 +1141,8 @@ cout<<"ph_en_scaleDW = "<<ph_en_scaleDW<<endl;
 
   //cout<<endl<<"Event n = "<<event_number<<endl;
   mytree->Fill();
+
+  delete jecUnc;
 
 }
 

@@ -12,7 +12,7 @@ import os, sys
 #bools
 debug = False #Bool for verbose
 isPhiAnalysis = True   
-isPtBin = False
+isPtBin = True
 
 #Supress the opening of many Canvas's
 ROOT.gROOT.SetBatch(True)  
@@ -101,7 +101,7 @@ triggerFraction           = 0
 
 #Create lists of bin min e max values
 binList = [38.,43.,48.,53.,200.]
-etaBinList = [0., 0.45, 1.3, 2.5]
+etaBinList = [0., 0.45, 1.3, 2.5,100.]
 #define pT bin
 pTmin = binList[binIndex]
 pTmax = binList[binIndex + 1]
@@ -190,8 +190,8 @@ for jentry in xrange(nentries):
 
     histo_map["h_mass_mumu"].Fill(MuMuMass, weight)        
     histo_map["h_TwoProngs_pT"].Fill(TwoProngsPt, weight)
-    #if (TwoProngsPt >= pTmin and TwoProngsPt < pTmax):
-    if (abs(bestPairEta) >= etaMin and abs(bestPairEta) < etaMax):
+    if (TwoProngsPt >= pTmin and TwoProngsPt < pTmax):
+    #if (abs(bestPairEta) >= etaMin and abs(bestPairEta) < etaMax):
         histo_map["h_MesonMass"].Fill(MesonMass, weight)
 
     
@@ -199,8 +199,8 @@ for jentry in xrange(nentries):
             histo_map["h_nTwoProngsTriggered_pT"].Fill(TwoProngsPt, weight)
             histo_map["h_triggerEff_TwoProngsPt"].Fill(TwoProngsPt, weight) #these two histos contains the same entries. h_triggerEff_TwoProngsPt is the numerator of the trigger efficiency ratio so far.
             histo_map["h_triggerEff_TwoProngsEta"].Fill(abs(bestPairEta), weight) #these two histos contains the same entries. h_triggerEff_TwoProngsPt is the numerator of the trigger efficiency ratio so far.
-            #if (TwoProngsPt >= pTmin and TwoProngsPt < pTmax):
-            if (abs(bestPairEta) >= etaMin and abs(bestPairEta) < etaMax):
+            if (TwoProngsPt >= pTmin and TwoProngsPt < pTmax):
+            #if (abs(bestPairEta) >= etaMin and abs(bestPairEta) < etaMax):
                 histo_map["h_MesonMass_triggered"].Fill(MesonMass, weight)
 
     if isBestPairFound: 
@@ -303,19 +303,20 @@ a2 = ROOT.RooRealVar("a2","The a2 of background", a2_central, a2_min, a2_max)
 a3 = ROOT.RooRealVar("a3","The a3 of background", a3_central, a3_min, a3_max)
 
 if binIndex == 0: 
-    signalPDF = ROOT.RooGaussian("signalPDF","Gaussian pdf",mass,mean,sigma)
+    #signalPDF = ROOT.RooGaussian("signalPDF","Gaussian pdf",mass,mean,sigma)
+    signalPDF = ROOT.RooCBShape("signalPDF","CB pdf",mass,mean,sigma,alpha,n)
     if SAMPLE_NAME == "Data": backgroundPDF = ROOT.RooChebychev("backgroundPDF","The background PDF",mass,ROOT.RooArgList(a1,a2,a3))
-    if SAMPLE_NAME == "MC":   backgroundPDF = ROOT.RooChebychev("backgroundPDF","The background PDF",mass,ROOT.RooArgList(a1,a2))
+    if SAMPLE_NAME == "MC":   backgroundPDF = ROOT.RooChebychev("backgroundPDF","The background PDF",mass,ROOT.RooArgList(a1,a2,a3))
 
 elif binIndex == 1:
-    #signalPDF = ROOT.RooCBShape("signalPDF","CB pdf",mass,mean,sigma,alpha,n)
-    signalPDF = ROOT.RooGaussian("signalPDF","Gaussian pdf",mass,mean,sigma)
+    signalPDF = ROOT.RooCBShape("signalPDF","CB pdf",mass,mean,sigma,alpha,n)
+    #signalPDF = ROOT.RooGaussian("signalPDF","Gaussian pdf",mass,mean,sigma)
     if SAMPLE_NAME == "Data": backgroundPDF = ROOT.RooChebychev("backgroundPDF","The background PDF",mass,ROOT.RooArgList(a1,a2,a3))
     if SAMPLE_NAME == "MC":   backgroundPDF = ROOT.RooChebychev("backgroundPDF","The background PDF",mass,ROOT.RooArgList(a1))
 
 else:             
-    #signalPDF = ROOT.RooCBShape("signalPDF","The Crystall Ball",mass,mean,sigma,alpha,n)
-    signalPDF = ROOT.RooGaussian("signalPDF","Gaussian pdf",mass,mean,sigma)
+    signalPDF = ROOT.RooCBShape("signalPDF","The Crystall Ball",mass,mean,sigma,alpha,n)
+    #signalPDF = ROOT.RooGaussian("signalPDF","Gaussian pdf",mass,mean,sigma)
     backgroundPDF = ROOT.RooChebychev("backgroundPDF","The background PDF",mass,ROOT.RooArgList(a1,a2))
 
 NsigOffline   = ROOT.RooRealVar("Nsig","The Rho signal events", NsigOffline_central, NsigOffline_min, NsigOffline_max)

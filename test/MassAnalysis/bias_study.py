@@ -86,7 +86,7 @@ workspaceSidebands   = fInputSidebandsPDF.Get("workspace_STAT_"+CHANNEL+"_GFcat_
 bkgPDF_chebychev     = workspaceSidebands.pdf("chebychev_GFcat_"+CATEGORY+"_bkg") #BKG PDF from the workspace
 bkgPDF_bernstein     = workspaceSidebands.pdf("bernstein_GFcat_"+CATEGORY+"_bkg") #BKG PDF from the workspace
 bkgPDF_chebychev4    = workspaceSidebands.pdf("chebychev4_GFcat_"+CATEGORY+"_bkg") #BKG PDF from the workspace
-#bkgPDF_exponential   = workspaceSidebands.pdf("exponential_GFcat_"+CATEGORY+"_bkg") #BKG PDF from the workspace
+bkgPDF_exponential   = workspaceSidebands.pdf("exponential_GFcat_"+CATEGORY+"_bkg") #BKG PDF from the workspace
 
 print "############################### WORKSPACE BKG ##############################################################"
 workspaceSidebands.Print()
@@ -123,14 +123,14 @@ argListN = ROOT.RooArgList(Nsig_ggH,Nbkg)
 print "arg list N size = ",argListN.getSize()
 argListPDFs_chebychev   = ROOT.RooArgList(signalPDF_ggH,bkgPDF_chebychev)
 argListPDFs_bernstein   = ROOT.RooArgList(signalPDF_ggH,bkgPDF_bernstein)
-#argListPDFs_exponential = ROOT.RooArgList(signalPDF_ggH,bkgPDF_exponential)
+argListPDFs_exponential = ROOT.RooArgList(signalPDF_ggH,bkgPDF_exponential)
 argListPDFs_chebychev4  = ROOT.RooArgList(signalPDF_ggH,bkgPDF_chebychev4)
 
 print "arg lists created!"
 totPDF_chebychev   = ROOT.RooAddPdf("totPDF_chebychev","Cheby",argListPDFs_chebychev,argListN)
 totPDF_bernstein   = ROOT.RooAddPdf("totPDF_bernstein","Bern",argListPDFs_bernstein,argListN)
-#totPDF_exponential = ROOT.RooAddPdf("totPDF_exponential","Exp",argListPDFs_exponential,argListN)
-totPDF_chebychev4  = ROOT.RooAddPdf("totPDF_chebychev4","Cheby4",argListPDFs_chebychev4,argListN)
+totPDF_exponential = ROOT.RooAddPdf("totPDF_exponential","Exp",argListPDFs_exponential,argListN)
+totPDF_chebychev4  = ROOT.RooAddPdf("totPDF_chebychev4","Cheby5",argListPDFs_chebychev4,argListN)
 
 print "PDFs added!"
 
@@ -138,7 +138,7 @@ print "PDFs added!"
 datasetGenerated_chebychev   = totPDF_chebychev.generate(ROOT.RooArgSet(mass),Ndata)
 datasetGenerated_bernstein   = totPDF_bernstein.generate(ROOT.RooArgSet(mass),Ndata)
 datasetGenerated_chebychev4  = totPDF_chebychev4.generate(ROOT.RooArgSet(mass),Ndata)
-#datasetGenerated_exponential = totPDF_exponential.generate(ROOT.RooArgSet(mass),Ndata)
+datasetGenerated_exponential = totPDF_exponential.generate(ROOT.RooArgSet(mass),Ndata)
 
 print "Dataset generated!"
 
@@ -154,7 +154,7 @@ print ""
 multicanvas = ROOT.TCanvas()
 multicanvas.cd()
 
-genPDF = totPDF_bernstein
+genPDF = totPDF_chebychev4
 fitPDF = totPDF_chebychev
 
 mcstudy = ROOT.RooMCStudy(genPDF, ROOT.RooArgSet(mass), ROOT.RooFit.Silence(),ROOT.RooFit.FitModel(fitPDF), ROOT.RooFit.Extended(), ROOT.RooFit.FitOptions(ROOT.RooFit.Save(1), ROOT.RooFit.PrintEvalErrors(0)))
