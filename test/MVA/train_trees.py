@@ -29,9 +29,12 @@ dataloader = ROOT.TMVA.DataLoader()
 
 #Pay attention to the order, it must be the same in the function_smuggler.py
 dataloader.AddVariable("_firstTrkIsoCh","F")
-dataloader.AddVariable("_coupleIso","F")
+dataloader.AddVariable("_coupleIso0","F")
 dataloader.AddVariable("_bestCouplePt/mesonGammaMass","F")
 dataloader.AddVariable("_photonEt/mesonGammaMass","F")
+dataloader.AddVariable("_JetNeutralEmEnergy","F")
+dataloader.AddVariable("_JetChargedHadEnergy","F")
+dataloader.AddVariable("_JetNeutralHadEnergy","F")
 #dataloader.AddVariable("mesonGammaMass","F") #used just to check the correlation of Hmass and other input variables
 #dataloader.AddVariable("_bestCouplePt","F")
 #dataloader.AddVariable("_photonEt","F")

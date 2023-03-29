@@ -1,3 +1,7 @@
+#define _USE_MATH_DEFINES
+#include <cmath> 
+#include <iostream>
+
 //ROOT includes
 #include <TH1F.h>
 #include <TH2F.h>
@@ -6,6 +10,7 @@
 #include <TTree.h>
 #include "Math/VectorUtil.h"
 #include <stdlib.h>
+
 
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 
@@ -119,7 +124,7 @@ effectiveAreas_ph_( (iConfig.getParameter<edm::FileInPath>("effAreasConfigFile_p
 
 
   debug=false;  //DEBUG datamember 
-  verbose=true; 
+  verbose=false; 
 
   h_pileup   = fs->make<TH1F>("pileup", "pileup", 75,0,75);
 
@@ -171,7 +176,6 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
   edm::ESHandle<JetCorrectorParametersCollection> JetCorParColl;
   iSetup.get<JetCorrectionsRecord>().get("AK4PFchs",JetCorParColl); 
   JetCorrectorParameters const & JetCorPar = (*JetCorParColl)["Uncertainty"];
-  JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(JetCorPar); 
 
   _Nevents_processed++; //This will be saved in the output tree, giving the number of processed events
 
@@ -293,7 +297,6 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
   //                                                             //
   //*************************************************************//
 
-
  nMuons10              = 0;
  nElectrons10          = 0;
  nMuons20              = 0;
@@ -301,8 +304,8 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
  nPhotons38WP80        = 0;
  nPhotons20WP90        = 0;
  nPhotonsChosen        = 0;
- nJets                 = 0;
- nJets_25              = 0;
+ nJets30               = 0;
+ nJets25               = 0;
  nJets20               = 0;
  
   //These variables will go in the tree
@@ -341,6 +344,7 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
  _bestJet_chargedHadMultiplicity = 0.;
  _bestJet_invMass                = 0.;
  _bestJet_Photon_invMass         = 0.;
+ _bestJet_JECunc                 = 0.;
  _firstCandPt                    = 0.;
  _firstCandEta                   = 0.;
  _firstCandPhi                   = 0.;
@@ -515,7 +519,7 @@ for(auto el = slimmedElectrons->begin(); el != slimmedElectrons->end(); ++el){
       for (auto gen = genParticles->begin(); gen != genParticles->end(); ++gen){ //loop on genParticles start
 	     //gen particles phi folding	
         float deltaPhi = fabs(ph_phi-gen->phi());
-        if (deltaPhi > 3.14) deltaPhi = 6.28 - deltaPhi;
+        if (deltaPhi > M_PI) deltaPhi = 2*M_PI - deltaPhi;
 
         float deltaR = sqrt((ph_eta-gen->eta())*(ph_eta-gen->eta())+deltaPhi*deltaPhi);
         float deltapT = fabs(ph_eT-gen->pt());
@@ -601,27 +605,25 @@ float candPtMin = 1.;
 bool isBestCoupleOfTheEvent_Found=false;
 bool isPhi = false;
 bool isRho = false;
-std::vector<float> eta_jets_vector;   //for VBF veto
+std::vector<float> pt_jets_vector;   //for VBF veto
+std::vector<LorentzVector> p4_jets_vector;   //for VBF veto
+//std::vector<float> m_jets_vector;   //for VBF veto
 
 
 if(verbose) cout<< "JETs loop"<<" --------------------------------"<<endl;
 
+JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(JetCorPar); 
+
+
   for (auto jet = slimmedJets->begin(); jet != slimmedJets->end(); ++jet) { //JET LOOP START -------------------------------------------------------- 
 
     jetIndex++;
-
-
-    //double ptCor_shifted = ptCor(1+shift*unc) ; // shift = +1(up), or -1(down)
-    //cout<<"jet pT = "<<jet->pt()<<endl;
-    //cout<<"unc = "<<unc<<endl;
 
     _Jet_Photon_invMass=(jet->p4()+ph_p4).M(); //calculate inv mass
     // if(debug) cout<<"_Jet_Photon_invMass = "<<_Jet_Photon_invMass<<endl; 
     nDaughters= jet->numberOfDaughters(); //calculate number of daughters
 
     //----------------------------- Pre-Filters --------------------------------------------------------
-    if(verbose) cout<<"Analyzing Jet with pT = "<<jet->pt()<<endl;
-    if(verbose) cout<<"   Ok, this jet has _Jet_Photon_invMass = "<<_Jet_Photon_invMass<<endl;
     if(jet->neutralHadronEnergyFraction() > 0.9) continue; //reject if neutralhadron-energy fraction is > 0.9
     if(jet->neutralEmEnergyFraction() > 0.9) continue; //reject if neutralEm-energy fraction is > 0.9, alias NO-PHOTON FILTER                              
     if(nDaughters < 2) continue; //reject if number of constituens is less then 1
@@ -632,15 +634,21 @@ if(verbose) cout<< "JETs loop"<<" --------------------------------"<<endl;
     if(jet->pt() < 20. || abs(jet->eta()) > 4.7) continue;
     //for VBF veto ----------------------
     nJets20++;
-    eta_jets_vector.push_back(jet->eta());
+    //eta_jets_vector.push_back(jet->eta());
+    p4_jets_vector.push_back(jet->p4());
+    pt_jets_vector.push_back(jet->pt());
+    //m_jets_vector.push_back((jet->p4()).M());
     //-----------------------------------
 
+    //JEC and JES uncertainties ----------------------------------------------
     jecUnc->setJetEta(jet->eta());
     jecUnc->setJetPt(jet->pt()); // here you must use the CORRECTED jet pt
     double unc = jecUnc->getUncertainty(true);
+    double jetPt_shifted = jet->pt() - unc; //just for JEC syst
+    if (debug) cout <<"jet pT = "<<jet->pt()<<", jet pT shifted = "<<jetPt_shifted<<endl;
+    //------------------------------------------------------------------------
 
-    double jetPt_shifted = jet->pt() - unc; //just for JEC syst, REMOVE ME
-    if(jetPt_shifted < 40.) continue;
+    if(jet->pt() < 40.) continue;
     if(_Jet_Photon_invMass < 100.) continue; //reject jets with inv mass lower then 100 GeV
                            
      //-------------------------------------------------------------------------------------------------      
@@ -654,7 +662,7 @@ if(verbose) cout<< "JETs loop"<<" --------------------------------"<<endl;
            for(auto gen = genParticles->begin(); gen != genParticles->end(); ++gen){ //GEN PARTICLES LOOP START 
 	          //phi folding	
             float deltaPhi = fabs(jet->phi()-gen->phi());
-            if (deltaPhi > 3.14) deltaPhi = 6.28 - deltaPhi;
+            if (deltaPhi > M_PI) deltaPhi = 2*M_PI - deltaPhi;
 
             float R = sqrt((jet->eta()-gen->eta())*(jet->eta()-gen->eta())+deltaPhi * deltaPhi); 
             if( (gen->pdgId() == 333 || gen->pdgId() == 113)  && gen->mother()->pdgId() == 25 && R < 0.4)
@@ -710,7 +718,7 @@ if(verbose) cout<< "JETs loop"<<" --------------------------------"<<endl;
           float deltaEta= firstCandEta - secondCandEta;
 
           float deltaPhi = fabs(firstCandPhi - secondCandPhi);  //phi folding	
-          if (deltaPhi > 3.14) deltaPhi = 6.28 - deltaPhi;
+          if (deltaPhi > M_PI) deltaPhi = 2*M_PI - deltaPhi;
 
           deltaR_K= sqrt(deltaEta*deltaEta + deltaPhi*deltaPhi);
           //if(verbose) cout<<"deltaR = "<<deltaR_K<<endl; //fixme
@@ -805,14 +813,17 @@ if(verbose) cout<< "JETs loop"<<" --------------------------------"<<endl;
           _bestJet_Photon_invMass = _Jet_Photon_invMass;
           _isPhi                  = isPhi;
           _isRho                  = isRho;
+          _bestJet_JECunc         = unc;
           
           if(isPhi){
             best_firstCand_p4  = firstCand_p4_K; 
+            if (debug) cout<<"first cand phi      = "<<firstCandPhi<<endl;
+            if (debug) cout<<"first cand p4.phi() = "<<best_firstCand_p4.phi()<<endl;
             best_secondCand_p4 = secondCand_p4_K;
             best_couple_p4     = couple_p4_K;
           }	 
           if(isRho){
-            best_firstCand_p4  = firstCand_p4_Pi; 
+            best_firstCand_p4  = firstCand_p4_Pi;
             best_secondCand_p4 = secondCand_p4_Pi;
             best_couple_p4     = couple_p4_Pi;
           }      
@@ -821,11 +832,14 @@ if(verbose) cout<< "JETs loop"<<" --------------------------------"<<endl;
 	} //1ST LOOP ENDS
 
   if(jet->pt() < 25.) continue;
-  nJets_25++;
+  nJets25++;
   if(jet->pt() < 30.) continue;
-  nJets++;
+  nJets30++;
 
 } //JET LOOP END
+
+delete jecUnc;
+
 
 if(!isBestCoupleOfTheEvent_Found) 
 {
@@ -849,6 +863,7 @@ _bestCouplePhi = best_couple_p4.phi();
 _bestJet_invMass                = slimmedJets->at(bestJet_Index).mass();
 _bestJet_pT                     = slimmedJets->at(bestJet_Index).pt();
 _bestJet_eta                    = slimmedJets->at(bestJet_Index).eta();
+_bestJet_phi                    = slimmedJets->at(bestJet_Index).phi();
 _bestJet_nDaughters             = slimmedJets->at(bestJet_Index).numberOfDaughters();
 _bestJet_chargedEmEnergy        = slimmedJets->at(bestJet_Index).chargedEmEnergy();
 _bestJet_neutralEmEnergy        = slimmedJets->at(bestJet_Index).neutralEmEnergy();
@@ -890,7 +905,7 @@ for(auto cand_iso = PFCandidates->begin(); cand_iso != PFCandidates->end(); ++ca
 
   //calculate the deltaR between the track and the first candidate ---------------------------------------
   float deltaPhi_K1 = fabs(_firstCandPhi-cand_iso->phi());  //phi folding	
-  if (deltaPhi_K1 > 3.14) deltaPhi_K1 = 6.28 - deltaPhi_K1;
+  if (deltaPhi_K1 > M_PI) deltaPhi_K1 = 2*M_PI - deltaPhi_K1;
 
   float deltaR_K1 = sqrt((_firstCandEta-cand_iso->eta())*(_firstCandEta-cand_iso->eta()) + deltaPhi_K1*deltaPhi_K1);
   if (debug) cout << "deltaR_K1 = "<<deltaR_K1<<endl;
@@ -898,7 +913,7 @@ for(auto cand_iso = PFCandidates->begin(); cand_iso != PFCandidates->end(); ++ca
 
   //calculate the deltaR between the track and the second candidate ---------------------------------------
   float deltaPhi_K2 = fabs(_secondCandPhi-cand_iso->phi());  //phi folding	
-  if (deltaPhi_K2 > 3.14) deltaPhi_K2 = 6.28 - deltaPhi_K2;
+  if (deltaPhi_K2 > M_PI) deltaPhi_K2 = 2*M_PI - deltaPhi_K2;
 
   float deltaR_K2 = sqrt((_secondCandEta-cand_iso->eta())*(_secondCandEta-cand_iso->eta()) + deltaPhi_K2*deltaPhi_K2);
   if (debug) cout << "deltaR_K2 = "<<deltaR_K2<<endl;
@@ -906,7 +921,7 @@ for(auto cand_iso = PFCandidates->begin(); cand_iso != PFCandidates->end(); ++ca
 
   //calculate the deltaR between the track and the best pair ---------------------------------------
   float deltaPhi_Couple = fabs(_bestCouplePhi-cand_iso->phi());  //phi folding	
-  if (deltaPhi_Couple > 3.14) deltaPhi_Couple = 6.28 - deltaPhi_Couple;
+  if (deltaPhi_Couple > M_PI) deltaPhi_Couple = 2*M_PI - deltaPhi_Couple;
 
   float deltaR_Couple = sqrt((_bestCoupleEta-cand_iso->eta())*(_bestCoupleEta-cand_iso->eta()) + deltaPhi_Couple*deltaPhi_Couple);
 
@@ -985,6 +1000,7 @@ if(_iso_couple_ch < 0.9) {
 
 _Nevents_coupleIsolationFilter++;
 
+/*
 //VBF veto -------------------------------------------------------------
 int jet_i = 0;
 int jet_j = 0;
@@ -992,7 +1008,7 @@ int jet_j = 0;
 if(verbose){
   cout <<"VBF veto ------------------------------------"<<endl<<endl;
   cout <<"nJets20      = "<<nJets20<<endl;
-  cout <<"nJets        = "<<nJets<<endl;
+  cout <<"nJets30      = "<<nJets30<<endl;
 }
 
 if (nJets20 > 2.){
@@ -1025,7 +1041,77 @@ if (nJets20 > 2.){
   }
 }
 if(debug) cout <<"---------------------------------------------"<<endl<<endl;
+*/
+
+//***********************************************
+//**************** VBF VETO *********************
+//***********************************************
+
+//remove bestJet from vectors
+bool bestJetRemoved = false;
+
+for (int i = 0; i < static_cast<int>(p4_jets_vector.size()); i++) {
+    if (pt_jets_vector[i] == _bestJet_pT) {
+        p4_jets_vector.erase(p4_jets_vector.begin() + i);
+        pt_jets_vector.erase(pt_jets_vector.begin() + i);
+        i--; // to handle the reduction in vector size
+        bestJetRemoved = true;
+    }
+}    
+if(!bestJetRemoved)cout<<"SOMETHING WRONG!!! No best jet removed from vectors."<<endl;
+
+// sort the pt_jets_vector in descending order
+std::sort(pt_jets_vector.begin(), pt_jets_vector.end(), std::greater<float>());
+
+// create a vector of indices to keep track of the original position of elements in pt_jets_vector
+std::vector<int> pt_sorted_indices(pt_jets_vector.size());
+std::iota(pt_sorted_indices.begin(), pt_sorted_indices.end(), 0);
+std::sort(pt_sorted_indices.begin(), pt_sorted_indices.end(), [&](int i, int j) {
+    return pt_jets_vector[i] > pt_jets_vector[j];
+});
+
+// sort the p4_jets_vector using the indices in pt_sorted_indices
+std::vector<LorentzVector> p4_jets_sorted(p4_jets_vector.size());
+for (int i = 0; i < static_cast<int>(pt_sorted_indices.size()); i++) {
+    p4_jets_sorted[i] = p4_jets_vector[pt_sorted_indices[i]];
+}
+
+bool isVBF = false;
+
+int nExtraJet = static_cast<int>(p4_jets_vector.size());
+
+if(nExtraJet > 1){
+
+float deltaEtaJets = abs(p4_jets_vector[0].Eta() - p4_jets_vector[1].Eta());
+float leadingJetPt = p4_jets_vector[0].Pt(); 
+float mJJ          = (p4_jets_vector[0] + p4_jets_vector[1]).M();
+
+if (debug){
+cout<<"--------- VBFveto ---------------"<<endl;
+cout<<"nExtraJet          = "<<nExtraJet<<endl;
+cout<<"eta leadingJet     = "<<p4_jets_vector[0].Eta()<<endl;
+cout<<"eta subLeadingJet  = "<<p4_jets_vector[1].Eta()<<endl;
+cout<<"deltaEtaJets       = "<<deltaEtaJets<<endl;
+cout<<"leadingJetPt       = "<<leadingJetPt<<endl;
+cout<<"subLeadingJetPt    = "<<p4_jets_vector[1].Pt()<<endl;
+cout<<"mJJ                = "<<mJJ<<endl;
+cout<<"---------------------------------"<<endl;
+}
+
+//VBF definition : nJets >= 2 (without counting the jet containing the candidate meson), pT leading jet > 30, pT subleading jet > 20, deltaEta > 3, mJJ > 400
+if(leadingJetPt > 30 && deltaEtaJets > 3 ){ //&& mJJ > 400){
+
+  isVBF = true;
+  cout<<"VBF-like event: RETURN!"<<endl;
+ }
+}
+
+if(isVBF) return;
+
 _Nevents_VBFVeto++;
+
+
+
 
 
   //*************************************************************//
@@ -1113,7 +1199,7 @@ if(!runningOnData_) //ONLY FOR MC START
       cout<<"ph_en_sigmaDW = "<< ph_en_sigmaDW<<endl;
       cout<<"ph_en_scaleUP = "<<ph_en_scaleUP<<endl;
       cout<<"ph_en_scaleDW = "<<ph_en_scaleDW<<endl;
-      cout<<"n Jets = "<<nJets_25<<endl;
+      cout<<"n Jets = "<<nJets25<<endl;
       cout<<"Jet + photon inv. mass = "<<_bestJet_Photon_invMass<<endl;
       cout<<"n. of daughters: "<<_bestJet_nDaughters<<endl;
       cout<<"Best couple pT = "<<_firstCandPt + _secondCandPt<<endl;
@@ -1141,8 +1227,6 @@ cout<<"ph_en_scaleDW = "<<ph_en_scaleDW<<endl;
 
   //cout<<endl<<"Event n = "<<event_number<<endl;
   mytree->Fill();
-
-  delete jecUnc;
 
 }
 
@@ -1173,8 +1257,8 @@ void HPhiGammaAnalysis::create_trees()
   mytree->Branch("nPhotons38WP80",&nPhotons38WP80);
   mytree->Branch("nPhotons20WP90",&nPhotons20WP90);
   mytree->Branch("nPhotonsChosen",&nPhotonsChosen);
-  mytree->Branch("nJets",&nJets);
-  mytree->Branch("nJets_25",&nJets_25);
+  mytree->Branch("nJets30",&nJets30);
+  mytree->Branch("nJets25",&nJets25);
   mytree->Branch("met_pT",&met_pT);
   mytree->Branch("metpuppi_pT",&metpuppi_pT);
 
@@ -1195,12 +1279,13 @@ void HPhiGammaAnalysis::create_trees()
   mytree->Branch("bestJet_eta",&_bestJet_eta);
   mytree->Branch("bestJet_phi",&_bestJet_phi);
   mytree->Branch("bestJet_nDaughters",&_bestJet_nDaughters);
-  //mytree->Branch("bestJet_chargedEmEnergy",&_bestJet_chargedEmEnergy);
-  //mytree->Branch("bestJet_neutralEmEnergy",&_bestJet_neutralEmEnergy);
-  //mytree->Branch("bestJet_chargedHadEnergy",&_bestJet_chargedHadEnergy);
-  //mytree->Branch("bestJet_neutralHadEnergy",&_bestJet_neutralHadEnergy);
+  mytree->Branch("bestJet_chargedEmEnergy",&_bestJet_chargedEmEnergy);
+  mytree->Branch("bestJet_neutralEmEnergy",&_bestJet_neutralEmEnergy);
+  mytree->Branch("bestJet_chargedHadEnergy",&_bestJet_chargedHadEnergy);
+  mytree->Branch("bestJet_neutralHadEnergy",&_bestJet_neutralHadEnergy);
   mytree->Branch("bestJet_invMass",&_bestJet_invMass);
   mytree->Branch("bestJet_Photon_invMass",&_bestJet_Photon_invMass);
+  mytree->Branch("bestJet_JECunc",&_bestJet_JECunc);
 
   mytree->Branch("firstCandPt",&_firstCandPt);
   mytree->Branch("firstCandEta",&_firstCandEta);
@@ -1243,13 +1328,16 @@ void HPhiGammaAnalysis::create_trees()
     mytree->Branch("maxPDFWeight",&maxPDFWeight);
     mytree->Branch("minQCDWeight",&minQCDWeight);
     mytree->Branch("maxQCDWeight",&maxQCDWeight);
-    //mytree->Branch("isHiggsFound",&_isHiggsFound);
-    //mytree->Branch("isKplusfromPhi",&is_Kplus_fromPhi);
-    //mytree->Branch("isKminusfromPhi",&is_Kminus_fromPhi);
-    //mytree->Branch("isPhiFromH",&is_Phi_fromH);
-    //mytree->Branch("isPhotonFromH",&is_Photon_fromH);
-    //mytree->Branch("isPhotonTrue",&is_photon_a_photon);
-    //mytree->Branch("isPhotonMatched",&is_photon_matched);
+    mytree->Branch("isHiggsFound",&_isHiggsFound);
+    mytree->Branch("isKplusfromPhi",&is_Kplus_fromPhi);
+    mytree->Branch("isKminusfromPhi",&is_Kminus_fromPhi);
+    mytree->Branch("isPiplusfromRho",&is_Piplus_fromRho);
+    mytree->Branch("isPiminusfromRho",&is_Piminus_fromRho);
+    mytree->Branch("isPhiFromH",&is_Phi_fromH);
+    mytree->Branch("isRhofromH",&is_Rho_fromH);
+    mytree->Branch("isPhotonFromH",&is_Photon_fromH);
+    mytree->Branch("isPhotonTrue",&is_photon_a_photon);
+    mytree->Branch("isPhotonMatched",&is_photon_matched);
 
 }
 

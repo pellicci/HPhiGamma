@@ -55,8 +55,8 @@ private:
   int nPhotonsChosen;
   int nPhotons20WP90;
   int nPhotons38WP80;
-  int nJets;
-  int nJets_25;
+  int nJets30;
+  int nJets25;
   int _Nevents_triggered;
   int _Nevents_processed;
   int _Nevents_isTwoKaons;
@@ -155,6 +155,7 @@ private:
   int _bestJet_chargedHadMultiplicity;
   float _bestJet_invMass;
   float _bestJet_Photon_invMass;
+  float _bestJet_JECunc;
   
   //MC truth
   float PU_Weight;

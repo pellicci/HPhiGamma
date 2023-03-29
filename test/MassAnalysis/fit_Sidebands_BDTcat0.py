@@ -292,8 +292,8 @@ cat = ROOT.RooCategory("pdf_index_GFcat_bdt0","Index of Pdf which is active")
 mypdfs = ROOT.RooArgList()
 mypdfs.add(bkgPDF_chebychev)
 mypdfs.add(bkgPDF_bernstein)
-mypdfs.add(bkgPDF_exponential)
-mypdfs.add(bkgPDF_chebychev4)
+#mypdfs.add(bkgPDF_exponential)
+#mypdfs.add(bkgPDF_chebychev4)
 
 multipdf = ROOT.RooMultiPdf("multipdf_"+CHANNEL+"_GFcat_bdt0_bkg","All Pdfs",cat,mypdfs)
 

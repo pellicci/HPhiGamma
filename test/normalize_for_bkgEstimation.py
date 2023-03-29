@@ -15,7 +15,7 @@ Sidebands = ROOT.TFile("histos/latest_production/histos_CR_"+CAT+"_Sidebands.roo
 fOut = ROOT.TFile("histos/latest_production/histos_CR_"+CAT+"_SidebandsNorm.root","RECREATE")
 fOut.cd()
 
-list_histos = ["h_InvMass_TwoTrk_Photon","h_meson_InvMass_TwoTrk","h_firstTrk_pT","h_secondTrk_pT","h_firstTrk_Eta","h_secondTrk_Eta","h_firstTrk_Phi","h_secondTrk_Phi","h_bestCouplePt","h_bestCoupleEta","h_bestCoupleDeltaR","h_bestJetPt","h_bestJetEta","h_firstTrk_Iso","h_firstTrk_Iso_ch","h_secondTrk_Iso","h_secondTrk_Iso_ch","h_couple_Iso","h_couple_Iso_ch","h_photon_energy","h_photon_eta","h_nJets_25","h_nMuons","h_nElectrons","h_nPhotons38WP80","h_nPhotons20WP90","h_decayChannel","h_couple_Iso_neutral","h_met_pT","h_dPhiGammaTrk","h_pTOverHmass","h_eTOverHmass"]#,"h_BDT_out"]
+list_histos = ["h_InvMass_TwoTrk_Photon","h_meson_InvMass_TwoTrk","h_firstTrk_pT","h_secondTrk_pT","h_firstTrk_Eta","h_secondTrk_Eta","h_firstTrk_Phi","h_secondTrk_Phi","h_bestCouplePt","h_bestCoupleEta","h_bestCoupleDeltaR","h_bestJetPt","h_bestJetEta","h_firstTrk_Iso","h_firstTrk_Iso_ch","h_secondTrk_Iso","h_secondTrk_Iso_ch","h_couple_Iso","h_couple_Iso_ch","h_photon_energy","h_photon_eta","h_nJets_25","h_nMuons","h_nElectrons","h_nPhotons38WP80","h_nPhotons20WP90","h_decayChannel","h_couple_Iso_neutral","h_met_pT","h_dPhiGammaTrk","h_pTOverHmass","h_eTOverHmass","h_JetChargedEmEnergy","h_JetNeutralEmEnergy","h_JetChargedHadEnergy","h_JetNeutralHadEnergy"]#,"h_BDT_out"]
 
 for histo_name in list_histos:
 	
@@ -37,7 +37,8 @@ for histo_name in list_histos:
 	print "histo SR integral = ", SRintegral	
 	print "histo CR integral = ", CRintegral		
 
-	histoCR.Scale(SRintegral/CRintegral)
+	if not CRintegral == 0:
+		histoCR.Scale(SRintegral/CRintegral)
 	histoCR.Write()
 
 	print "histo CR integral after the normalization = ", histoCR.Integral()		
