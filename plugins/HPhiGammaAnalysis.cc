@@ -1,4 +1,4 @@
-#define _USE_MATH_DEFINES
+  #define _USE_MATH_DEFINES
 #include <cmath> 
 #include <iostream>
 
@@ -77,6 +77,8 @@
 //#include "CondFormats/DataRecord/interface/JetCorrectionsRecord.h"
 
 //#include "CondFormats/JetMETObjects/interface/JetCorrectionsRecord.h"
+#include "DataFormats/TrackReco/interface/Track.h"
+#include "DataFormats/TrackReco/interface/TrackFwd.h"
 
 
 typedef math::XYZTLorentzVector LorentzVector;
@@ -124,7 +126,7 @@ effectiveAreas_ph_( (iConfig.getParameter<edm::FileInPath>("effAreasConfigFile_p
 
 
   debug=false;  //DEBUG datamember 
-  verbose=false; 
+  verbose=true; 
 
   h_pileup   = fs->make<TH1F>("pileup", "pileup", 75,0,75);
 
@@ -332,28 +334,34 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
  met_pT      = 0.;
  metpuppi_pT = 0.;
 
- _bestJet_pT                     =-1.;
- _bestJet_eta                    =-1.;
- _bestJet_phi                    =-1.;
- _bestJet_nDaughters             = 0;
- _bestJet_pTMax                  =-1.;
- _bestJet_chargedEmEnergy        = 0.;
- _bestJet_neutralEmEnergy        = 0.;
- _bestJet_chargedHadEnergy       = 0.;
- _bestJet_neutralHadEnergy       = 0.;
- _bestJet_chargedHadMultiplicity = 0.;
- _bestJet_invMass                = 0.;
- _bestJet_Photon_invMass         = 0.;
- _bestJet_JECunc                 = 0.;
- _firstCandPt                    = 0.;
- _firstCandEta                   = 0.;
- _firstCandPhi                   = 0.;
- _secondCandPt                   = 0.;
- _secondCandEta                  = 0.;
- _secondCandPhi                  = 0.;
- _bestCouplePt                   = 0.;
- _bestCoupleEta                  = 0.;
- _bestCouplePhi                  = 0.;  
+ _bestJet_pT                       =-1.;
+ _bestJet_eta                      =-1.;
+ _bestJet_phi                      =-1.;
+ _bestJet_nDaughters               = 0;
+ _bestJet_pTMax                    =-1.;
+ _bestJet_chargedEmEnergy          = 0.;
+ _bestJet_neutralEmEnergy          = 0.;
+ _bestJet_chargedHadEnergy         = 0.;
+ _bestJet_neutralHadEnergy         = 0.;
+ _bestJet_chargedEmEnergyFraction  = 0.;
+ _bestJet_neutralEmEnergyFraction  = 0.;
+ _bestJet_chargedHadEnergyFraction = 0.;
+ _bestJet_neutralHadEnergyFraction = 0.;
+ _bestJet_chargedHadMultiplicity   = 0.;
+ _bestJet_invMass                  = 0.;
+ _bestJet_Photon_invMass           = 0.;
+ _bestJet_JECunc                   = 0.;
+ _firstCandPt                      = 0.;
+ _firstCandEta                     = 0.;
+ _firstCandPhi                     = 0.;
+ _firstCandCharge                  = 0.;
+ _secondCandPt                     = 0.;
+ _secondCandEta                    = 0.;
+ _secondCandPhi                    = 0.;
+ _secondCandCharge                 = 0.;
+ _bestCouplePt                     = 0.;
+ _bestCoupleEta                    = 0.;
+ _bestCouplePhi                    = 0.;  
  _isHiggsFound = false;
 
 
@@ -429,27 +437,49 @@ for(auto el = slimmedElectrons->begin(); el != slimmedElectrons->end(); ++el){
   //*************************************************************//
 
   //In signal, identify if there's a real mu or ele from W
-  is_Kplus_fromPhi   = false;
-  is_Kminus_fromPhi  = false;
-  is_Piplus_fromRho  = false;
-  is_Piminus_fromRho = false;
+  is_Kplus_matched   = false;
+  is_Kminus_matched  = false;
+  is_Piplus_matched  = false;
+  is_Piminus_matched = false;
   is_Phi_fromH       = false;
   is_Rho_fromH       = false;
   is_Photon_fromH    = false;
+  float Kminus_phi   = -999.;
+  float Kplus_phi    = -999.;
+  float Piminus_phi  = -999.;
+  float Piplus_phi   = -999.;
+  float Kminus_eta   = -999.;
+  float Kplus_eta    = -999.;
+  float Piminus_eta  = -999.;
+  float Piplus_eta   = -999.;
+  deltaR_Kplus       = -999.;
+  deltaR_Kminus      = -999.;
+  deltaR_Piplus      = -999.;
+  deltaR_Piminus     = -999.;
+
+  //float Phi_phi      = -999.;
+  //float Rho_phi      = -999.;
+  //float Phi_eta      = -999.;
+  //float Rho_eta      = -999.;
+  //float H_phi        = -999.;
 
   if(!runningOnData_){
     for(auto gen = genParticles->begin(); gen != genParticles->end(); ++gen){
-      if( gen->pdgId() == 321  && gen->mother()->pdgId() == 333)  is_Kplus_fromPhi  = true;
-      if( gen->pdgId() == -321 && gen->mother()->pdgId() == 333)  is_Kminus_fromPhi = true;
-      if( gen->pdgId() == 211  && gen->mother()->pdgId() == 113)  is_Piplus_fromRho = true;
-      if( gen->pdgId() == -211 && gen->mother()->pdgId() == 113)  is_Piplus_fromRho = true;
+      if( gen->pdgId() == 321  && gen->mother()->pdgId() == 333 && gen->mother()->mother()->pdgId() == 25)  Kplus_phi   = gen->phi(), Kplus_eta   = gen->eta();
+      if( gen->pdgId() == -321 && gen->mother()->pdgId() == 333 && gen->mother()->mother()->pdgId() == 25)  Kminus_phi  = gen->phi(), Kminus_eta  = gen->eta();
+      if( gen->pdgId() == 211  && gen->mother()->pdgId() == 113 && gen->mother()->mother()->pdgId() == 25)  Piplus_phi  = gen->phi(), Piplus_eta  = gen->eta(), is_Piplus_matched = true;
+      if( gen->pdgId() == -211 && gen->mother()->pdgId() == 113 && gen->mother()->mother()->pdgId() == 25)  Piminus_phi = gen->phi(), Piminus_eta = gen->eta(), is_Piminus_matched = true;
       if( gen->pdgId() == 333  && gen->mother()->pdgId() == 25)   is_Phi_fromH      = true;
       if( gen->pdgId() == 113  && gen->mother()->pdgId() == 25)   is_Rho_fromH      = true;
       if( gen->pdgId() == 22   && gen->mother()->pdgId() == 25)   is_Photon_fromH   = true;
     }
   }  
 
-
+ if(verbose){
+  cout<<"is_Rho_fromH       = "<<is_Rho_fromH<<endl;
+  cout<<"is_Piplus_matched  = "<<is_Piplus_matched<<endl;
+  cout<<"is_Piminus_matched = "<<is_Piminus_matched<<endl;
+}
   //*************************************************************//
   //                                                             //
   //--------------------------- Photons -------------------------//
@@ -486,7 +516,6 @@ for(auto el = slimmedElectrons->begin(); el != slimmedElectrons->end(); ++el){
     // Apply energy scale corrections
     ph_p4 = photon->p4() * photon->userFloat("ecalEnergyPostCorr") / photon->energy();
 
-
     if(corr_et < eTphMax) continue; //choose as best photon the one with highest eT
     
     eTphMax = corr_et;
@@ -503,7 +532,8 @@ for(auto el = slimmedElectrons->begin(); el != slimmedElectrons->end(); ++el){
     ph_eta    = photon->eta();
     ph_etaSC  = photon->superCluster()->eta();
     ph_phi    = photon->phi();
-    
+    //cout<< "regression1 energy err = "<< photon->userFloat("regressionEnergyError")<<endl;
+    //cout<<"regression1 en err  = "<<photon-> EnergyCorrections().regression1EnergyError()<<endl;
     cand_photon_found = true;
     nPhotonsChosen++;
 
@@ -648,7 +678,7 @@ JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(JetCorPar);
     if (debug) cout <<"jet pT = "<<jet->pt()<<", jet pT shifted = "<<jetPt_shifted<<endl;
     //------------------------------------------------------------------------
 
-    if(jet->pt() < 40.) continue;
+    if(jet->pt() < 40. || abs(jet->eta()) > 2.5) continue;
     if(_Jet_Photon_invMass < 100.) continue; //reject jets with inv mass lower then 100 GeV
                            
      //-------------------------------------------------------------------------------------------------      
@@ -674,7 +704,7 @@ JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(JetCorPar);
 	       } //GEN PARTICLE LOOP END
       } 
     } //ONLY FOR MC END //-----------------------------------------------------------------------------
-
+    
 
       //-------------------------------------daughters forloop----------------------------
       if(verbose)cout<<"      TRACKs:"<<endl;
@@ -685,15 +715,15 @@ JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(JetCorPar);
 
         //loop only over charged daughters
         if (slimmedJets->at(jetIndex).daughter(firstCand_Index)->charge() == 0) continue;
+        
+        
+        if(slimmedJets->at(jetIndex).daughter(firstCand_Index)->bestTrack() == NULL) continue;
 
-        //minimum apporach distance
-        //if ((slimmedJets->at(jetIndex).daughter(firstCand_Index)->bestTrack()) == NULL){
-          //cout << endl << "best track NULL!!!"<<endl;
-        //}
-
-        //if (slimmedJets->at(jetIndex).daughter(firstCand_Index)->bestTrack()->dxy((&slimmedPV->at(0))->position()) >= 0.2) continue;
-        //if (slimmedJets->at(jetIndex).daughter(firstCand_Index)->bestTrack()->dz((&slimmedPV->at(0))->position()) >= 0.5) ) continue;
-
+        if (slimmedJets->at(jetIndex).daughter(firstCand_Index)->bestTrack()->dxy((&slimmedPV->at(0))->position()) >= 0.2) continue;
+        if (slimmedJets->at(jetIndex).daughter(firstCand_Index)->bestTrack()->dz((&slimmedPV->at(0))->position()) >= 0.5)  continue;
+        if (!(slimmedJets->at(jetIndex).daughter(firstCand_Index)->bestTrack()->quality(reco::Track::highPurity))) continue;
+        
+        
         firstCandPt  = slimmedJets->at(jetIndex).daughter(firstCand_Index)->pt();  //extrapolate firstCand pt
         firstCandEta = slimmedJets->at(jetIndex).daughter(firstCand_Index)->eta(); //extrapolate firstCand eta
         firstCandPhi = slimmedJets->at(jetIndex).daughter(firstCand_Index)->phi(); //extrapolate firstCand phi
@@ -702,9 +732,14 @@ JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(JetCorPar);
 
         for(int secondCand_Index=firstCand_Index+1; secondCand_Index < nDaughters; secondCand_Index++){ //2ND LOOP STARTS
 
+
           //minimum apporach distance
-          //if ((slimmedJets->at(jetIndex).daughter(secondCand_Index)->bestTrack()->dxy((&slimmedPV->at(0))->position())) >= 0.2 || slimmedJets->at(jetIndex).daughter(secondCand_Index)->bestTrack()->dz((&slimmedPV->at(0))->position()) >= 0.5 ) continue;
+          if (slimmedJets->at(jetIndex).daughter(secondCand_Index)->bestTrack() == NULL) continue;
           
+          if ((slimmedJets->at(jetIndex).daughter(secondCand_Index)->bestTrack()->dxy((&slimmedPV->at(0))->position())) >= 0.2 || slimmedJets->at(jetIndex).daughter(secondCand_Index)->bestTrack()->dz((&slimmedPV->at(0))->position()) >= 0.5 ) continue;
+          if (!(slimmedJets->at(jetIndex).daughter(secondCand_Index)->bestTrack()->quality(reco::Track::highPurity))) continue;
+          
+
           secondCandPt  = slimmedJets->at(jetIndex).daughter(secondCand_Index)->pt();  //extrapolate secondCand pt
           secondCandEta = slimmedJets->at(jetIndex).daughter(secondCand_Index)->eta(); //extrapolate secondCand eta
           secondCandPhi = slimmedJets->at(jetIndex).daughter(secondCand_Index)->phi(); //extrapolate secondCand phi
@@ -814,6 +849,8 @@ JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(JetCorPar);
           _isPhi                  = isPhi;
           _isRho                  = isRho;
           _bestJet_JECunc         = unc;
+          _firstCandCharge        = firstCandCharge;
+          _secondCandCharge       = secondCandCharge;
           
           if(isPhi){
             best_firstCand_p4  = firstCand_p4_K; 
@@ -860,16 +897,20 @@ _bestCouplePt  = best_couple_p4.pt();
 _bestCoupleEta = best_couple_p4.eta();
 _bestCouplePhi = best_couple_p4.phi();
 
-_bestJet_invMass                = slimmedJets->at(bestJet_Index).mass();
-_bestJet_pT                     = slimmedJets->at(bestJet_Index).pt();
-_bestJet_eta                    = slimmedJets->at(bestJet_Index).eta();
-_bestJet_phi                    = slimmedJets->at(bestJet_Index).phi();
-_bestJet_nDaughters             = slimmedJets->at(bestJet_Index).numberOfDaughters();
-_bestJet_chargedEmEnergy        = slimmedJets->at(bestJet_Index).chargedEmEnergy();
-_bestJet_neutralEmEnergy        = slimmedJets->at(bestJet_Index).neutralEmEnergy();
-_bestJet_chargedHadEnergy       = slimmedJets->at(bestJet_Index).chargedHadronEnergy();
-_bestJet_neutralHadEnergy       = slimmedJets->at(bestJet_Index).neutralHadronEnergy();
-_bestJet_chargedHadMultiplicity = slimmedJets->at(bestJet_Index).chargedHadronMultiplicity();
+_bestJet_invMass                  = slimmedJets->at(bestJet_Index).mass();
+_bestJet_pT                       = slimmedJets->at(bestJet_Index).pt();
+_bestJet_eta                      = slimmedJets->at(bestJet_Index).eta();
+_bestJet_phi                      = slimmedJets->at(bestJet_Index).phi();
+_bestJet_nDaughters               = slimmedJets->at(bestJet_Index).numberOfDaughters();
+_bestJet_chargedEmEnergy          = slimmedJets->at(bestJet_Index).chargedEmEnergy();
+_bestJet_neutralEmEnergy          = slimmedJets->at(bestJet_Index).neutralEmEnergy();
+_bestJet_chargedHadEnergy         = slimmedJets->at(bestJet_Index).chargedHadronEnergy();
+_bestJet_neutralHadEnergy         = slimmedJets->at(bestJet_Index).neutralHadronEnergy();
+_bestJet_chargedEmEnergyFraction  = slimmedJets->at(bestJet_Index).chargedEmEnergyFraction();
+_bestJet_neutralEmEnergyFraction  = slimmedJets->at(bestJet_Index).neutralEmEnergyFraction();
+_bestJet_chargedHadEnergyFraction = slimmedJets->at(bestJet_Index).chargedHadronEnergyFraction();
+_bestJet_neutralHadEnergyFraction = slimmedJets->at(bestJet_Index).neutralHadronEnergyFraction();
+_bestJet_chargedHadMultiplicity   = slimmedJets->at(bestJet_Index).chargedHadronMultiplicity();
 
 //MESON MASS CALCULATION
 _MesonMass = (best_firstCand_p4 + best_secondCand_p4).M();
@@ -951,19 +992,22 @@ for(auto cand_iso = PFCandidates->begin(); cand_iso != PFCandidates->end(); ++ca
 //CANDIDATES SORTING
 if(_firstCandPt < _secondCandPt)  //swap-values loop, in order to fill the tree with the candidate with max pt of the couple in firstCand branches  
   {                               //and one with min pt in secondCand branches
-    float a,b,c,d;
+    float a,b,c,d,e;
     a = _firstCandPt;
     b = _firstCandEta;
     c = _firstCandPhi;
     d = firstCandEnergy;
+    e = _firstCandCharge;
     _firstCandPt    = _secondCandPt;
     _firstCandEta   = _secondCandEta;
     _firstCandPhi   = _secondCandPhi;
-    firstCandEnergy = secondCandEnergy;	      
-    _secondCandPt    = a;
-    _secondCandEta   = b;
-    _secondCandPhi   = c;
-    secondCandEnergy = d;
+    firstCandEnergy = secondCandEnergy;
+    _firstCandCharge = _secondCandCharge;
+    _secondCandPt     = a;
+    _secondCandEta    = b;
+    _secondCandPhi    = c;
+    secondCandEnergy  = d;
+    _secondCandCharge = e;
 }
 
 //CUTS ON CANDIDATES PT
@@ -1167,7 +1211,7 @@ _Nevents_VBFVeto++;
   cout << "Maximum PDF variation: " << maxPDFWeight << endl;
   cout << "Minimum QCD variation: " << minQCDWeight << endl;
   cout << "Maximum QCD variation: " << maxQCDWeight << endl;
-}
+  }
 
 }
 
@@ -1177,6 +1221,7 @@ _Nevents_VBFVeto++;
 if(!runningOnData_) //ONLY FOR MC START  
 {
     _isHiggsFound=false; //bool initialization
+    
     
     if(MCtruthIndex == bestJet_Index) //if the index of the best jet matches with one of the MC truth, it passes here
     {
@@ -1191,6 +1236,158 @@ if(!runningOnData_) //ONLY FOR MC START
       if(verbose) cout<<endl<<"THAT'S NOT A HIGGS!"<<endl;
     }
     
+
+//if is PhiGamma event
+if (_isPhi){
+
+    //First cand positive and second cand negative
+    if (_firstCandCharge > 0){ 
+      //phi angle folding K plus
+      float deltaPhi_Kplus = fabs(_firstCandPhi - Kplus_phi);
+      float deltaPhi_wrong = fabs(_secondCandPhi - Kplus_phi);
+      if (deltaPhi_Kplus > M_PI) deltaPhi_Kplus = 2*M_PI - deltaPhi_Kplus;
+      if (deltaPhi_wrong > M_PI) deltaPhi_wrong = 2*M_PI - deltaPhi_wrong;
+
+      //deltaR K plus
+      deltaR_Kplus = sqrt((_firstCandEta - Kplus_eta) * (_firstCandEta - Kplus_eta) + deltaPhi_Kplus * deltaPhi_Kplus);
+      float deltaR_wrong = sqrt((_secondCandEta - Kplus_eta) * (_secondCandEta - Kplus_eta) + deltaPhi_wrong * deltaPhi_wrong);
+      
+      if(verbose){
+      cout<<endl<<"-- MC Truth ------------------"<<endl;
+      cout<<"_firstCandPhi = "<<_firstCandPhi<<endl;
+      cout<<"Kplus_phi     = "<<Kplus_phi<<endl;
+      cout<<"_firstCandEta = "<<_firstCandEta<<endl;
+      cout<<"Kplus_eta     = "<<Kplus_eta<<endl;
+      cout<<"deltaR_Kplus  = "<<deltaR_Kplus<<endl;
+      cout<<"deltaR_wrong  = "<<deltaR_wrong<<endl;
+      }
+      
+      //phi angle folding K minus
+      float deltaPhi_Kminus = fabs(_secondCandPhi - Kminus_phi);
+      if (deltaPhi_Kminus > M_PI) deltaPhi_Kminus = 2*M_PI - deltaPhi_Kminus;
+
+      //deltaR K minus
+      deltaR_Kminus = sqrt((_secondCandEta - Kminus_eta) * (_secondCandEta - Kminus_eta) + deltaPhi_Kminus * deltaPhi_Kminus);
+
+      if(verbose){
+      cout<<endl<<"_seconCandPhi  = "<<_secondCandPhi<<endl;
+      cout<<"Kminus_phi     = "<<Kminus_phi<<endl;
+      cout<<"_secondCandEta = "<<_secondCandEta<<endl;
+      cout<<"Kminus_eta     = "<<Kminus_eta<<endl;
+      cout<<"deltaR_Kminus  = "<<deltaR_Kminus<<endl;
+      cout<<"-----------------------------------"<<endl;
+      }
+    }
+
+    else{ //Second cand positive and first cand negative
+      
+      //phi angle folding K plus
+      float deltaPhi_Kplus = fabs(_secondCandPhi - Kplus_phi);
+      if (deltaPhi_Kplus > M_PI) deltaPhi_Kplus = 2*M_PI - deltaPhi_Kplus;
+
+      //deltaR K plus
+      deltaR_Kplus = sqrt((_secondCandEta - Kplus_eta) * (_secondCandEta - Kplus_eta) + deltaPhi_Kplus * deltaPhi_Kplus);
+      
+      if(verbose){
+      cout<<endl<<"-- MC Truth ------------------"<<endl;
+      cout<<"_secondCandPhi = "<<_secondCandPhi<<endl;
+      cout<<"Kplus_phi      = "<<Kplus_phi<<endl;
+      cout<<"_secondCandEta = "<<_secondCandEta<<endl;
+      cout<<"Kplus_eta      = "<<Kplus_eta<<endl;
+      cout<<"deltaR_Kplus   = "<<deltaR_Kplus<<endl;
+      }
+
+      //phi angle folding K minus
+      float deltaPhi_Kminus = fabs(_firstCandPhi - Kminus_phi);
+      if (deltaPhi_Kminus > M_PI) deltaPhi_Kminus = 2*M_PI - deltaPhi_Kminus;
+
+      //deltaR K minus
+      deltaR_Kminus = sqrt((_firstCandEta - Kminus_eta) * (_firstCandEta - Kminus_eta) + deltaPhi_Kminus * deltaPhi_Kminus);
+
+      if(verbose){
+      cout<<endl<<"_seconCandPhi  = "<<_firstCandPhi<<endl;
+      cout<<"Kminus_phi     = "<<Kminus_phi<<endl;
+      cout<<"_firstCandEta  = "<<_firstCandEta<<endl;
+      cout<<"Kminus_eta     = "<<Kminus_eta<<endl;
+      cout<<"deltaR_Kminus  = "<<deltaR_Kminus<<endl;
+      cout<<"-----------------------------------"<<endl;
+      }
+    }
+  }
+  else{ //RhoGamma event
+
+    //First cand positive and second cand negative
+    if (_firstCandCharge > 0){ 
+      //phi angle folding Pi plus
+      float deltaPhi_Piplus = fabs(_firstCandPhi - Piplus_phi);
+      if (deltaPhi_Piplus > M_PI) deltaPhi_Piplus = 2*M_PI - deltaPhi_Piplus;
+
+      //deltaR Pi plus
+      deltaR_Piplus = sqrt((_firstCandEta - Piplus_eta) * (_firstCandEta - Piplus_eta) + deltaPhi_Piplus * deltaPhi_Piplus);
+      
+      if(verbose){
+      cout<<endl<<"-- MC Truth ------------------"<<endl;
+      cout<<"_firstCandPhi  = "<<_firstCandPhi<<endl;
+      cout<<"Piplus_phi     = "<<Piplus_phi<<endl;
+      cout<<"_firstCandEta  = "<<_firstCandEta<<endl;
+      cout<<"Piplus_eta     = "<<Piplus_eta<<endl;
+      cout<<"deltaR_Piplus  = "<<deltaR_Piplus<<endl;
+      }
+      //phi angle folding Pi minus
+      float deltaPhi_Piminus = fabs(_secondCandPhi - Piminus_phi);
+      if (deltaPhi_Piminus > M_PI) deltaPhi_Piminus = 2*M_PI - deltaPhi_Piminus;
+
+      //deltaR Pi minus
+      deltaR_Piminus = sqrt((_secondCandEta - Piminus_eta) * (_secondCandEta - Piminus_eta) + deltaPhi_Piminus * deltaPhi_Piminus);
+      
+      if(verbose){
+      cout<<endl<<"_seconCandPhi  = "<<_secondCandPhi<<endl;
+      cout<<"Piminus_phi     = "<<Piminus_phi<<endl;
+      cout<<"_secondCandEta  = "<<_secondCandEta<<endl;
+      cout<<"Piminus_eta     = "<<Piminus_eta<<endl;
+      cout<<"deltaR_Piminus  = "<<deltaR_Piminus<<endl;
+      cout<<"-----------------------------------"<<endl;
+      }
+
+    }
+
+    else{ //Second cand positive and first cand negative
+      
+      //phi angle folding Pi plus
+      float deltaPhi_Piplus = fabs(_secondCandPhi - Piplus_phi);
+      if (deltaPhi_Piplus > M_PI) deltaPhi_Piplus = 2*M_PI - deltaPhi_Piplus;
+
+      //deltaR Pi plus
+      deltaR_Piplus = sqrt((_secondCandEta - Piplus_eta) * (_secondCandEta - Piplus_eta) + deltaPhi_Piplus * deltaPhi_Piplus);
+      
+      if(verbose){
+      cout<<endl<<"-- MC Truth ------------------"<<endl;
+      cout<<"_secondCandPhi = "<<_secondCandPhi<<endl;
+      cout<<"Piplus_phi     = "<<Piplus_phi<<endl;
+      cout<<"_secondCandEta = "<<_secondCandEta<<endl;
+      cout<<"Piplus_eta     = "<<Piplus_eta<<endl;
+      cout<<"deltaR_Piplus  = "<<deltaR_Piplus<<endl;
+      }
+      
+      //phi angle folding Pi minus
+      float deltaPhi_Piminus = fabs(_firstCandPhi - Piminus_phi);
+      if (deltaPhi_Piminus > M_PI) deltaPhi_Piminus = 2*M_PI - deltaPhi_Piminus;
+
+      //deltaR Pi minus
+      deltaR_Piminus = sqrt((_firstCandEta - Piminus_eta) * (_firstCandEta - Piminus_eta) + deltaPhi_Piminus * deltaPhi_Piminus);
+
+      if(verbose){
+      cout<<endl<<"_seconCandPhi  = "<<_firstCandPhi<<endl;
+      cout<<"Piminus_phi     = "<<Piminus_phi<<endl;
+      cout<<"_firstCandEta = "<<_firstCandEta<<endl;
+      cout<<"Piminus_eta     = "<<Piminus_eta<<endl;
+      cout<<"deltaR_Piminus  = "<<deltaR_Piminus<<endl;
+      cout<<"-----------------------------------"<<endl;
+      }
+  }
+
+
+
     //some prints
     
     if(verbose){
@@ -1210,7 +1407,8 @@ if(!runningOnData_) //ONLY FOR MC START
       cout<<"--------------------------------------------------"<<endl;
       cout<<"MC Higgs found = "<<_Nevents_HiggsFound<<",   Higgs NOT matched = "<<_Nevents_HiggsNotMatched<<endl;
       cout<<"--------------------------------------------------"<<endl<<endl;
-    }
+      }
+    } 
   }  //ONLY FOR MC START 
  
  else //ONLY FOR DATA
@@ -1222,7 +1420,7 @@ cout<<"ph_en_sigmaUP = "<< ph_en_sigmaUP<<endl;
 cout<<"ph_en_sigmaDW = "<< ph_en_sigmaDW<<endl;
 cout<<"ph_en_scaleUP = "<<ph_en_scaleUP<<endl;
 cout<<"ph_en_scaleDW = "<<ph_en_scaleDW<<endl;
-}
+  }
  }
 
   //cout<<endl<<"Event n = "<<event_number<<endl;
@@ -1283,6 +1481,10 @@ void HPhiGammaAnalysis::create_trees()
   mytree->Branch("bestJet_neutralEmEnergy",&_bestJet_neutralEmEnergy);
   mytree->Branch("bestJet_chargedHadEnergy",&_bestJet_chargedHadEnergy);
   mytree->Branch("bestJet_neutralHadEnergy",&_bestJet_neutralHadEnergy);
+  mytree->Branch("bestJet_chargedEmEnergyFraction",&_bestJet_chargedEmEnergyFraction);
+  mytree->Branch("bestJet_neutralEmEnergyFraction",&_bestJet_neutralEmEnergyFraction);
+  mytree->Branch("bestJet_chargedHadEnergyFraction",&_bestJet_chargedHadEnergyFraction);
+  mytree->Branch("bestJet_neutralHadEnergyFraction",&_bestJet_neutralHadEnergyFraction);
   mytree->Branch("bestJet_invMass",&_bestJet_invMass);
   mytree->Branch("bestJet_Photon_invMass",&_bestJet_Photon_invMass);
   mytree->Branch("bestJet_JECunc",&_bestJet_JECunc);
@@ -1329,16 +1531,19 @@ void HPhiGammaAnalysis::create_trees()
     mytree->Branch("minQCDWeight",&minQCDWeight);
     mytree->Branch("maxQCDWeight",&maxQCDWeight);
     mytree->Branch("isHiggsFound",&_isHiggsFound);
-    mytree->Branch("isKplusfromPhi",&is_Kplus_fromPhi);
-    mytree->Branch("isKminusfromPhi",&is_Kminus_fromPhi);
-    mytree->Branch("isPiplusfromRho",&is_Piplus_fromRho);
-    mytree->Branch("isPiminusfromRho",&is_Piminus_fromRho);
-    mytree->Branch("isPhiFromH",&is_Phi_fromH);
-    mytree->Branch("isRhofromH",&is_Rho_fromH);
-    mytree->Branch("isPhotonFromH",&is_Photon_fromH);
-    mytree->Branch("isPhotonTrue",&is_photon_a_photon);
+    //mytree->Branch("isKplusMatched",&is_Kplus_matched);
+    //mytree->Branch("isKminusMatched",&is_Kminus_matched);
+    //mytree->Branch("isPiplusMatched",&is_Piplus_matched);
+    //mytree->Branch("isPiminusMatched",&is_Piminus_matched);
+    //mytree->Branch("isPhiFromH",&is_Phi_fromH);
+    //mytree->Branch("isRhofromH",&is_Rho_fromH);
+    //mytree->Branch("isPhotonFromH",&is_Photon_fromH);
+    //mytree->Branch("isPhotonTrue",&is_photon_a_photon);
     mytree->Branch("isPhotonMatched",&is_photon_matched);
-
+    mytree->Branch("deltaR_Kplus",&deltaR_Kplus);
+    mytree->Branch("deltaR_Kminus",&deltaR_Kminus);
+    mytree->Branch("deltaR_Piplus",&deltaR_Piplus);
+    mytree->Branch("deltaR_Piminus",&deltaR_Piminus);
 }
 
 }

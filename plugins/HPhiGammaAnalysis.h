@@ -106,9 +106,11 @@ private:
   float _firstCandPt;
   float _firstCandEta;
   float _firstCandPhi;
+  float _firstCandCharge;
   float _secondCandPt;
   float _secondCandEta;
   float _secondCandPhi;
+  float _secondCandCharge;
   float _bestCouplePt;
   float _bestCoupleEta;
   float _bestCouplePhi;
@@ -152,6 +154,10 @@ private:
   float _bestJet_neutralEmEnergy;
   float _bestJet_chargedHadEnergy;
   float _bestJet_neutralHadEnergy;
+  float _bestJet_chargedEmEnergyFraction;
+  float _bestJet_neutralEmEnergyFraction;
+  float _bestJet_chargedHadEnergyFraction;
+  float _bestJet_neutralHadEnergyFraction;
   int _bestJet_chargedHadMultiplicity;
   float _bestJet_invMass;
   float _bestJet_Photon_invMass;
@@ -160,11 +166,15 @@ private:
   //MC truth
   float PU_Weight;
   float MC_Weight;
+  float deltaR_Kplus;
+  float deltaR_Kminus;
+  float deltaR_Piplus;
+  float deltaR_Piminus;
 
-  bool is_Kplus_fromPhi;
-  bool is_Kminus_fromPhi;
-  bool is_Piplus_fromRho;
-  bool is_Piminus_fromRho;
+  bool is_Kplus_matched;
+  bool is_Kminus_matched;
+  bool is_Piplus_matched;
+  bool is_Piminus_matched;
   bool is_Phi_fromH;
   bool is_Rho_fromH;
   bool is_Photon_fromH;
