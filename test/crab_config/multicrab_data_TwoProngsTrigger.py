@@ -16,8 +16,8 @@ config.JobType.pyCfgParams = ['runningOnData=True']
 
 config.section_('Data')
 config.Data.inputDBS = 'global'
-config.Data.splitting = 'FileBased'
-config.Data.unitsPerJob = 5
+config.Data.splitting = 'Automatic'
+#config.Data.unitsPerJob = 5
 config.Data.publication = False
 config.Data.lumiMask = 'json/Cert_314472-325175_13TeV_Legacy2018_Collisions18_JSON.txt'
 

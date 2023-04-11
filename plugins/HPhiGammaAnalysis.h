@@ -90,6 +90,7 @@ private:
   float ph_iso_eArho;
   bool is_photon_wp90;
   float eTphMax;
+  float photonRegressionError;
 
   float firstCandPx;
   float firstCandPy;

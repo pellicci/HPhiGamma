@@ -321,7 +321,7 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
  ph_iso_NeutralHadron = 0.;
  ph_iso_Photon        = 0.;
  ph_iso_eArho         = 0.;
-
+  photonRegressionError = 0.;
  is_photon_a_photon = false;
  is_photon_matched  = false;
 
@@ -532,8 +532,10 @@ for(auto el = slimmedElectrons->begin(); el != slimmedElectrons->end(); ++el){
     ph_eta    = photon->eta();
     ph_etaSC  = photon->superCluster()->eta();
     ph_phi    = photon->phi();
-    //cout<< "regression1 energy err = "<< photon->userFloat("regressionEnergyError")<<endl;
-    //cout<<"regression1 en err  = "<<photon-> EnergyCorrections().regression1EnergyError()<<endl;
+
+    photonRegressionError = photon->getCorrectedEnergyError(reco::Photon::P4type::regression2);
+    if(debug) cout << "Regression2 Energy Error: " << photonRegressionError << endl;
+    
     cand_photon_found = true;
     nPhotonsChosen++;
 
@@ -1472,6 +1474,7 @@ void HPhiGammaAnalysis::create_trees()
   //mytree->Branch("photon_iso_NeutralHadron",&ph_iso_NeutralHadron);
   //mytree->Branch("photon_iso_Photon",&ph_iso_Photon);
   mytree->Branch("photon_iso_eArho",&ph_iso_eArho);
+  mytree->Branch("photonRegressionError",&photonRegressionError);
 
   mytree->Branch("bestJet_pT",&_bestJet_pT);
   mytree->Branch("bestJet_eta",&_bestJet_eta);

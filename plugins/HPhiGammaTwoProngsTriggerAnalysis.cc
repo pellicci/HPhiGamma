@@ -659,7 +659,7 @@ _iso_K2_ch     = _secondCandPt/(K2_sum_pT_05_ch + _secondCandPt);
 _iso_couple_ch = _bestCouplePt/(couple_sum_pT_05_ch + _bestCouplePt);
 
 //CUT ON PHI ISOLATION
-if(_iso_couple_ch < 0.9) {
+if(_iso_couple_ch < 0.6) {
   if(verbose) cout<<"No isolation cut passed, RETURN."<<endl;
   return;
 }
