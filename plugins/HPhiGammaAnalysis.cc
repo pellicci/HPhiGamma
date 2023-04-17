@@ -17,8 +17,11 @@
 #include "DataFormats/Candidate/interface/Candidate.h"
 #include "DataFormats/Common/interface/TriggerResults.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
+#include "DataFormats/PatCandidates/interface/PackedGenParticle.h"
+
 #include "DataFormats/Math/interface/LorentzVector.h"
 #include "DataFormats/PatCandidates/interface/PackedCandidate.h"
+
 #include "DataFormats/PatCandidates/interface/Muon.h"
 #include "DataFormats/PatCandidates/interface/Jet.h"
 #include "DataFormats/PatCandidates/interface/MET.h"
@@ -109,7 +112,7 @@ effectiveAreas_ph_( (iConfig.getParameter<edm::FileInPath>("effAreasConfigFile_p
   triggerBitsToken_                   = consumes<edm::TriggerResults> (edm::InputTag("TriggerResults","","HLT"));
   rhoToken_                           = consumes<double> (iConfig.getParameter <edm::InputTag>("rho"));
   LHEEventProduct_                    = consumes<LHEEventProduct>(edm::InputTag("externalLHEProducer"));
-
+  //packedGenParticlesToken_            = consumes<std::vector<pat::GenParticle>>(edm::InputTag("packedGenParticles", "", "PAT"));
 
   h_Events = fs->make<TH1F>("h_Events", "Event counting in different steps", 8, 0., 8.);
 
@@ -117,7 +120,7 @@ effectiveAreas_ph_( (iConfig.getParameter<edm::FileInPath>("effAreasConfigFile_p
   _Nevents_triggered             = 0;
   _Nevents_isTwoKaons            = 0;
   _Nevents_isPhoton              = 0;
-  _Nevents_HiggsFound            = 0;
+  _Nevents_HiggsMatched          = 0;
   _Nevents_HiggsNotMatched       = 0;
   _Nevents_bestCoupleFound       = 0;
   _Nevents_candPtFilter          = 0;
@@ -148,8 +151,11 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
   edm::Handle<std::vector<pat::Muon>  > slimmedMuons;
   iEvent.getByToken(slimmedMuonsToken_, slimmedMuons);
 
-  edm::Handle<std::vector<reco::GenParticle>  > genParticles;
-  if(!runningOnData_)iEvent.getByToken(prunedGenParticlesToken_, genParticles);
+  edm::Handle<std::vector<reco::GenParticle>  > prunedGenParticles;
+  if(!runningOnData_)iEvent.getByToken(prunedGenParticlesToken_, prunedGenParticles);
+
+  //edm::Handle<std::vector<pat::PackedGenParticle>> packedGenParticles;  //GENPART
+  //if(!runningOnData_) iEvent.getByToken(packedGenParticlesToken_, packedGenParticles);
 
   edm::Handle<std::vector<pat::Photon> > slimmedPhotons;
   iEvent.getByToken(photonsMiniAODToken_,slimmedPhotons);
@@ -321,9 +327,8 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
  ph_iso_NeutralHadron = 0.;
  ph_iso_Photon        = 0.;
  ph_iso_eArho         = 0.;
-  photonRegressionError = 0.;
- is_photon_a_photon = false;
- is_photon_matched  = false;
+ photonRegressionError = 0.;
+
 
  eTphMax = -1000.;
 
@@ -362,7 +367,6 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
  _bestCouplePt                     = 0.;
  _bestCoupleEta                    = 0.;
  _bestCouplePhi                    = 0.;  
- _isHiggsFound = false;
 
 
   //*************************************************************//
@@ -430,56 +434,7 @@ for(auto el = slimmedElectrons->begin(); el != slimmedElectrons->end(); ++el){
 
   //std::cout << "Nelectrons " << nElectrons << " Nmuons " << nMuons << std::endl;
 
-  //*************************************************************//
-  //                                                             //
-  //----------------------- Access MC Truth ---------------------//
-  //                                                             //
-  //*************************************************************//
 
-  //In signal, identify if there's a real mu or ele from W
-  is_Kplus_matched   = false;
-  is_Kminus_matched  = false;
-  is_Piplus_matched  = false;
-  is_Piminus_matched = false;
-  is_Phi_fromH       = false;
-  is_Rho_fromH       = false;
-  is_Photon_fromH    = false;
-  float Kminus_phi   = -999.;
-  float Kplus_phi    = -999.;
-  float Piminus_phi  = -999.;
-  float Piplus_phi   = -999.;
-  float Kminus_eta   = -999.;
-  float Kplus_eta    = -999.;
-  float Piminus_eta  = -999.;
-  float Piplus_eta   = -999.;
-  deltaR_Kplus       = -999.;
-  deltaR_Kminus      = -999.;
-  deltaR_Piplus      = -999.;
-  deltaR_Piminus     = -999.;
-
-  //float Phi_phi      = -999.;
-  //float Rho_phi      = -999.;
-  //float Phi_eta      = -999.;
-  //float Rho_eta      = -999.;
-  //float H_phi        = -999.;
-
-  if(!runningOnData_){
-    for(auto gen = genParticles->begin(); gen != genParticles->end(); ++gen){
-      if( gen->pdgId() == 321  && gen->mother()->pdgId() == 333 && gen->mother()->mother()->pdgId() == 25)  Kplus_phi   = gen->phi(), Kplus_eta   = gen->eta();
-      if( gen->pdgId() == -321 && gen->mother()->pdgId() == 333 && gen->mother()->mother()->pdgId() == 25)  Kminus_phi  = gen->phi(), Kminus_eta  = gen->eta();
-      if( gen->pdgId() == 211  && gen->mother()->pdgId() == 113 && gen->mother()->mother()->pdgId() == 25)  Piplus_phi  = gen->phi(), Piplus_eta  = gen->eta(), is_Piplus_matched = true;
-      if( gen->pdgId() == -211 && gen->mother()->pdgId() == 113 && gen->mother()->mother()->pdgId() == 25)  Piminus_phi = gen->phi(), Piminus_eta = gen->eta(), is_Piminus_matched = true;
-      if( gen->pdgId() == 333  && gen->mother()->pdgId() == 25)   is_Phi_fromH      = true;
-      if( gen->pdgId() == 113  && gen->mother()->pdgId() == 25)   is_Rho_fromH      = true;
-      if( gen->pdgId() == 22   && gen->mother()->pdgId() == 25)   is_Photon_fromH   = true;
-    }
-  }  
-
- if(verbose){
-  cout<<"is_Rho_fromH       = "<<is_Rho_fromH<<endl;
-  cout<<"is_Piplus_matched  = "<<is_Piplus_matched<<endl;
-  cout<<"is_Piminus_matched = "<<is_Piminus_matched<<endl;
-}
   //*************************************************************//
   //                                                             //
   //--------------------------- Photons -------------------------//
@@ -539,16 +494,9 @@ for(auto el = slimmedElectrons->begin(); el != slimmedElectrons->end(); ++el){
     cand_photon_found = true;
     nPhotonsChosen++;
 
-    float deltapTMax = 10000.;
-    const float deltaRMax = 0.3;
-    int   gen_mother = 0;
-    int   gen_ID = 0;
-
-    is_photon_a_photon = false;
-    is_photon_matched  = false;
-
+/*
     if(!runningOnData_){ //ONLY FOR MC START ----------------------------------------------------------------------
-      for (auto gen = genParticles->begin(); gen != genParticles->end(); ++gen){ //loop on genParticles start
+      for (auto gen = prunedGenParticles->begin(); gen != prunedGenParticles->end(); ++gen){ //loop on genParticles start
 	     //gen particles phi folding	
         float deltaPhi = fabs(ph_phi-gen->phi());
         if (deltaPhi > M_PI) deltaPhi = 2*M_PI - deltaPhi;
@@ -570,7 +518,7 @@ for(auto el = slimmedElectrons->begin(); el != slimmedElectrons->end(); ++el){
       cout<<"Bool: is_photon_matched = "<<is_photon_matched<<endl;
     }
   } //ONLY FOR MC END ----------------------------------------------------------------------------------------------
-
+*/
 }//PHOTON FORLOOP END -------------------------------------------------------------------------------------------------------------------------
 
 //Return if there are no photons chosen
@@ -691,7 +639,7 @@ JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(JetCorPar);
     if(!runningOnData_) { //ONLY FOR MC START  
       if(MCtruthIndex == -1)
       {      
-           for(auto gen = genParticles->begin(); gen != genParticles->end(); ++gen){ //GEN PARTICLES LOOP START 
+           for(auto gen = prunedGenParticles->begin(); gen != prunedGenParticles->end(); ++gen){ //GEN PARTICLES LOOP START 
 	          //phi folding	
             float deltaPhi = fabs(jet->phi()-gen->phi());
             if (deltaPhi > M_PI) deltaPhi = 2*M_PI - deltaPhi;
@@ -1218,26 +1166,87 @@ _Nevents_VBFVeto++;
 }
 
 
+  //*************************************************************//
+  //                                                             //
+  //----------------------- Access MC Truth ---------------------//
+  //                                                             //
+  //*************************************************************//
+
+  //In signal, identify if there's a real mu or ele from W
+  is_Kplus_matched   = false;
+  is_Kminus_matched  = false;
+  is_Piplus_matched  = false;
+  is_Piminus_matched = false;
+  //is_Phi_matched     = false;
+  //is_Rho_matched     = false;
+  is_photon_matched  = false;
+  is_meson_matched   = false;
+  is_Higgs_matched   = false; 
+
+  float Kminus_phi   = -999.;
+  float Kplus_phi    = -999.;
+  float Piminus_phi  = -999.;
+  float Piplus_phi   = -999.;
+  float Kminus_eta   = -999.;
+  float Kplus_eta    = -999.;
+  float Piminus_eta  = -999.;
+  float Piplus_eta   = -999.;
+  deltaR_Kplus       = -999.;
+  deltaR_Kminus      = -999.;
+  deltaR_Piplus      = -999.;
+  deltaR_Piminus     = -999.;
+  genPhoton_eT       = -999.;
+  genPhoton_eta      = -999.;
+  genPhoton_phi      = -999.;
+  genMeson_pT        = -999.;
+  genMeson_eta       = -999.;
+  genMeson_phi       = -999.;
+
+  if(!runningOnData_){
+    for(auto gen = prunedGenParticles->begin(); gen != prunedGenParticles->end(); ++gen){
+      if( gen->pdgId() == 321  && gen->mother()->pdgId() == 333 && gen->mother()->mother()->pdgId() == 25)  Kplus_phi   = gen->phi(), Kplus_eta   = gen->eta();
+      if( gen->pdgId() == -321 && gen->mother()->pdgId() == 333 && gen->mother()->mother()->pdgId() == 25)  Kminus_phi  = gen->phi(), Kminus_eta  = gen->eta();
+      if( gen->pdgId() == 211  && gen->mother()->pdgId() == 113 && gen->mother()->mother()->pdgId() == 25)  Piplus_phi  = gen->phi(), Piplus_eta  = gen->eta();
+      if( gen->pdgId() == -211 && gen->mother()->pdgId() == 113 && gen->mother()->mother()->pdgId() == 25)  Piminus_phi = gen->phi(), Piminus_eta = gen->eta();
+      if( gen->pdgId() == 333  && gen->mother()->pdgId() == 25) genMeson_pT  = gen->pt(), genMeson_phi  = gen->phi(),  genMeson_eta = gen->eta();
+      if( gen->pdgId() == 113  && gen->mother()->pdgId() == 25) genMeson_pT  = gen->pt(), genMeson_phi  = gen->phi(),  genMeson_eta = gen->eta();
+      if( gen->pdgId() == 22   && gen->mother()->pdgId() == 25) genPhoton_eT = gen->pt(), genPhoton_phi = gen->phi(), genPhoton_eta = gen->eta();
+    }
+  }  
 
 //MC TRUTH CHECK
 if(!runningOnData_) //ONLY FOR MC START  
 {
-    _isHiggsFound=false; //bool initialization
-    
-    
-    if(MCtruthIndex == bestJet_Index) //if the index of the best jet matches with one of the MC truth, it passes here
-    {
+    //photon matching -----------------------------------------
+    float deltaPhiPhoton = fabs(ph_phi - genPhoton_phi);
+    if (deltaPhiPhoton > M_PI) deltaPhiPhoton = 2*M_PI - deltaPhiPhoton;
+
+    float deltaR_photonGenVsReco = sqrt((ph_eta - genPhoton_eta) * (ph_eta - genPhoton_eta) + deltaPhiPhoton * deltaPhiPhoton);
+    //float photonRelPt = 
+    if (deltaR_photonGenVsReco < 0.2) is_photon_matched = true;
+
+    //meson matching -----------------------------------------
+    float deltaPhiMeson = fabs(_bestCouplePhi - genMeson_phi);
+    if (deltaPhiMeson > M_PI) deltaPhiMeson = 2*M_PI - deltaPhiMeson;
+
+    float deltaR_mesonGenVsReco = sqrt((_bestCoupleEta - genMeson_eta) * (_bestCoupleEta - genMeson_eta) + deltaPhiMeson * deltaPhiMeson);
+    if (deltaR_mesonGenVsReco < 0.3) is_meson_matched = true;    
+
+    //Higgs matching -----------------------------------------    
+    if(is_photon_matched && is_meson_matched){
+
       if(verbose) cout<<endl<<"**************** HIGGS FOUND ******************"<<endl;
       if(verbose) cout<<"Higgs deltaR = "<<deltaR<<endl;
-      _Nevents_HiggsFound++;
-      _isHiggsFound=true;
-    }  
+      _Nevents_HiggsMatched++;
+      is_Higgs_matched=true;
+    }
+    
     else 
     {
       _Nevents_HiggsNotMatched++;
       if(verbose) cout<<endl<<"THAT'S NOT A HIGGS!"<<endl;
-    }
     
+    }
 
 //if is PhiGamma event
 if (_isPhi){
@@ -1407,7 +1416,7 @@ if (_isPhi){
       cout<<"isPhi = "<<isPhi<<" and isRho = "<<isRho<<endl;
       cout<<"H inv. mass = "<<_Hmass_From2K_Photon<<endl;
       cout<<"--------------------------------------------------"<<endl;
-      cout<<"MC Higgs found = "<<_Nevents_HiggsFound<<",   Higgs NOT matched = "<<_Nevents_HiggsNotMatched<<endl;
+      cout<<"MC Higgs found = "<<_Nevents_HiggsMatched<<",   Higgs NOT matched = "<<_Nevents_HiggsNotMatched<<endl;
       cout<<"--------------------------------------------------"<<endl<<endl;
       }
     } 
@@ -1533,7 +1542,7 @@ void HPhiGammaAnalysis::create_trees()
     mytree->Branch("maxPDFWeight",&maxPDFWeight);
     mytree->Branch("minQCDWeight",&minQCDWeight);
     mytree->Branch("maxQCDWeight",&maxQCDWeight);
-    mytree->Branch("isHiggsFound",&_isHiggsFound);
+    mytree->Branch("isHiggsMatched",&is_Higgs_matched);
     //mytree->Branch("isKplusMatched",&is_Kplus_matched);
     //mytree->Branch("isKminusMatched",&is_Kminus_matched);
     //mytree->Branch("isPiplusMatched",&is_Piplus_matched);
@@ -1543,10 +1552,14 @@ void HPhiGammaAnalysis::create_trees()
     //mytree->Branch("isPhotonFromH",&is_Photon_fromH);
     //mytree->Branch("isPhotonTrue",&is_photon_a_photon);
     mytree->Branch("isPhotonMatched",&is_photon_matched);
+    mytree->Branch("genPhoton_eT",&genPhoton_eT);
+    mytree->Branch("isMesonMatched",&is_meson_matched);
+    mytree->Branch("genMeson_pT",&genMeson_pT);
     mytree->Branch("deltaR_Kplus",&deltaR_Kplus);
     mytree->Branch("deltaR_Kminus",&deltaR_Kminus);
     mytree->Branch("deltaR_Piplus",&deltaR_Piplus);
     mytree->Branch("deltaR_Piminus",&deltaR_Piminus);
+
 }
 
 }

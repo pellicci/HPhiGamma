@@ -18,6 +18,8 @@ private:
   const edm::InputTag packedPFCandidates_;
   const edm::InputTag slimmedMuons_; 
   const edm::InputTag prunedGenParticles_;
+  //const edm::InputTag packedGenParticles_;
+  const edm::InputTag genParticles_;
   const edm::InputTag slimmedPhotons_;
   const edm::InputTag slimmedElectrons_;
   const edm::InputTag slimmedJets_;
@@ -61,7 +63,7 @@ private:
   int _Nevents_processed;
   int _Nevents_isTwoKaons;
   int _Nevents_isPhoton;
-  int _Nevents_HiggsFound; 
+  int _Nevents_HiggsMatched; 
   int _Nevents_HiggsNotMatched; 
   int _Nevents_HiggsMassMatched; 
   int _Nevents_HiggsMassNotMatched; 
@@ -171,6 +173,12 @@ private:
   float deltaR_Kminus;
   float deltaR_Piplus;
   float deltaR_Piminus;
+  float genPhoton_eT;
+  float genPhoton_eta;
+  float genPhoton_phi;
+  float genMeson_pT;
+  float genMeson_eta;
+  float genMeson_phi;
 
   bool is_Kplus_matched;
   bool is_Kminus_matched;
@@ -181,7 +189,8 @@ private:
   bool is_Photon_fromH;
   bool is_photon_a_photon;
   bool is_photon_matched;
-  bool _isHiggsFound;
+  bool is_meson_matched;
+  bool is_Higgs_matched;
   bool _isPhi;
   bool _isRho;
   //rho for isolation
@@ -193,9 +202,7 @@ private:
 
   //Tokens
   edm::EDGetTokenT<std::vector<pat::PackedCandidate> > packedPFCandidatesToken_; 
-  edm::EDGetTokenT<std::vector<pat::Muon> > slimmedMuonsToken_; 
-  edm::EDGetTokenT<std::vector<reco::GenParticle> > prunedGenParticlesToken_; 
-  edm::EDGetTokenT<std::vector<pat::Jet> > slimmedJetsToken_;
+  edm::EDGetTokenT<std::vector<pat::Muon> > slimmedMuonsToken_;   edm::EDGetTokenT<std::vector<pat::Jet> > slimmedJetsToken_;
   edm::EDGetTokenT<std::vector<pat::MET> > slimmedMETsToken_;
   edm::EDGetTokenT<std::vector<pat::MET> > slimmedMETsPuppiToken_;
   edm::EDGetTokenT<std::vector<reco::Vertex> > offlineSlimmedPrimaryVerticesToken_; 
@@ -204,6 +211,9 @@ private:
   edm::EDGetTokenT<GenEventInfoProduct> GenInfoToken_;
   edm::EDGetTokenT<edm::TriggerResults> triggerBitsToken_;
   edm::EDGetTokenT<LHEEventProduct> LHEEventProduct_; //LHE reader
+  //edm::EDGetTokenT<std::vector<pat::PackedGenParticle> > packedGenParticlesToken_; //GENPART
+  edm::EDGetTokenT<std::vector<reco::GenParticle>> prunedGenParticlesToken_;
+  
   //edm::EDGetTokenT<reco::JetCorrector> jetCorrectorToken_;
   //edm::EDGetTokenT<JetCorrectionUncertainty> mJetCorrectorUnc;
 

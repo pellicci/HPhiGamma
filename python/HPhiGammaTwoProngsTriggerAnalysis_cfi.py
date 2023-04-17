@@ -1,10 +1,9 @@
 import FWCore.ParameterSet.Config as cms
 
-HPhiGammaAnalysis = cms.EDAnalyzer('HPhiGammaAnalysis',
+HPhiGammaTwoProngsTriggerAnalysis = cms.EDAnalyzer('HPhiGammaTwoProngsTriggerAnalysis',
                                   packedPFCandidates = cms.InputTag("packedPFCandidates"),
                                   slimmedMuons       = cms.InputTag("slimmedMuons"),
                                   prunedGenParticles = cms.InputTag("prunedGenParticles"),
-                                  packedGenParticles = cms.InputTag('packedGenParticles', '', 'PAT'),
                                   slimmedPhotons     = cms.InputTag("slimmedPhotons"),
                                   slimmedElectrons   = cms.InputTag("slimmedElectrons"),
                                   slimmedJets        = cms.InputTag("slimmedJetsPuppi"),

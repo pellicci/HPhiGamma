@@ -1,0 +1,22 @@
+-------------------------------------
+imax 1 number of channels
+jmax 1 number of background minus 1
+kmax * number of nuisance parameters
+-------------------------------------
+shapes	ggH			GFpreselection	workspaces/workspace_STAT_Phi_GFpreselection_2018.root	workspace_STAT_Phi_GFpreselection_2018:crystal_ball_Phi_GFpreselection_ggH
+shapes	bkg			GFpreselection	workspaces/workspace_STAT_Phi_GFpreselection_2018.root	workspace_STAT_Phi_GFpreselection_2018:multipdf_Phi_GFpreselection_bkg
+shapes	data_obs	GFpreselection	workspaces/workspace_STAT_Phi_GFpreselection_2018.root	workspace_STAT_Phi_GFpreselection_2018:observed_data
+
+-------------------------------------
+bin	        GFpreselection 
+observation	-1    
+-------------------------------------
+bin		GFpreselection	GFpreselection  
+process	ggH			bkg    
+process	0	 		 1     
+rate	0.01    	 1     
+-------------------------------------
+lumi_13TeV         lnN     1.025	  1.025	  -  
+
+-------------------------------------
+pdf_index_GFpreselection discrete

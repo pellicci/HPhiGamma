@@ -1,0 +1,28 @@
+-------------------------------------
+imax 1 number of channels
+jmax 2 number of background minus 1
+kmax * number of nuisance parameters
+-------------------------------------
+shapes	ggH			GFcat_bdt1	workspaces/workspace_STAT_Rho_GFcat_bdt1_2018.root	workspace_STAT_Rho_GFcat_bdt1_2018:crystal_ball_Rho_GFcat_bdt1_ggH
+shapes	VBFH		GFcat_bdt1	workspaces/workspace_STAT_Rho_GFcat_bdt1_2018.root	workspace_STAT_Rho_GFcat_bdt1_2018:crystal_ball_Rho_GFcat_bdt1_VBF
+shapes	bkg			GFcat_bdt1	workspaces/workspace_STAT_Rho_GFcat_bdt1_2018.root	workspace_STAT_Rho_GFcat_bdt1_2018:multipdf_Rho_GFcat_bdt1_bkg
+shapes	data_obs	GFcat_bdt1	workspaces/workspace_STAT_Rho_GFcat_bdt1_2018.root	workspace_STAT_Rho_GFcat_bdt1_2018:observed_data
+
+-------------------------------------
+bin	        GFcat_bdt1 
+observation	-1    
+-------------------------------------
+bin		GFcat_bdt1	GFcat_bdt1	GFcat_bdt1  
+process	ggH		VBFH	bkg    
+process	0	 	-1	     1     
+rate	0.01    0.01	 1     
+-------------------------------------
+lumi_13TeV_2018    lnN     1.025   1.025   -  
+xsecQCDscale       lnN     1.039   1.004   -  
+CMS_pileup_2018    lnN     1.046   1.046   -  
+pdf_Higgs          lnN     1.032   1.021   -  
+CMS_trig_TwoProngs lnN     1.054   1.054   -  
+CMS_trig_PhotonLeg lnN     1.027   1.027   -  
+CMS_photonID       lnN     1.016   1.016   -  
+-------------------------------------
+pdf_index_GFcat_bdt1 discrete

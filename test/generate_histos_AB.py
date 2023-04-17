@@ -119,7 +119,7 @@ else: weightSum = 1.
 
 #HISTOS ###########################################################################################################
 histo_map = dict()
-list_histos = ["h_InvMass_TwoTrk_Photon","h_meson_InvMass_TwoTrk","h_firstTrk_pT","h_secondTrk_pT","h_firstTrk_Eta","h_secondTrk_Eta","h_firstTrk_Phi","h_secondTrk_Phi","h_bestCouplePt","h_bestCoupleEta","h_bestCoupleDeltaR","h_bestJetPt","h_bestJetEta","h_firstTrk_Iso","h_firstTrk_Iso_ch","h_secondTrk_Iso","h_secondTrk_Iso_ch","h_couple_Iso","h_couple_Iso_ch","h_photon_energy","h_photon_eta","h_nJets_25","h_nMuons","h_nElectrons","h_nPhotons38WP80","h_efficiency","h_decayChannel","h_couple_Iso_neutral","h_cutOverflow","h_met_pT","h_dPhiGammaTrk","h_nPhotons20WP90","h_pTOverHmass","h_eTOverHmass","h_JetChargedEmEnergy","h_JetNeutralEmEnergy","h_JetChargedHadEnergy","h_JetNeutralHadEnergy"]#,"h_GenVsReco_DeltaR_trkPlus","h_GenVsReco_DeltaR_trkMinus"]#,"h_BDT_out"]
+list_histos = ["h_InvMass_TwoTrk_Photon","h_meson_InvMass_TwoTrk","h_firstTrk_pT","h_secondTrk_pT","h_firstTrk_Eta","h_secondTrk_Eta","h_firstTrk_Phi","h_secondTrk_Phi","h_bestCouplePt","h_bestCoupleEta","h_bestCoupleDeltaR","h_bestJetPt","h_bestJetEta","h_firstTrk_Iso","h_firstTrk_Iso_ch","h_secondTrk_Iso","h_secondTrk_Iso_ch","h_couple_Iso","h_couple_Iso_ch","h_photon_energy","h_photon_eta","h_nJets_25","h_nMuons","h_nElectrons","h_nPhotons38WP80","h_efficiency","h_decayChannel","h_couple_Iso_neutral","h_cutOverflow","h_met_pT","h_dPhiGammaTrk","h_nPhotons20WP90","h_pTOverHmass","h_eTOverHmass","h_JetChargedEmEnergy","h_JetNeutralEmEnergy","h_JetChargedHadEnergy","h_JetNeutralHadEnergy","h_massResolution","h_genPhotonEt"]#,"h_genMesonPt"]#,"h_GenVsReco_DeltaR_trkPlus","h_GenVsReco_DeltaR_trkMinus"]#,"h_BDT_out"]
 
 histo_map[list_histos[0]]  = ROOT.TH1F(list_histos[0],"M_{H}",280,100.,170.) 
 if   isPhiAnalysis: histo_map[list_histos[1]]  = ROOT.TH1F(list_histos[1],"M_{meson}", 100, 1., 1.05) 
@@ -156,15 +156,16 @@ histo_map[list_histos[28]] = ROOT.TH1F(list_histos[28],"Data cut overflow", 5, 0
 histo_map[list_histos[29]] = ROOT.TH1F(list_histos[29],"p_{T} of the met", 200, 0.,120.)
 histo_map[list_histos[30]] = ROOT.TH1F(list_histos[30],"#Delta#phi between leading track and photon", 100, 0.,3.14)
 histo_map[list_histos[31]] = ROOT.TH1F(list_histos[31],"n. of #gamma 20wp90", 6, -0.5,5.5)
-histo_map[list_histos[32]] = ROOT.TH1F(list_histos[32],"p_{T} of the meson divided by m_{ditrk#gamma}", 100, 0.2,1.1)
-histo_map[list_histos[33]] = ROOT.TH1F(list_histos[33],"E_{T} of the #gamma divided by m_{ditrk#gamma}", 100, 0.2,1.6)
+histo_map[list_histos[32]] = ROOT.TH1F(list_histos[32],"p_{T} of the meson divided by m_{ditrk#gamma}", 100, 0.2,0.75)
+histo_map[list_histos[33]] = ROOT.TH1F(list_histos[33],"E_{T} of the #gamma divided by m_{ditrk#gamma}", 100, 0.2,1.1)
 histo_map[list_histos[34]] = ROOT.TH1F(list_histos[34],"Charged em energy of the jet", 100, 0.,0.001)
 histo_map[list_histos[35]] = ROOT.TH1F(list_histos[35],"Neutral em energy of the jet", 100, 0.,0.7)
 histo_map[list_histos[36]] = ROOT.TH1F(list_histos[36],"Charged had energy of the jet", 100, 0.,1.)
 histo_map[list_histos[37]] = ROOT.TH1F(list_histos[37],"Neutral had energy of the jet", 100, 0.,0.4)
-#if not samplename == "Data":
- #   histo_map[list_histos[38]] = ROOT.TH1F(list_histos[38],"#DeltaR_{GenVsReco}^{trk^{+}}", 100, 0.,0.004)
-  #  histo_map[list_histos[39]] = ROOT.TH1F(list_histos[39],"#DeltaR_{GenVsReco}^{trk^{-}}", 100, 0.,0.004)
+histo_map[list_histos[38]] = ROOT.TH1F(list_histos[38],"Mass resolution", 100, 0.,0.1)
+if not samplename == "Data":
+    histo_map[list_histos[38]] = ROOT.TH1F(list_histos[38],"genPhoton eT", 100, 38.,160.)
+    #histo_map[list_histos[39]] = ROOT.TH1F(list_histos[39],"genMeson pT", 100, 38.,110.)
 
 
 #histo_map[list_histos[29]] = ROOT.TH1F(list_histos[29],"BDT output", 40, -1.,1.)
@@ -175,6 +176,7 @@ fOut.cd()
 
 #Variables to go in the output tree #############################################################################################
 mesonGammaMass       = np.zeros(1, dtype=float)
+massResolution       = np.zeros(1, dtype=float)
 mesonMass            = np.zeros(1, dtype=float)
 mesonGammaMassReduced= np.zeros(1, dtype=float)
 _coupleIsoCh         = np.zeros(1, dtype=float)
@@ -210,6 +212,7 @@ _JetNeutralHadEnergy = np.zeros(1, dtype=float)
 
 tree_output = ROOT.TTree('tree_output','tree_output')
 tree_output.Branch('mesonGammaMass',mesonGammaMass,'mesonGammaMass/D')
+tree_output.Branch('massResolution',massResolution,'massResolution/D')
 tree_output.Branch('mesonGammaMassReduced',mesonGammaMassReduced,'mesonGammaMassReduced/D')
 tree_output.Branch('mesonMass',mesonMass,'mesonMass/D')
 tree_output.Branch('_coupleIsoCh',_coupleIsoCh,'_coupleIsoCh/D')
@@ -283,6 +286,7 @@ for jentry in xrange(nentries):
     firstTrkPt     = mytree.firstCandPt         
     secondTrkPt    = mytree.secondCandPt        
     photonEt       = mytree.photon_eT
+    massResolution = mytree.photonRegressionError/photonEt #calculated as photonErr / photonEt 
     phEt_sigmaDW   = mytree.photon_eT_sigmaDW
     phEt_sigmaUP   = mytree.photon_eT_sigmaUP
     phET_scaleDW   = mytree.photon_eT_scaleDW
@@ -308,15 +312,20 @@ for jentry in xrange(nentries):
     nMuons         = mytree.nMuons10
     MesonIso0      = MesonPt/(MesonPt + (mytree.Couple_sum_pT_05 - mytree.Couple_sum_pT_05_ch))
     metPt          = mytree.met_pT
+
     dPhiGammaTrk   = math.fabs(firstTrkphi - mytree.photon_phi)
+    if dPhiGammaTrk > 3.14:
+        dPhiGammaTrk = 6.28 - dPhiGammaTrk
+
     JetChargedEmEn = mytree.bestJet_chargedEmEnergyFraction
     JetNeutralEmEn = mytree.bestJet_neutralEmEnergyFraction
     JetChargedHadEn= (mytree.bestJet_chargedHadEnergy - MesonPt)/jetPt
     JetNeutralHadEn= mytree.bestJet_neutralHadEnergyFraction
+
     if not samplename == "Data" and isPhiAnalysis:
         deltaR_trkPlus = mytree.deltaR_Kplus
         deltaR_trkMinus= mytree.deltaR_Kminus
-    
+
     if not samplename == "Data" and not isPhiAnalysis:
         deltaR_trkPlus = mytree.deltaR_Piplus
         deltaR_trkMinus= mytree.deltaR_Piminus
@@ -325,8 +334,10 @@ for jentry in xrange(nentries):
         eventNumber    = mytree.event_number
         runNumber      = mytree.run_number
     else:
-        isHiggsFound    = mytree.isHiggsFound
+        isHiggsMatched  = mytree.isHiggsFound
         isPhotonMatched = mytree.isPhotonMatched
+        genPhotonEt     = mytree.genPhoton_eT
+        #genMesonPt      = #mytree.genMeson_pT
 
     #If I'm performing a PhiGamma analysis I don't want to choose those events tagged as a RhoGamma events, and viceversa
     if isPhiAnalysis and not isPhiEvent: 
@@ -389,11 +400,12 @@ for jentry in xrange(nentries):
         coupleDeltaPhi = 6.28 - coupleDeltaPhi
     deltaR = math.sqrt((mytree.firstCandEta - mytree.secondCandEta)**2 + (coupleDeltaPhi)**2)
 
-
     #---------------- FIXMEEEEEE
     #if firstTrkphi > 0.65 and firstTrkphi < 0.8: continue
-    if abs(photonEta) > 2.1: continue
-    if abs(MesonEta) > 2.1: continue
+    #if abs(photonEta) > 2.1: continue
+    #if abs(MesonEta) > 2.1: continue
+    #if (Hmass > 114. and Hmass < 118.): continue #NoTail
+    if (Hmass < 114. or  Hmass > 118.): continue #Tail
 
     #--------------------------------------------------------------------------
     central_photonEt = photonEt
@@ -458,8 +470,8 @@ for jentry in xrange(nentries):
             print "isoNeutralSF           = ",isoNeutralSF
     #        print "PhotonTriggerSF_err    = ",PhotonTriggerSF_err
             print "Final eventWeight **** = ",eventWeight
-            print "isHiggsFound        = ",isHiggsFound
-            print "isPhotonMatched     = ",isPhotonMatched
+            print "isHiggsMatched         = ",isHiggsMatched
+            print "isPhotonMatched        = ",isPhotonMatched
             print ""
 
     #normalization for DATA 
@@ -522,18 +534,26 @@ for jentry in xrange(nentries):
     
     if (abs(photonEta) > 1.444 and abs(photonEta) < 1.566): continue
 
+    '''
     #------- MC Truth -------------------
     if not samplename == "Data":
         if deltaR_trkPlus < 0. or deltaR_trkMinus < 0.: continue
         if deltaR_trkPlus < 0.001: nTrkPlusMatched += 1
         if deltaR_trkMinus < 0.001: nTrkMinusMatched += 1
-        if deltaR_trkPlus < 0.001 and deltaR_trkMinus < 0.001: nMesonMatched +=1
-        if isPhotonMatched: nPhotonMatched += 1
-        if deltaR_trkPlus < 0.002 and deltaR_trkMinus < 0.002 and isPhotonMatched: 
-            nHmatched +=1
-        else:
+        
+        if deltaR_trkPlus < 0.001 and deltaR_trkMinus < 0.001: 
+            nMesonMatched +=1
+            #else:
             continue
+
+        if isPhotonMatched: nPhotonMatched += 1
+        if deltaR_trkPlus < 0.002 and deltaR_trkMinus < 0.002 and isPhotonMatched: nHmatched +=1
+
         if isHiggsFound and isPhotonMatched: nHiggsFound += 1
+    
+    '''
+    #if massResolution > 0.025: continue #FIXMEEEE
+    #if deltaR > 0.01: continue
 
 
     #FILL HISTOS --------------------------------------------------------------------------
@@ -580,12 +600,17 @@ for jentry in xrange(nentries):
     histo_map["h_JetNeutralEmEnergy"].Fill(JetNeutralEmEn, eventWeight)
     histo_map["h_JetChargedHadEnergy"].Fill(JetChargedHadEn, eventWeight)
     histo_map["h_JetNeutralHadEnergy"].Fill(JetNeutralHadEn, eventWeight)
-    #if not samplename == "Data":
-     #   histo_map["h_GenVsReco_DeltaR_trkPlus"].Fill(deltaR_trkPlus, eventWeight)
-      #  histo_map["h_GenVsReco_DeltaR_trkMinus"].Fill(deltaR_trkMinus, eventWeight)
+    histo_map["h_JetNeutralHadEnergy"].Fill(JetNeutralHadEn, eventWeight)
+    histo_map["h_massResolution"].Fill(massResolution, eventWeight)
+
+    if not samplename == "Data":
+        histo_map["h_genPhotonEt"].Fill(genPhotonEt, eventWeight)
+        #histo_map["h_genMesonPt"].Fill(genMesonPt, eventWeight)
 
     #------------------------------------------------------------------------------------
-    
+    #If preselection, reweight events as function of the mass resolution. Just for the BDT.
+    if not (isBDT and samplename == "Data"): eventWeight = eventWeight/massResolution
+
     #FILL TREE
     mesonGammaMass[0]     = Hmass
     if(Hmass > 110. and Hmass < 140.): mesonGammaMassReduced[0] = Hmass
@@ -693,7 +718,7 @@ histo_map["h_couple_Iso_neutral"].SetTitle("Isolation of the couple candidate fr
 histo_map["h_met_pT"].GetXaxis().SetTitle("pT_{met} [GeV/c]")
 histo_map["h_met_pT"].SetTitle("Transverse momentum of the missing energy")
 histo_map["h_dPhiGammaTrk"].GetXaxis().SetTitle("#Delta#Phi_{#gamma,Trk_1} [rad]")
-histo_map["h_dPhiGammaTrk"].SetTitle("Transverse momentum of the missing energy")
+histo_map["h_dPhiGammaTrk"].SetTitle("#Delta#Phi_{#gamma,Trk_1} [rad]")
 histo_map["h_pTOverHmass"].GetXaxis().SetTitle("p_T^{trk^{+}trk^{-}}/m_{ditrk#gamma}")
 histo_map["h_pTOverHmass"].SetTitle("pT of the meson divided by Hmass")
 histo_map["h_eTOverHmass"].GetXaxis().SetTitle("eT_{#gamma}/m_{ditrk#gamma}")
@@ -702,7 +727,14 @@ histo_map["h_JetChargedEmEnergy"].GetXaxis().SetTitle("E_{jet}^{ch,em}")
 histo_map["h_JetNeutralEmEnergy"].GetXaxis().SetTitle("E_{jet}^{0,em}")
 histo_map["h_JetChargedHadEnergy"].GetXaxis().SetTitle("E_{jet}^{ch,had}")
 histo_map["h_JetNeutralHadEnergy"].GetXaxis().SetTitle("E_{jet}^{0,had}")
-#if not samplename == "Data":
+histo_map["h_massResolution"].GetXaxis().SetTitle("#sigmaM/M")
+histo_map["h_massResolution"].GetXaxis().SetTitle("#sigmaM/M")
+if not samplename == "Data":
+    histo_map["h_genPhotonEt"].GetXaxis().SetTitle("E_{T}^{gen#gamma}[GeV]")
+    histo_map["h_genPhotonEt"].SetTitle("eT of the genPhoton")
+    #histo_map["h_genMesonPt"].GetXaxis().SetTitle("pT_{genMeson} [GeV]")
+    #histo_map["h_genMesonPt"].SetTitle("Transverse momentum of the genMeson")
+
  #   histo_map["h_GenVsReco_DeltaR_trkPlus"].GetXaxis().SetTitle("#DeltaR_{GenVsReco}^{trk^{+}}")
   #  histo_map["h_GenVsReco_DeltaR_trkPlus"].SetTitle("#DeltaR_{GenVsReco}^{trk^{+}}")
   #  histo_map["h_GenVsReco_DeltaR_trkMinus"].GetXaxis().SetTitle("#DeltaR_{GenVsReco}^{trk^{-}}")
