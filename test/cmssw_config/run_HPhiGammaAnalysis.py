@@ -126,6 +126,13 @@ updateJetCollection(
    jetCorrections = jetCorrectionsList
 )
 
+from RecoEgamma.EgammaTools.EgammaPostRecoTools import setupEgammaPostRecoSeq
+setupEgammaPostRecoSeq(process,
+                       runEnergyCorrections=True,
+                       runVID=False, #saves CPU time by not needlessly re-running VID, if you want the Fall17V2 IDs, set this to True or remove (default is True)
+                       era='2018-UL')    
+#a sequence egammaPostRecoSeq has now been created and should be added to your path, eg process.p=cms.Path(process.egammaPostRecoSeq)
+
 
 process.load("HiggsAnalysis.HPhiGamma.HPhiGammaAnalysis_cfi")
 process.HPhiGammaAnalysis.runningOnData = options.runningOnData
@@ -157,6 +164,6 @@ import HLTrigger.HLTfilters.triggerResultsFilter_cfi as hlt
 #                                             #
 ###############################################
 
-process.seq = cms.Path(process.patJetCorrFactorsUpdatedJEC * process.updatedPatJetsUpdatedJEC * process.HPhiGammaAnalysis)
+process.seq = cms.Path(process.patJetCorrFactorsUpdatedJEC * process.updatedPatJetsUpdatedJEC * process.egammaPostRecoSeq * process.HPhiGammaAnalysis)
 
 process.schedule = cms.Schedule(process.seq)

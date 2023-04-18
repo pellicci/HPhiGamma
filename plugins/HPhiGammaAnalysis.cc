@@ -129,7 +129,7 @@ effectiveAreas_ph_( (iConfig.getParameter<edm::FileInPath>("effAreasConfigFile_p
 
 
   debug=false;  //DEBUG datamember 
-  verbose=true; 
+  verbose=false; 
 
   h_pileup   = fs->make<TH1F>("pileup", "pileup", 75,0,75);
 
@@ -447,8 +447,8 @@ for(auto el = slimmedElectrons->begin(); el != slimmedElectrons->end(); ++el){
 
   for(auto photon = slimmedPhotons->begin(); photon != slimmedPhotons->end(); ++photon){ //PHOTON FORLOOP START --------------------------------
     
-    // Apply energy scale corrections
-    corr_et   = photon->et() * photon->userFloat("ecalEnergyPostCorr") / photon->energy(); 
+    // Apply energy scale corrections, from 18Apr2023 the correction are embedded in the config file with the postReco tool
+    corr_et   = photon->et();// * photon->userFloat("ecalEnergyPostCorr") / photon->energy(); 
 
     if(corr_et < 20. || fabs(photon->eta()) > 2.5) continue; //loose selection to reject diphoton bkg 
     if(photon->photonID("mvaPhoID-RunIIFall17-v2-wp90") == 0) continue; //WP90
@@ -469,7 +469,7 @@ for(auto el = slimmedElectrons->begin(); el != slimmedElectrons->end(); ++el){
     nPhotons38WP80++;
 
     // Apply energy scale corrections
-    ph_p4 = photon->p4() * photon->userFloat("ecalEnergyPostCorr") / photon->energy();
+    ph_p4 = photon->p4();// * photon->userFloat("ecalEnergyPostCorr") / photon->energy();
 
     if(corr_et < eTphMax) continue; //choose as best photon the one with highest eT
     

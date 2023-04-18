@@ -164,7 +164,7 @@ histo_map[list_histos[36]] = ROOT.TH1F(list_histos[36],"Charged had energy of th
 histo_map[list_histos[37]] = ROOT.TH1F(list_histos[37],"Neutral had energy of the jet", 100, 0.,0.4)
 histo_map[list_histos[38]] = ROOT.TH1F(list_histos[38],"Mass resolution", 100, 0.,0.1)
 if not samplename == "Data":
-    histo_map[list_histos[38]] = ROOT.TH1F(list_histos[38],"genPhoton eT", 100, 38.,160.)
+    histo_map[list_histos[39]] = ROOT.TH1F(list_histos[39],"genPhoton eT", 100, 38.,160.)
     #histo_map[list_histos[39]] = ROOT.TH1F(list_histos[39],"genMeson pT", 100, 38.,110.)
 
 
@@ -334,7 +334,7 @@ for jentry in xrange(nentries):
         eventNumber    = mytree.event_number
         runNumber      = mytree.run_number
     else:
-        isHiggsMatched  = mytree.isHiggsFound
+        isHiggsMatched  = mytree.isHiggsMatched
         isPhotonMatched = mytree.isPhotonMatched
         genPhotonEt     = mytree.genPhoton_eT
         #genMesonPt      = #mytree.genMeson_pT
