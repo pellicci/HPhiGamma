@@ -106,11 +106,15 @@ leg1.SetLineWidth(1)
 leg1.SetFillStyle(1001)
 leg1.SetNColumns(1)
 
+#create a list of histos you don't want to plot with bkg estimation
+histo_blacklist = {"h_genPhotonEt","h_genMesonPt","h_RecoVsGenPhotonPtRel","h_RecoVsGenMesonPtRel","h_MrecoMinusMgen"} 
+
 for filename in list_inputfiles:
     fileIn = ROOT.TFile(filename)
     sample_name = (filename.split("_")[4])[:-5] 
     print "=============== ", sample_name
     for histo_name in list_histos:
+        if histo_name in histo_blacklist: continue
         histo = fileIn.Get(histo_name)
         print "histo_name = ",histo_name
         # Set to 0 the bins containing negative values, due to negative weights
@@ -126,7 +130,7 @@ for filename in list_inputfiles:
             if isTightSelection and not (histo_name == "h_firstTrk_Iso" or histo_name == "h_firstTrk_Iso_ch" or histo_name == "h_firstTrk_Iso_neutral" or histo_name == "h_secondTrk_Iso" or histo_name == "h_secondTrk_Iso_ch" or histo_name == "h_couple_AbsIsoCh" or histo_name == "h_couple_Iso" or histo_name == "h_couple_Iso_ch"):
                 histo_container[-1].Rebin(10)
             elif histo_name == "h_InvMass_TwoTrk_Photon":
-                histo_container[-1].Rebin(10)
+                histo_container[-1].Rebin(5)
                 #hsignalVBF[histo_name].Rebin(1/5)
                 #hsignalggH[histo_name].Rebin(1/5)
 
@@ -180,6 +184,8 @@ for filename in list_inputfiles:
 
 for histo_name in list_histos:
 
+    if histo_name in histo_blacklist: continue
+
     canvas[histo_name] = ROOT.TCanvas("Canvas_" + histo_name,"",200,106,600,600)
     canvas[histo_name].cd()
  
@@ -230,7 +236,7 @@ for histo_name in list_histos:
         if histo_name == "h_InvMass_TwoTrk_Photon":
             #hstack[histo_name].Rebin(2)            
             hstack[histo_name].GetXaxis().SetTitle("m_{ditrk#gamma} [GeV]")
-            hstack[histo_name].GetXaxis().SetLimits(100.,170.)
+            hstack[histo_name].GetXaxis().SetLimits(70.,170.)
 
 
         if histo_name == "h_nJets_25":

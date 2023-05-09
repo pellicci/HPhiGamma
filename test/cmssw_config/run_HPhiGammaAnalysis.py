@@ -31,21 +31,6 @@ options.parseArguments()
 
 #INPUT FILE LIST      
 
-                                                                                                                                                                               
-#Phi input file
-
-#Rho input file
-#input_path = '/afs/cern.ch/user/g/gumoret/work/MesonGamma_root/2018/HRhoGamma_ggH/MINI'
-
-#DATA
-#if options.runningOnData:
- #   input_path = '/store/data/Run2018C/Tau/MINIAOD/12Nov2019_UL2018-v1/00000/' 
-
-#For the test with Mariarosaria
-#if options.runningOnData:
- #   input_path = '/eos/user/g/gumoret/forMaria/'
-
-
 '''                                                                                                                                                                                                   
     For the given path, get the List of all files in the directory tree                                                                                                                               
 '''                                                                                                                                                                                                   
@@ -84,9 +69,9 @@ else:
    #Choose this for Phi ggH signal
    #inputFiles = {'/store/mc/RunIISummer20UL18MiniAODv2/GluGlu_HToPhiGamma_M125_TuneCP5_PSWeights_13TeV_powheg_pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v3/40000/466C2A54-EAA8-D441-AECE-92FBA662611A.root','/store/mc/RunIISummer20UL18MiniAODv2/GluGlu_HToPhiGamma_M125_TuneCP5_PSWeights_13TeV_powheg_pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v3/40000/10358A5B-CBF1-554A-983D-37E0015C2DCC.root'}
    #Choose this for Phi VBF signal   
-   #inputFiles = {'/store/mc/RunIISummer20UL18MiniAODv2/VBF_HToPhiGamma_M125_TuneCP5_PSWeights_13TeV_powheg_pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v1/2560000/00B7EB0B-2697-F241-BE5F-1735C9656C30.root'}
+   inputFiles = {'/store/mc/RunIISummer20UL18MiniAODv2/VBF_HToPhiGamma_M125_TuneCP5_PSWeights_13TeV_powheg_pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v1/2560000/00B7EB0B-2697-F241-BE5F-1735C9656C30.root'}
    #Choose this for Rho VBF signal
-   inputFiles = {'/store/mc/RunIISummer20UL18MiniAODv2/VBF_HToRhoGamma_M125_TuneCP5_PSWeights_13TeV_powheg_pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v3/40000/43213ED1-8A32-9A41-B818-382412E0B6AD.root','/store/mc/RunIISummer20UL18MiniAODv2/VBF_HToRhoGamma_M125_TuneCP5_PSWeights_13TeV_powheg_pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v3/40000/1E9AFC8F-9D47-3F49-808D-33F4FF9086DE.root'}
+   #inputFiles = {'/store/mc/RunIISummer20UL18MiniAODv2/VBF_HToRhoGamma_M125_TuneCP5_PSWeights_13TeV_powheg_pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v3/40000/43213ED1-8A32-9A41-B818-382412E0B6AD.root'}#,'/store/mc/RunIISummer20UL18MiniAODv2/VBF_HToRhoGamma_M125_TuneCP5_PSWeights_13TeV_powheg_pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v3/40000/1E9AFC8F-9D47-3F49-808D-33F4FF9086DE.root'}
    #Choose fot Rho ggH signal
    #inputFiles = {'/store/mc/RunIISummer20UL18MiniAODv2/GluGlu_HToRhoGamma_M125_TuneCP5_PSWeights_13TeV_powheg_pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v3/40000/1D0FF4E1-E390-2E40-B24A-3B196B7E8DA0.root'}
 process.source = cms.Source ("PoolSource",

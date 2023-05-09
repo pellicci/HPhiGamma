@@ -58,18 +58,24 @@ for binIndex in binList:
 	a2_central, a2_min, a2_max = 0.3,-2.,2.
 	a3_central, a3_min, a3_max = 0.3,-2.,2.
 
-	a1 = ROOT.RooRealVar("a1","The a1 of background", a1_central, a1_min, a1_max)
-	a2 = ROOT.RooRealVar("a2","The a2 of background", a2_central, a2_min, a2_max)
-	a3 = ROOT.RooRealVar("a3","The a3 of background", a3_central, a3_min, a3_max)
+	a1_off = ROOT.RooRealVar("a1_off","The a1 of background", a1_central, a1_min, a1_max)
+	a2_off = ROOT.RooRealVar("a2_off","The a2 of background", a2_central, a2_min, a2_max)
+	a3_off = ROOT.RooRealVar("a3_off","The a3 of background", a3_central, a3_min, a3_max)
 
-	backgroundPDF = ROOT.RooChebychev("backgroundPDF","The background PDF",mass,ROOT.RooArgList(a1,a2,a3))
+	a1_trg = ROOT.RooRealVar("a1_trg","The a1 of background", a1_central, a1_min, a1_max)
+	a2_trg = ROOT.RooRealVar("a2_trg","The a2 of background", a2_central, a2_min, a2_max)
+	a3_trg = ROOT.RooRealVar("a3_trg","The a3 of background", a3_central, a3_min, a3_max)
+
+	backgroundPDFOffline   = ROOT.RooChebychev("backgroundPDFOffline","The background PDF for offline dataset",mass,ROOT.RooArgList(a1_off,a2_off,a3_off))
+	backgroundPDFTriggered = ROOT.RooChebychev("backgroundPDFTriggered","The background PDF for triggered dataset",mass,ROOT.RooArgList(a1_trg,a2_trg,a3_trg))
 
 	# N   e v e n t s
 	# ---------------------------------------------------------------
 
 	nsig = ROOT.RooRealVar("nsig", "signal yield 1", 300., 0., 5000.)
 	#nsig2 = ROOT.RooRealVar("nsig2", "signal yield 2", 300., 0., 5000.)
-	nbkg = ROOT.RooRealVar("nbkg", "background yield", 1500., 0., 10000.)
+	nbkgOffline   = ROOT.RooRealVar("nbkgOffline", "background yield", 1500., 0., 10000.)
+	nbkgTriggered = ROOT.RooRealVar("nbkgTriggered", "background yield", 1500., 0., 10000.)
 	efficiency = ROOT.RooRealVar("efficiency", "efficiency", 0.5, 0, 1)
 
 	# R e t r i e v e   d a t a s e t s
@@ -82,8 +88,8 @@ for binIndex in binList:
 	# ---------------------------------------------------------------------------
 
 	# definisci le formule per i signal yield nei due dataset
-	signal_yield1_formula = ROOT.RooFormulaVar("signal_yield1_formula", "@0 * @1", ROOT.RooArgList(nsig, efficiency))
-	signal_yield2_formula = ROOT.RooFormulaVar("signal_yield2_formula", "@0 * (1.0 - @1)", ROOT.RooArgList(nsig, efficiency))
+	signal_yield1_formula = ROOT.RooFormulaVar("signal_yield1_formula", "@0", ROOT.RooArgList(nsig))
+	signal_yield2_formula = ROOT.RooFormulaVar("signal_yield2_formula", "@0 * @1", ROOT.RooArgList(nsig, efficiency))
 
 	# Create index category and join samples
 	sample = ROOT.RooCategory("sample", "sample")
@@ -97,8 +103,8 @@ for binIndex in binList:
 	simPdf = ROOT.RooSimultaneous("simPdf", "simultaneous pdf", sample)
 
 	# Create model for each dataset
-	modelOffline = ROOT.RooAddPdf("modelOffline", "Signal and Background PDF for Offline", ROOT.RooArgList(signalPDF, backgroundPDF), ROOT.RooArgList(signal_yield1_formula, nbkg))
-	modelTriggered = ROOT.RooAddPdf("modelTriggered", "Signal and Background PDF for Triggered", ROOT.RooArgList(signalPDF, backgroundPDF), ROOT.RooArgList(signal_yield2_formula, nbkg))
+	modelOffline = ROOT.RooAddPdf("modelOffline", "Signal and Background PDF for Offline", ROOT.RooArgList(signalPDF, backgroundPDFOffline), ROOT.RooArgList(signal_yield1_formula, nbkgOffline))
+	modelTriggered = ROOT.RooAddPdf("modelTriggered", "Signal and Background PDF for Triggered", ROOT.RooArgList(signalPDF, backgroundPDFTriggered), ROOT.RooArgList(signal_yield2_formula, nbkgTriggered))
 
 	simPdf.addPdf(modelOffline, "Offline")
 	simPdf.addPdf(modelTriggered, "Triggered")
@@ -132,7 +138,7 @@ for binIndex in binList:
 	frame1 = mass.frame(30)
 	frame1.SetTitle("Offline selection")
 	jointData.plotOn(frame1, ROOT.RooFit.Cut("sample==sample::Offline"), ROOT.RooFit.Name("data1"))
-	simPdf.plotOn(frame1, ROOT.RooFit.ProjWData(ROOT.RooArgSet(sample), jointData), ROOT.RooFit.Slice(sample, "Offline"), ROOT.RooFit.Components("backgroundPDF"), ROOT.RooFit.LineStyle(ROOT.kDashed), ROOT.RooFit.LineColor(ROOT.kRed), ROOT.RooFit.Name("curve1_bkg"))
+	simPdf.plotOn(frame1, ROOT.RooFit.ProjWData(ROOT.RooArgSet(sample), jointData), ROOT.RooFit.Slice(sample, "Offline"), ROOT.RooFit.Components("backgroundPDFOffline"), ROOT.RooFit.LineStyle(ROOT.kDashed), ROOT.RooFit.LineColor(ROOT.kRed), ROOT.RooFit.Name("curve1_bkg"))
 	simPdf.plotOn(frame1, ROOT.RooFit.ProjWData(ROOT.RooArgSet(sample), jointData), ROOT.RooFit.Slice(sample, "Offline"), ROOT.RooFit.Name("curve1_total"))
 	frame1.GetXaxis().SetLabelSize(0.033)
 	frame1.GetXaxis().SetTitle("m_{KK} [Gev]")
@@ -142,7 +148,7 @@ for binIndex in binList:
 	frame2 = mass.frame(30)
 	frame2.SetTitle("Offline selection and trigger")
 	jointData.plotOn(frame2, ROOT.RooFit.Cut("sample==sample::Triggered"), ROOT.RooFit.Name("data2"))
-	simPdf.plotOn(frame2, ROOT.RooFit.ProjWData(ROOT.RooArgSet(sample), jointData), ROOT.RooFit.Slice(sample, "Triggered"), ROOT.RooFit.Components("backgroundPDF"), ROOT.RooFit.LineStyle(ROOT.kDashed), ROOT.RooFit.LineColor(ROOT.kRed), ROOT.RooFit.Name("curve2_bkg"))
+	simPdf.plotOn(frame2, ROOT.RooFit.ProjWData(ROOT.RooArgSet(sample), jointData), ROOT.RooFit.Slice(sample, "Triggered"), ROOT.RooFit.Components("backgroundPDFTriggered"), ROOT.RooFit.LineStyle(ROOT.kDashed), ROOT.RooFit.LineColor(ROOT.kRed), ROOT.RooFit.Name("curve2_bkg"))
 	simPdf.plotOn(frame2, ROOT.RooFit.ProjWData(ROOT.RooArgSet(sample), jointData), ROOT.RooFit.Slice(sample, "Triggered"), ROOT.RooFit.Name("curve2_total"))
 	frame2.GetXaxis().SetLabelSize(0.033)
 	frame2.GetXaxis().SetTitle("m_{KK} [Gev]")
@@ -159,9 +165,9 @@ for binIndex in binList:
 
 	nsig1     = signal_yield1_formula.getParameter(0).getValV()
 	nsig1_err = signal_yield1_formula.getParameter(0).errorVar().getValV()
-	eff       = signal_yield1_formula.getParameter(1).getValV()
-	eff_err   = signal_yield1_formula.getParameter(1).errorVar().getValV()
 
+	eff       = signal_yield2_formula.getParameter(1).getValV()
+	eff_err   = signal_yield2_formula.getParameter(1).errorVar().getValV()
 	nsig2     = signal_yield2_formula.getParameter(0).getValV()
 	nsig2_err = signal_yield2_formula.getParameter(0).errorVar().getValV()
 
@@ -179,8 +185,8 @@ for binIndex in binList:
 	legend1.AddEntry(frame1.findObject("curve1_bkg"), "Bkg-only", "l")
 	legend1.AddEntry(0, "#chi^{{2}}/ndf = {:.2f}".format(chi2_ndf1), "")
 	legend1.AddEntry(0,"N_{sig} = "+str(round(nsig1,1))+" #pm "+str(round(nsig1_err,1)),"brNDC")
-	legend1.AddEntry(0,"N_{bkg} = "+str(round(nbkg.getValV(),1))+" #pm "+str(round(nbkg.errorVar().getValV(),1)),"brNDC")
-	legend1.AddEntry(0,"#epsilon = "+str(round(eff,3))+" #pm "+str(round(eff_err,3)),"brNDC")
+	legend1.AddEntry(0,"N_{bkg} = "+str(round(nbkgOffline.getValV(),1))+" #pm "+str(round(nbkgOffline.errorVar().getValV(),1)),"brNDC")
+	#legend1.AddEntry(0,"#epsilon = "+str(round(eff,3))+" #pm "+str(round(eff_err,3)),"brNDC")
 	legend1.AddEntry(0,"width = "+str(round(sigma_val,3))+" #pm "+str(round(sigma_err,3)),"brNDC")
 
 	legend2 = ROOT.TLegend(x0, y0, x1, y1)
@@ -191,7 +197,7 @@ for binIndex in binList:
 	legend2.AddEntry(frame2.findObject("curve2_bkg"), "Bkg-only", "l")
 	legend2.AddEntry(0, "#chi^{{2}}/ndf = {:.2f}".format(chi2_ndf2), "")
 	legend2.AddEntry(0,"N_{sig} = "+str(round(nsig2,1))+" #pm "+str(round(nsig2_err,1)),"brNDC")
-	legend2.AddEntry(0,"N_{bkg} = "+str(round(nbkg.getValV(),1))+" #pm "+str(round(nbkg.errorVar().getValV(),1)),"brNDC")
+	legend2.AddEntry(0,"N_{bkg} = "+str(round(nbkgTriggered.getValV(),1))+" #pm "+str(round(nbkgTriggered.errorVar().getValV(),1)),"brNDC")
 	legend2.AddEntry(0,"#epsilon = "+str(round(eff,3))+" #pm "+str(round(eff_err,3)),"brNDC")
 	legend2.AddEntry(0,"width = "+str(round(sigma_val,3))+" #pm "+str(round(sigma_err,3)),"brNDC")
 

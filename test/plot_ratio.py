@@ -27,11 +27,11 @@ CMS_lumi.cmsTextSize = 0.8
 CMS_lumi.lumi_13TeV = "39.54 fb^{-1}" 
 
 # INPUT ###########################################################################################################
-fileData = ROOT.TFile("~/cernbox/signalResolution_Study/histos_VBF_Rho_120kEvents.root")
-fileMC   = ROOT.TFile("~/cernbox/signalResolution_Study/histos_VBF_Rho_120kEvents.root")
+fileData = ROOT.TFile("histos/latest_production/histos_SR_preselection_SignalVBF.root")
+fileMC   = ROOT.TFile("histos/latest_production/histos_SR_preselection_SignalVBF.root")
 
-h_Data = fileData.Get("h_photon_energy")
-h_MC   = fileMC.Get("h_genPhotonEt")
+h_Data = fileData.Get("h_bestCouplePt")
+h_MC   = fileMC.Get("h_genMesonPt")
 
 if isNorm: h_MC.Scale(h_Data.Integral()/h_MC.Integral())
 
@@ -51,8 +51,8 @@ leg1.SetLineStyle(1)
 leg1.SetLineWidth(1)
 leg1.SetFillStyle(1001)
 leg1.SetNColumns(1)
-leg1.AddEntry(h_Data,"Data","ep")
-leg1.AddEntry(h_MC,"DY(MC)","f")
+leg1.AddEntry(h_Data,"Reco meson","ep")
+leg1.AddEntry(h_MC,"Gen meson","f")
 
 
 #Pads
@@ -133,7 +133,7 @@ totalData.SetMarkerStyle(8)
 totalData.SetMarkerColor(1)
 totalData.SetLineColor(1)
 totalData.GetYaxis().SetLabelSize(0.10)
-totalData.GetYaxis().SetTitle("Data/MC")
+totalData.GetYaxis().SetTitle("Reco/Gen")
 totalData.GetYaxis().SetTitleSize(0.08)
 totalData.GetYaxis().SetTitleOffset(0.5)
 #totalData.GetYaxis().SetRangeUser(0.4,1.6)
@@ -145,8 +145,8 @@ totalData.GetXaxis().SetTitle(h_Data.GetXaxis().GetTitle())
 totalData.GetXaxis().SetLabelSize(0.10)
 totalData.GetXaxis().SetTitleSize(0.12)
 totalData.GetXaxis().SetTitleOffset(1.0)
-totalData.SetMaximum(2.2)
-totalData.SetMinimum(-0.2)
+totalData.SetMaximum(1.5)
+totalData.SetMinimum(0.5)
 
 
 line_on_one = ROOT.TLine(h_MC.GetXaxis().GetXmin(),1.,h_MC.GetXaxis().GetXmax(),1.)
@@ -157,5 +157,5 @@ totalMC.Draw("sameE2")
 line_on_one.Draw("SAME")
 
 
-canvas.SaveAs("/eos/user/g/gumoret/www/testDir/ratio_plot_GenVsRecoPhotonPt.pdf")
-canvas.SaveAs("/eos/user/g/gumoret/www/testDir/ratio_plot_GenVsRecoPhotonPt.png")
+canvas.SaveAs("/eos/user/g/gumoret/www/testDir/ratio_plot_GenVsRecoMesonPt.pdf")
+canvas.SaveAs("/eos/user/g/gumoret/www/testDir/ratio_plot_GenVsRecoMesonPt.png")

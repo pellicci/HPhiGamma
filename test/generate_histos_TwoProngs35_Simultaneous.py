@@ -120,7 +120,7 @@ triggerFraction           = 0
 #EVENTS LOOP ##################################################################################################################### 
 
 #Create lists of bin min e max values
-pT_list = [38.,45.,58.,500.]
+pT_list = [38.,45.,53.,1000.]
 
 #Event loop 
 print "This sample has ", mytree.GetEntriesFast(), " events"
@@ -154,7 +154,7 @@ for jentry in xrange(nentries):
     if not isBestPairFound: continue 
     
     #Isolation cut
-    if bestPairIsoCh < 0.7: continue
+    if bestPairIsoCh < 0.8: continue
 
     if isPhiAnalysis:
         if isRho : 

@@ -122,6 +122,7 @@ effectiveAreas_ph_( (iConfig.getParameter<edm::FileInPath>("effAreasConfigFile_p
   _Nevents_isPhoton              = 0;
   _Nevents_HiggsMatched          = 0;
   _Nevents_HiggsNotMatched       = 0;
+  _Nevents_MesonPtNotMatched     = 0;
   _Nevents_bestCoupleFound       = 0;
   _Nevents_candPtFilter          = 0;
   _Nevents_coupleIsolationFilter = 0;
@@ -129,7 +130,7 @@ effectiveAreas_ph_( (iConfig.getParameter<edm::FileInPath>("effAreasConfigFile_p
 
 
   debug=false;  //DEBUG datamember 
-  verbose=false; 
+  verbose=true; 
 
   h_pileup   = fs->make<TH1F>("pileup", "pileup", 75,0,75);
 
@@ -368,6 +369,22 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
  _bestCoupleEta                    = 0.;
  _bestCouplePhi                    = 0.;  
 
+//K-candidates and PHI ISOLATION
+K1_sum_pT_05        = 0.;
+K1_sum_pT_05_ch     = 0.;
+
+K2_sum_pT_05        = 0.;
+K2_sum_pT_05_ch     = 0.;
+
+couple_sum_pT_05    = 0.;
+couple_sum_pT_05_ch = 0.;
+
+_iso_K1        = 0.;
+_iso_K1_ch     = 0.;
+_iso_K2        = 0.;
+_iso_K2_ch     = 0.;
+_iso_couple    = 0.;
+_iso_couple_ch = 0.;
 
   //*************************************************************//
   //                                                             //
@@ -538,7 +555,7 @@ _Nevents_isPhoton++;
   //int nJet=1;
 int jetIndex=-1;
 int bestJet_Index=-1;
-int MCtruthIndex = -1;
+//int MCtruthIndex = -1;
 float deltaR = -1;   
 int nDaughters = 0;
   //bool isBestJetFound = false; 
@@ -570,9 +587,25 @@ secondCandEnergy_Pi = 0.;
 firstCandPx=0.;
 firstCandPy=0.;
 firstCandPz=0.;
+float firstCand_dxy=-999.;
+float firstCand_dxyErr=-999.;
+float firstCand_dz=-999.;
+float firstCand_dzErr=-999.;
+bestFirstCand_dxy=-999.;
+bestFirstCand_dz=-999.;
+bestFirstCand_dxyErr=-999.;
+bestFirstCand_dzErr=-999.;
 secondCandPx=0.;
 secondCandPy=0.;
 secondCandPz=0.;
+float secondCand_dxy=-999.;
+float secondCand_dxyErr=-999.;
+float secondCand_dz=-999.;
+float secondCand_dzErr=-999.;
+bestSecondCand_dxy=-999.;
+bestSecondCand_dz=-999.;
+bestSecondCand_dxyErr=-999.;
+bestSecondCand_dzErr=-999.;
 float firstCandEta=0.;
 float firstCandPhi=0.;
 float secondCandEta=0.;
@@ -581,7 +614,6 @@ float PhiMass = 0.;
 float RhoMass = 0.;
 float kMass = 0.4937;
 float PiMass = 0.13957;
-float candPtMin = 1.;
 bool isBestCoupleOfTheEvent_Found=false;
 bool isPhi = false;
 bool isRho = false;
@@ -589,18 +621,16 @@ std::vector<float> pt_jets_vector;   //for VBF veto
 std::vector<LorentzVector> p4_jets_vector;   //for VBF veto
 //std::vector<float> m_jets_vector;   //for VBF veto
 
-
-if(verbose) cout<< "JETs loop"<<" --------------------------------"<<endl;
-
+//JEC uncertainties
 JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(JetCorPar); 
 
 
+//JET LOOP
   for (auto jet = slimmedJets->begin(); jet != slimmedJets->end(); ++jet) { //JET LOOP START -------------------------------------------------------- 
 
     jetIndex++;
 
     _Jet_Photon_invMass=(jet->p4()+ph_p4).M(); //calculate inv mass
-    // if(debug) cout<<"_Jet_Photon_invMass = "<<_Jet_Photon_invMass<<endl; 
     nDaughters= jet->numberOfDaughters(); //calculate number of daughters
 
     //----------------------------- Pre-Filters --------------------------------------------------------
@@ -636,6 +666,7 @@ JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(JetCorPar);
     if (verbose) cout<<"    Jet at index = "<<jetIndex<<" passed the cuts:"<<endl; 
 
     //------------------------------- access to MC truth -------------------------------------------
+    /*
     if(!runningOnData_) { //ONLY FOR MC START  
       if(MCtruthIndex == -1)
       {      
@@ -654,78 +685,87 @@ JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(JetCorPar);
 	       } //GEN PARTICLE LOOP END
       } 
     } //ONLY FOR MC END //-----------------------------------------------------------------------------
-    
+    */
 
       //-------------------------------------daughters forloop----------------------------
-      if(verbose)cout<<"      TRACKs:"<<endl;
-
 
       for(int firstCand_Index=0; firstCand_Index < nDaughters; firstCand_Index++){ //1ST LOOP STARTS
 
+        if (verbose) cout<<"Daughter n."<<firstCand_Index+1<<" pT = "<<slimmedJets->at(jetIndex).daughter(firstCand_Index)->pt()<<endl;
 
-        //loop only over charged daughters
+         //loop only over charged daughters
         if (slimmedJets->at(jetIndex).daughter(firstCand_Index)->charge() == 0) continue;
-        
         
         if(slimmedJets->at(jetIndex).daughter(firstCand_Index)->bestTrack() == NULL) continue;
 
-        if (slimmedJets->at(jetIndex).daughter(firstCand_Index)->bestTrack()->dxy((&slimmedPV->at(0))->position()) >= 0.2) continue;
-        if (slimmedJets->at(jetIndex).daughter(firstCand_Index)->bestTrack()->dz((&slimmedPV->at(0))->position()) >= 0.5)  continue;
+        if (abs(slimmedJets->at(jetIndex).daughter(firstCand_Index)->bestTrack()->dxy((&slimmedPV->at(0))->position())) >= 0.2) continue;
+        if (abs(slimmedJets->at(jetIndex).daughter(firstCand_Index)->bestTrack()->dz((&slimmedPV->at(0))->position())) >= 0.5)  continue;
         if (!(slimmedJets->at(jetIndex).daughter(firstCand_Index)->bestTrack()->quality(reco::Track::highPurity))) continue;
         
-        
-        firstCandPt  = slimmedJets->at(jetIndex).daughter(firstCand_Index)->pt();  //extrapolate firstCand pt
-        firstCandEta = slimmedJets->at(jetIndex).daughter(firstCand_Index)->eta(); //extrapolate firstCand eta
-        firstCandPhi = slimmedJets->at(jetIndex).daughter(firstCand_Index)->phi(); //extrapolate firstCand phi
+        firstCandPt  = slimmedJets->at(jetIndex).daughter(firstCand_Index)->pt();  //take firstCand pt
+        firstCandEta = slimmedJets->at(jetIndex).daughter(firstCand_Index)->eta(); //take firstCand eta
+        firstCandPhi = slimmedJets->at(jetIndex).daughter(firstCand_Index)->phi(); //take firstCand phi
 
-        if(firstCandPt < candPtMin) continue; //firstCand filter if pT < candPtMin
+        firstCand_dxy    = slimmedJets->at(jetIndex).daughter(firstCand_Index)->bestTrack()->dxy((&slimmedPV->at(0))->position());
+        firstCand_dxyErr = slimmedJets->at(jetIndex).daughter(firstCand_Index)->bestTrack()->dxyError();
+        
+        firstCand_dz    = slimmedJets->at(jetIndex).daughter(firstCand_Index)->bestTrack()->dz((&slimmedPV->at(0))->position());
+        firstCand_dzErr = slimmedJets->at(jetIndex).daughter(firstCand_Index)->bestTrack()->dzError();
+
+        if(firstCandPt < 1.) continue; //firstCand filter if pT < 1 GeV
 
         for(int secondCand_Index=firstCand_Index+1; secondCand_Index < nDaughters; secondCand_Index++){ //2ND LOOP STARTS
 
+          if (slimmedJets->at(jetIndex).daughter(secondCand_Index)->charge() == 0) continue;
 
           //minimum apporach distance
           if (slimmedJets->at(jetIndex).daughter(secondCand_Index)->bestTrack() == NULL) continue;
+          if(verbose) cout<<"Track without bestTrack() found!"<<endl;
+
+          //cout<<"dxy = "<<slimmedJets->at(jetIndex).daughter(secondCand_Index)->bestTrack()->dxy((&slimmedPV->at(0))->position())<<endl;
+          //cout<<"dz  = "<<slimmedJets->at(jetIndex).daughter(secondCand_Index)->bestTrack()->dz((&slimmedPV->at(0))->position())<<endl;
           
-          if ((slimmedJets->at(jetIndex).daughter(secondCand_Index)->bestTrack()->dxy((&slimmedPV->at(0))->position())) >= 0.2 || slimmedJets->at(jetIndex).daughter(secondCand_Index)->bestTrack()->dz((&slimmedPV->at(0))->position()) >= 0.5 ) continue;
+          if ((abs(slimmedJets->at(jetIndex).daughter(secondCand_Index)->bestTrack()->dxy((&slimmedPV->at(0))->position()))) >= 0.2 || abs(slimmedJets->at(jetIndex).daughter(secondCand_Index)->bestTrack()->dz((&slimmedPV->at(0))->position())) >= 0.5 ) continue;
           if (!(slimmedJets->at(jetIndex).daughter(secondCand_Index)->bestTrack()->quality(reco::Track::highPurity))) continue;
           
+          secondCand_dxy    = slimmedJets->at(jetIndex).daughter(secondCand_Index)->bestTrack()->dxy((&slimmedPV->at(0))->position());
+          secondCand_dxyErr = slimmedJets->at(jetIndex).daughter(secondCand_Index)->bestTrack()->dxyError();
+          
+          secondCand_dz    = slimmedJets->at(jetIndex).daughter(secondCand_Index)->bestTrack()->dz((&slimmedPV->at(0))->position());
+          secondCand_dzErr = slimmedJets->at(jetIndex).daughter(secondCand_Index)->bestTrack()->dzError();
 
-          secondCandPt  = slimmedJets->at(jetIndex).daughter(secondCand_Index)->pt();  //extrapolate secondCand pt
-          secondCandEta = slimmedJets->at(jetIndex).daughter(secondCand_Index)->eta(); //extrapolate secondCand eta
-          secondCandPhi = slimmedJets->at(jetIndex).daughter(secondCand_Index)->phi(); //extrapolate secondCand phi
+          //TRKs PT CUT --------------------------------------------------------------------------
+          secondCandPt  = slimmedJets->at(jetIndex).daughter(secondCand_Index)->pt();
+          if(secondCandPt < 1.) continue; //firstCand filter if pT < 1 GeV
+          if(firstCandPt < 10. && secondCandPt < 10.) continue;  //filter if both cand pT are < 10GeV
 
-          //secondCand filter if both pT are < 10GeV
-          if(secondCandPt < candPtMin) continue;
-          if(firstCandPt < 10. && secondCandPt < 10.) continue; 
-          //if(verbose) cout<<"tracks pT cut passed"<<endl; //fixme
-
-          //third filter on deltaR
+          //DITRK DELTA R CUT --------------------------------------------------------------------------
+          secondCandEta = slimmedJets->at(jetIndex).daughter(secondCand_Index)->eta();
+          secondCandPhi = slimmedJets->at(jetIndex).daughter(secondCand_Index)->phi();
+          
           float deltaEta= firstCandEta - secondCandEta;
 
           float deltaPhi = fabs(firstCandPhi - secondCandPhi);  //phi folding	
           if (deltaPhi > M_PI) deltaPhi = 2*M_PI - deltaPhi;
 
           deltaR_K= sqrt(deltaEta*deltaEta + deltaPhi*deltaPhi);
-          //if(verbose) cout<<"deltaR = "<<deltaR_K<<endl; //fixme
-          if(deltaR_K > 0.07) continue; //FIXME, it was 0.02
-          //if(verbose) cout<<"deltaR cut passed"<<endl; //fixme
+          if(deltaR_K > 0.07) continue;
 
           //OPPOSITE CHARGE - FILTER ------------------------------------------------------------
-          firstCandCharge  = slimmedJets->at(jetIndex).daughter(firstCand_Index)->charge(); //extrapolate firstCand charge
-          secondCandCharge = slimmedJets->at(jetIndex).daughter(secondCand_Index)->charge(); //extrapolate secondCand charge
+          firstCandCharge  = slimmedJets->at(jetIndex).daughter(firstCand_Index)->charge(); //take firstCand charge
+          secondCandCharge = slimmedJets->at(jetIndex).daughter(secondCand_Index)->charge(); //take secondCand charge
           if(firstCandCharge * secondCandCharge >= 0) continue; //choose only opposite charges
-          if(verbose) cout<<"opposite charge cut passed"<<endl; //fixme
 
           //QUADRIMOMENTUM CALCULATION ------------------------------------------------------------
-          firstCand_p4  = slimmedJets->at(jetIndex).daughter(firstCand_Index)->p4(); //extrapolate quadrimomentum
+          firstCand_p4  = slimmedJets->at(jetIndex).daughter(firstCand_Index)->p4(); //take quadrimomentum
           secondCand_p4 = slimmedJets->at(jetIndex).daughter(secondCand_Index)->p4();
 
-          firstCandPx   = firstCand_p4.px(); //extrapolate px, py, pz of the first candidate
-          firstCandPy   = firstCand_p4.py();
-          firstCandPz   = firstCand_p4.pz();
-          secondCandPx  = secondCand_p4.px(); //extrapolate px, py, pz of the second candidate
-          secondCandPy  = secondCand_p4.py();
-          secondCandPz  = secondCand_p4.pz();
+          firstCandPx  = firstCand_p4.px(); //take px, py, pz of the first candidate
+          firstCandPy  = firstCand_p4.py();
+          firstCandPz  = firstCand_p4.pz();
+          secondCandPx = secondCand_p4.px(); //take px, py, pz of the second candidate
+          secondCandPy = secondCand_p4.py();
+          secondCandPz = secondCand_p4.pz();
 
           //PIONS OR KAONS HYPOTHESIS -----------------------------------------------------------------------------------------------------------------------------------------------            
           firstCandEnergy_K   = sqrt(firstCandPx  * firstCandPx  + firstCandPy  * firstCandPy  + firstCandPz  * firstCandPz  + kMass  * kMass ); //Kaon hypothesis energy recalculation
@@ -733,12 +773,14 @@ JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(JetCorPar);
           firstCandEnergy_Pi  = sqrt(firstCandPx  * firstCandPx  + firstCandPy  * firstCandPy  + firstCandPz  * firstCandPz  + PiMass * PiMass); //Pion hypothesis energy recalculation
           secondCandEnergy_Pi = sqrt(secondCandPx * secondCandPx + secondCandPy * secondCandPy + secondCandPz * secondCandPz + PiMass * PiMass); //Pion hypothesis energy recalculation
           
+          /*
           if (verbose) {
             cout<<"firstCandEnergy_K   = "<<firstCandEnergy_K<<endl;
             cout<<"firstCandEnergy_Pi  = "<<firstCandEnergy_Pi<<endl;
             cout<<"secondCandEnergy_K  = "<<secondCandEnergy_K<<endl;
             cout<<"secondCandEnergy_Pi = "<<secondCandEnergy_Pi<<endl;
           }
+          */
 
           firstCand_p4_K   = firstCand_p4.SetE(firstCandEnergy_K); //Kaon hypothesis quadrimomentum correction
           secondCand_p4_K  = secondCand_p4.SetE(secondCandEnergy_K); //Kaon hypothesis quadrimomentum correction
@@ -753,24 +795,13 @@ JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(JetCorPar);
             cout<<"PiPi pT = "<<couple_p4_Pi.pt()<<endl;
           }
 
-          //PT CUT
+          //DITRK PT CUT -------------------------------------------------------------------------
           if(couple_p4_K.pt() < 38.) {
-            if(verbose) cout<<"couplePt cut NOT passed"<<endl<<"-------------------------"<<endl;
+            if(verbose) cout<<"couplePt cut NOT passed"<<endl;
             continue;
-          }
-          //PT MAX OF THE JET - FILTER
-          if (verbose) cout<<"Current bestCouplePt = "<<bestCoupleOfTheJet_pT<<endl;
-	        
-          if(couple_p4_K.pt() <= bestCoupleOfTheJet_pT) {
-            if(verbose) cout<<"This pair doesn't pass!"<<endl<<"-------------------------"<<endl;
-            continue; //choose the couple with greatest pt
-          }
-
-          //If passed, this is the pair with the largest pT of the event so far
-          bestCoupleOfTheJet_pT = couple_p4_K.pt();       
-
+          }  
           
-          //PHI INV MASS - FILTER
+          //MESON INV MASS CUT -------------------------------------------------------------------------
           isPhi = false;
           isRho = false;
 
@@ -789,6 +820,90 @@ JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(JetCorPar);
             isRho = false;
           }
 
+          //update values of quadrimomenta
+          if(isPhi){
+            firstCand_p4  = firstCand_p4_K; 
+            secondCand_p4 = secondCand_p4_K;
+            couple_p4     = couple_p4_K;
+          }  
+          if(isRho){
+            firstCand_p4  = firstCand_p4_Pi;
+            secondCand_p4 = secondCand_p4_Pi;
+            couple_p4     = couple_p4_Pi;
+          }
+
+          // ISOLATION CUT -------------------------------------------------------------------------  
+          for(auto cand_iso = PFCandidates->begin(); cand_iso != PFCandidates->end(); ++cand_iso){ //ISOLATION FORLOOP START
+            
+            if(debug){
+              cout <<endl<<"ISO CALC DETAILS ---------------------"<<endl;
+              cout << "pt cand_iso = "<<cand_iso->pt()<<endl;
+            }
+            if(cand_iso->pt() < 0.5) continue; //do not consider tracks with pT < 500MeV
+
+            //calculate the deltaR between the track and the first candidate ---------------------------------------
+            float deltaPhi_K1 = fabs(firstCand_p4.phi()-cand_iso->phi());  //phi folding 
+            if (deltaPhi_K1 > M_PI) deltaPhi_K1 = 2*M_PI - deltaPhi_K1;
+
+            float deltaR_K1 = sqrt((firstCand_p4.eta()-cand_iso->eta())*(firstCand_p4.eta()-cand_iso->eta()) + deltaPhi_K1*deltaPhi_K1);
+            if (debug) cout << "deltaR_K1 = "<<deltaR_K1<<endl;
+            if(deltaR_K1 < 0.0005) continue; //remove first candidate from the sum
+
+            //calculate the deltaR between the track and the second candidate ---------------------------------------
+            float deltaPhi_K2 = fabs(secondCand_p4.phi()-cand_iso->phi());  //phi folding  
+            if (deltaPhi_K2 > M_PI) deltaPhi_K2 = 2*M_PI - deltaPhi_K2;
+
+            float deltaR_K2 = sqrt((secondCand_p4.eta()-cand_iso->eta())*(secondCand_p4.eta()-cand_iso->eta()) + deltaPhi_K2*deltaPhi_K2);
+            if (debug) cout << "deltaR_K2 = "<<deltaR_K2<<endl;
+            if(deltaR_K2 < 0.0005) continue; //remove second candidate from the sum
+
+            //calculate the deltaR between the track and the best pair ---------------------------------------
+            float deltaPhi_Couple = fabs(couple_p4.phi()-cand_iso->phi());  //phi folding  
+            if (deltaPhi_Couple > M_PI) deltaPhi_Couple = 2*M_PI - deltaPhi_Couple;
+
+            float deltaR_Couple = sqrt((couple_p4.eta()-cand_iso->eta())*(couple_p4.eta()-cand_iso->eta()) + deltaPhi_Couple*deltaPhi_Couple);
+
+            //sum pT of the tracks inside a cone of deltaR = 0.3 ---------------------------------------
+            if(deltaR_K1 <= 0.3) K1_sum_pT_05 += cand_iso->pt();
+            if(deltaR_K2 <= 0.3) K2_sum_pT_05 += cand_iso->pt();
+            if(deltaR_Couple <= 0.3) couple_sum_pT_05 += cand_iso->pt();
+            //cout<< "charge before = "<<cand_iso->charge()<<endl;
+
+            //sum pT of the charged tracks inside a cone of deltaR = 0.3 ---------------------------------------
+            if (debug) cout << "Charge = "<< cand_iso->charge()<<endl;
+            if(cand_iso->charge() == 0) continue;
+          // cout << "particle charge = "<<cand_iso->charge()<<endl;
+            if (debug) cout << "dxy = "<<fabs(cand_iso->dxy())<<" and dz = "<< fabs(cand_iso->dz())<<endl;
+            if(fabs(cand_iso->dxy()) >= 0.2 || fabs(cand_iso->dz()) >= 0.5) continue; // Requesting charged particles to come from PV
+            //cout<< "charge after = "<<cand_iso->charge()<<endl;
+            if(deltaR_K1 <= 0.3) K1_sum_pT_05_ch += cand_iso->pt();
+            if(deltaR_K2 <= 0.3) K2_sum_pT_05_ch += cand_iso->pt();
+            if (debug) cout <<"deltaR_Couple = "<<deltaR_Couple<<endl;
+            if(deltaR_Couple <= 0.3){
+              couple_sum_pT_05_ch += cand_iso->pt();
+              if (debug) cout<<"Particle in the cone: SumPt = "<<couple_sum_pT_05_ch<<endl;
+            }
+          } //ISOLATION FORLOOP END
+
+          float isoCoupleCh = couple_p4.pt()/(couple_sum_pT_05_ch + couple_p4.pt());
+          if(isoCoupleCh < 0.9) {
+            cout<<"No isolation cut passed."<<endl;
+            continue; 
+          }
+
+
+          //PT MAX OF THE JET - FILTER -------------------------------------------------
+          if (verbose) cout<<"Current bestCoupleOfTheEvent_Pt = "<<bestCoupleOfTheJet_pT<<endl;
+          
+          if(couple_p4.pt() <= bestCoupleOfTheJet_pT) {
+            if(verbose) cout<<"Not passed: pT lower than the current best pair of the event"<<endl;
+            continue; //choose the couple with greatest pt
+          }
+
+          //If passed, this is the pair with the largest pT of the event so far
+          bestCoupleOfTheJet_pT = couple_p4.pt();     
+          if (verbose) cout<<"couple_p4.pt() = "<<bestCoupleOfTheJet_pT<<endl;
+
           if(verbose) cout<<"This is the best pair so far!"<<endl<<"-------------------------"<<endl;
           isBestCoupleOfTheEvent_Found = true;
 
@@ -801,19 +916,20 @@ JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(JetCorPar);
           _bestJet_JECunc         = unc;
           _firstCandCharge        = firstCandCharge;
           _secondCandCharge       = secondCandCharge;
+          bestFirstCand_dxy       = firstCand_dxy;
+          bestFirstCand_dz        = firstCand_dz;
+          bestSecondCand_dxy      = secondCand_dxy;
+          bestSecondCand_dz       = secondCand_dz;
+          bestFirstCand_dxyErr    = firstCand_dxyErr;
+          bestFirstCand_dzErr     = firstCand_dzErr;
+          bestSecondCand_dxyErr   = secondCand_dxyErr;
+          bestSecondCand_dzErr    = secondCand_dzErr;
           
-          if(isPhi){
-            best_firstCand_p4  = firstCand_p4_K; 
-            if (debug) cout<<"first cand phi      = "<<firstCandPhi<<endl;
-            if (debug) cout<<"first cand p4.phi() = "<<best_firstCand_p4.phi()<<endl;
-            best_secondCand_p4 = secondCand_p4_K;
-            best_couple_p4     = couple_p4_K;
-          }	 
-          if(isRho){
-            best_firstCand_p4  = firstCand_p4_Pi;
-            best_secondCand_p4 = secondCand_p4_Pi;
-            best_couple_p4     = couple_p4_Pi;
-          }      
+
+          best_firstCand_p4  = firstCand_p4; 
+          best_secondCand_p4 = secondCand_p4;
+          best_couple_p4     = couple_p4;
+            
 
       } //2ND LOOP ENDS
 	} //1ST LOOP ENDS
@@ -867,76 +983,6 @@ _MesonMass = (best_firstCand_p4 + best_secondCand_p4).M();
 
 //H INV MASS CALCULATION
 _Hmass_From2K_Photon = (best_firstCand_p4 + best_secondCand_p4 + ph_p4).M(); //calculate inv mass of the Higgs candidate
-
-//K-candidates and PHI ISOLATION
-K1_sum_pT_05        = 0.;
-K1_sum_pT_05_ch     = 0.;
-
-K2_sum_pT_05        = 0.;
-K2_sum_pT_05_ch     = 0.;
-
-couple_sum_pT_05    = 0.;
-couple_sum_pT_05_ch = 0.;
-
-_iso_K1        = 0.;
-_iso_K1_ch     = 0.;
-_iso_K2        = 0.;
-_iso_K2_ch     = 0.;
-_iso_couple    = 0.;
-_iso_couple_ch = 0.;
-
-//------------- ISOLATION -------------------------------------------------------------------------  
-for(auto cand_iso = PFCandidates->begin(); cand_iso != PFCandidates->end(); ++cand_iso){ //ISOLATION FORLOOP START
-  
-  if(debug){
-    cout <<endl<<"ISO CALC DETAILS ---------------------"<<endl;
-    cout << "pt cand_iso = "<<cand_iso->pt()<<endl;
-  }
-  if(cand_iso->pt() < 0.5) continue; //do not consider tracks with pT < 500MeV
-
-  //calculate the deltaR between the track and the first candidate ---------------------------------------
-  float deltaPhi_K1 = fabs(_firstCandPhi-cand_iso->phi());  //phi folding	
-  if (deltaPhi_K1 > M_PI) deltaPhi_K1 = 2*M_PI - deltaPhi_K1;
-
-  float deltaR_K1 = sqrt((_firstCandEta-cand_iso->eta())*(_firstCandEta-cand_iso->eta()) + deltaPhi_K1*deltaPhi_K1);
-  if (debug) cout << "deltaR_K1 = "<<deltaR_K1<<endl;
-  if(deltaR_K1 < 0.0005) continue;
-
-  //calculate the deltaR between the track and the second candidate ---------------------------------------
-  float deltaPhi_K2 = fabs(_secondCandPhi-cand_iso->phi());  //phi folding	
-  if (deltaPhi_K2 > M_PI) deltaPhi_K2 = 2*M_PI - deltaPhi_K2;
-
-  float deltaR_K2 = sqrt((_secondCandEta-cand_iso->eta())*(_secondCandEta-cand_iso->eta()) + deltaPhi_K2*deltaPhi_K2);
-  if (debug) cout << "deltaR_K2 = "<<deltaR_K2<<endl;
-  if(deltaR_K2 < 0.0005) continue;
-
-  //calculate the deltaR between the track and the best pair ---------------------------------------
-  float deltaPhi_Couple = fabs(_bestCouplePhi-cand_iso->phi());  //phi folding	
-  if (deltaPhi_Couple > M_PI) deltaPhi_Couple = 2*M_PI - deltaPhi_Couple;
-
-  float deltaR_Couple = sqrt((_bestCoupleEta-cand_iso->eta())*(_bestCoupleEta-cand_iso->eta()) + deltaPhi_Couple*deltaPhi_Couple);
-
-  //sum pT of the tracks inside a cone of deltaR = 0.3 ---------------------------------------
-  if(deltaR_K1 <= 0.3) K1_sum_pT_05 += cand_iso->pt();
-  if(deltaR_K2 <= 0.3) K2_sum_pT_05 += cand_iso->pt();
-  if(deltaR_Couple <= 0.3) couple_sum_pT_05 += cand_iso->pt();
-  //cout<< "charge before = "<<cand_iso->charge()<<endl;
-
-  //sum pT of the charged tracks inside a cone of deltaR = 0.3 ---------------------------------------
-  if (debug) cout << "Charge = "<< cand_iso->charge()<<endl;
-  if(cand_iso->charge() == 0) continue;
-// cout << "particle charge = "<<cand_iso->charge()<<endl;
-  if (debug) cout << "dxy = "<<fabs(cand_iso->dxy())<<" and dz = "<< fabs(cand_iso->dz())<<endl;
-  if(fabs(cand_iso->dxy()) >= 0.2 || fabs(cand_iso->dz()) >= 0.5) continue; // Requesting charged particles to come from PV
-  //cout<< "charge after = "<<cand_iso->charge()<<endl;
-  if(deltaR_K1 <= 0.3) K1_sum_pT_05_ch += cand_iso->pt();
-  if(deltaR_K2 <= 0.3) K2_sum_pT_05_ch += cand_iso->pt();
-  if (debug) cout <<"deltaR_Couple = "<<deltaR_Couple<<endl;
-  if(deltaR_Couple <= 0.3){
-    couple_sum_pT_05_ch += cand_iso->pt();
-    if (debug) cout<<"Particle in the cone: SumPt = "<<couple_sum_pT_05_ch<<endl;
-  }
-} //ISOLATION FORLOOP END
   
 
 //CANDIDATES SORTING
@@ -987,10 +1033,7 @@ if(verbose){
   cout<<"###### HMass         = "<<_Hmass_From2K_Photon<<endl;
 }
 
-if(_iso_couple_ch < 0.9) {
-  cout<<"No isolation cut passed, RETURN."<<endl;
-  return;
-}
+
 
 _Nevents_coupleIsolationFilter++;
 
@@ -1183,15 +1226,16 @@ _Nevents_VBFVeto++;
   is_meson_matched   = false;
   is_Higgs_matched   = false; 
 
-  float Kminus_phi   = -999.;
-  float Kplus_phi    = -999.;
+  Kminus_phi   = -999.;
+  Kplus_phi    = -999.;
   float Piminus_phi  = -999.;
   float Piplus_phi   = -999.;
-  float Kminus_eta   = -999.;
-  float Kplus_eta    = -999.;
+  Kminus_eta   = -999.;
+  Kplus_eta    = -999.;
   float Piminus_eta  = -999.;
   float Piplus_eta   = -999.;
-  deltaR_Kplus       = -999.;
+  deltaR_Kplus       = -999;
+  deltaR_wrong       = -999;
   deltaR_Kminus      = -999.;
   deltaR_Piplus      = -999.;
   deltaR_Piminus     = -999.;
@@ -1199,23 +1243,30 @@ _Nevents_VBFVeto++;
   genPhoton_eta      = -999.;
   genPhoton_phi      = -999.;
   genMeson_pT        = -999.;
+  genMeson_m         = -999.;
   genMeson_eta       = -999.;
   genMeson_phi       = -999.;
+  KplusPt      = -999.;
+  KminusPt     = -999.;
+  Kplus_dxy    = -999.;
+  Kplus_dz     = -999.;
+  Kminus_dxy    = -999.;
+  Kminus_dz     = -999.;
 
   if(!runningOnData_){
     for(auto gen = prunedGenParticles->begin(); gen != prunedGenParticles->end(); ++gen){
-      if( gen->pdgId() == 321  && gen->mother()->pdgId() == 333 && gen->mother()->mother()->pdgId() == 25)  Kplus_phi   = gen->phi(), Kplus_eta   = gen->eta();
-      if( gen->pdgId() == -321 && gen->mother()->pdgId() == 333 && gen->mother()->mother()->pdgId() == 25)  Kminus_phi  = gen->phi(), Kminus_eta  = gen->eta();
+      if( gen->pdgId() == 321  && gen->mother()->pdgId() == 333 && gen->mother()->mother()->pdgId() == 25)  Kplus_phi   = gen->phi(), Kplus_eta   = gen->eta(), KplusPt  = gen->pt();//, Kplus_dz  = gen->dz();//(&slimmedPV->at(0))->position()
+      if( gen->pdgId() == -321 && gen->mother()->pdgId() == 333 && gen->mother()->mother()->pdgId() == 25)  Kminus_phi  = gen->phi(), Kminus_eta  = gen->eta(), KminusPt = gen->pt();//, Kminus_dxy = gen->dxy(), Kminus_dz = gen->dz();
       if( gen->pdgId() == 211  && gen->mother()->pdgId() == 113 && gen->mother()->mother()->pdgId() == 25)  Piplus_phi  = gen->phi(), Piplus_eta  = gen->eta();
       if( gen->pdgId() == -211 && gen->mother()->pdgId() == 113 && gen->mother()->mother()->pdgId() == 25)  Piminus_phi = gen->phi(), Piminus_eta = gen->eta();
-      if( gen->pdgId() == 333  && gen->mother()->pdgId() == 25) genMeson_pT  = gen->pt(), genMeson_phi  = gen->phi(),  genMeson_eta = gen->eta();
-      if( gen->pdgId() == 113  && gen->mother()->pdgId() == 25) genMeson_pT  = gen->pt(), genMeson_phi  = gen->phi(),  genMeson_eta = gen->eta();
+      if( gen->pdgId() == 333  && gen->mother()->pdgId() == 25) genMeson_pT  = gen->pt(), genMeson_phi  = gen->phi(),  genMeson_eta = gen->eta(), genMeson_m = gen->mass();
+      if( gen->pdgId() == 113  && gen->mother()->pdgId() == 25) genMeson_pT  = gen->pt(), genMeson_phi  = gen->phi(),  genMeson_eta = gen->eta(), genMeson_m = gen->mass();
       if( gen->pdgId() == 22   && gen->mother()->pdgId() == 25) genPhoton_eT = gen->pt(), genPhoton_phi = gen->phi(), genPhoton_eta = gen->eta();
     }
-  }  
+  } 
 
 //MC TRUTH CHECK
-if(!runningOnData_) //ONLY FOR MC START  
+if(!runningOnData_) //ONLY FOR MC START
 {
     //photon matching -----------------------------------------
     float deltaPhiPhoton = fabs(ph_phi - genPhoton_phi);
@@ -1231,6 +1282,9 @@ if(!runningOnData_) //ONLY FOR MC START
 
     float deltaR_mesonGenVsReco = sqrt((_bestCoupleEta - genMeson_eta) * (_bestCoupleEta - genMeson_eta) + deltaPhiMeson * deltaPhiMeson);
     if (deltaR_mesonGenVsReco < 0.3) is_meson_matched = true;    
+
+    //meson pT matching -----------------------------------------
+    if (_bestCouplePt < genMeson_pT - 4. || _bestCouplePt > genMeson_pT + 4.) _Nevents_MesonPtNotMatched ++; 
 
     //Higgs matching -----------------------------------------    
     if(is_photon_matched && is_meson_matched){
@@ -1249,7 +1303,7 @@ if(!runningOnData_) //ONLY FOR MC START
     }
 
 //if is PhiGamma event
-if (_isPhi){
+  if (_isPhi){
 
     //First cand positive and second cand negative
     if (_firstCandCharge > 0){ 
@@ -1261,17 +1315,7 @@ if (_isPhi){
 
       //deltaR K plus
       deltaR_Kplus = sqrt((_firstCandEta - Kplus_eta) * (_firstCandEta - Kplus_eta) + deltaPhi_Kplus * deltaPhi_Kplus);
-      float deltaR_wrong = sqrt((_secondCandEta - Kplus_eta) * (_secondCandEta - Kplus_eta) + deltaPhi_wrong * deltaPhi_wrong);
-      
-      if(verbose){
-      cout<<endl<<"-- MC Truth ------------------"<<endl;
-      cout<<"_firstCandPhi = "<<_firstCandPhi<<endl;
-      cout<<"Kplus_phi     = "<<Kplus_phi<<endl;
-      cout<<"_firstCandEta = "<<_firstCandEta<<endl;
-      cout<<"Kplus_eta     = "<<Kplus_eta<<endl;
-      cout<<"deltaR_Kplus  = "<<deltaR_Kplus<<endl;
-      cout<<"deltaR_wrong  = "<<deltaR_wrong<<endl;
-      }
+      deltaR_wrong = sqrt((_secondCandEta - Kplus_eta) * (_secondCandEta - Kplus_eta) + deltaPhi_wrong * deltaPhi_wrong);
       
       //phi angle folding K minus
       float deltaPhi_Kminus = fabs(_secondCandPhi - Kminus_phi);
@@ -1279,15 +1323,9 @@ if (_isPhi){
 
       //deltaR K minus
       deltaR_Kminus = sqrt((_secondCandEta - Kminus_eta) * (_secondCandEta - Kminus_eta) + deltaPhi_Kminus * deltaPhi_Kminus);
+      cout<<endl;
+      //if (_firstCandPt < 0.95*KplusPt && _firstCandPt > 1.05*KplusPt) cout<<"firstCand pT not matched"<<endl;
 
-      if(verbose){
-      cout<<endl<<"_seconCandPhi  = "<<_secondCandPhi<<endl;
-      cout<<"Kminus_phi     = "<<Kminus_phi<<endl;
-      cout<<"_secondCandEta = "<<_secondCandEta<<endl;
-      cout<<"Kminus_eta     = "<<Kminus_eta<<endl;
-      cout<<"deltaR_Kminus  = "<<deltaR_Kminus<<endl;
-      cout<<"-----------------------------------"<<endl;
-      }
     }
 
     else{ //Second cand positive and first cand negative
@@ -1298,14 +1336,10 @@ if (_isPhi){
 
       //deltaR K plus
       deltaR_Kplus = sqrt((_secondCandEta - Kplus_eta) * (_secondCandEta - Kplus_eta) + deltaPhi_Kplus * deltaPhi_Kplus);
-      
-      if(verbose){
-      cout<<endl<<"-- MC Truth ------------------"<<endl;
-      cout<<"_secondCandPhi = "<<_secondCandPhi<<endl;
-      cout<<"Kplus_phi      = "<<Kplus_phi<<endl;
-      cout<<"_secondCandEta = "<<_secondCandEta<<endl;
-      cout<<"Kplus_eta      = "<<Kplus_eta<<endl;
-      cout<<"deltaR_Kplus   = "<<deltaR_Kplus<<endl;
+
+      cout<<endl;
+//      if (_firstCandPt < 0.95*KminusPt && _firstCandPt > 1.05*KminusPt) cout<<"firstCandPt pT not matched"<<endl;
+
       }
 
       //phi angle folding K minus
@@ -1315,16 +1349,9 @@ if (_isPhi){
       //deltaR K minus
       deltaR_Kminus = sqrt((_firstCandEta - Kminus_eta) * (_firstCandEta - Kminus_eta) + deltaPhi_Kminus * deltaPhi_Kminus);
 
-      if(verbose){
-      cout<<endl<<"_seconCandPhi  = "<<_firstCandPhi<<endl;
-      cout<<"Kminus_phi     = "<<Kminus_phi<<endl;
-      cout<<"_firstCandEta  = "<<_firstCandEta<<endl;
-      cout<<"Kminus_eta     = "<<Kminus_eta<<endl;
-      cout<<"deltaR_Kminus  = "<<deltaR_Kminus<<endl;
-      cout<<"-----------------------------------"<<endl;
-      }
-    }
-  }
+
+  } //if isPhi END
+  
   else{ //RhoGamma event
 
     //First cand positive and second cand negative
@@ -1335,15 +1362,7 @@ if (_isPhi){
 
       //deltaR Pi plus
       deltaR_Piplus = sqrt((_firstCandEta - Piplus_eta) * (_firstCandEta - Piplus_eta) + deltaPhi_Piplus * deltaPhi_Piplus);
-      
-      if(verbose){
-      cout<<endl<<"-- MC Truth ------------------"<<endl;
-      cout<<"_firstCandPhi  = "<<_firstCandPhi<<endl;
-      cout<<"Piplus_phi     = "<<Piplus_phi<<endl;
-      cout<<"_firstCandEta  = "<<_firstCandEta<<endl;
-      cout<<"Piplus_eta     = "<<Piplus_eta<<endl;
-      cout<<"deltaR_Piplus  = "<<deltaR_Piplus<<endl;
-      }
+
       //phi angle folding Pi minus
       float deltaPhi_Piminus = fabs(_secondCandPhi - Piminus_phi);
       if (deltaPhi_Piminus > M_PI) deltaPhi_Piminus = 2*M_PI - deltaPhi_Piminus;
@@ -1351,15 +1370,6 @@ if (_isPhi){
       //deltaR Pi minus
       deltaR_Piminus = sqrt((_secondCandEta - Piminus_eta) * (_secondCandEta - Piminus_eta) + deltaPhi_Piminus * deltaPhi_Piminus);
       
-      if(verbose){
-      cout<<endl<<"_seconCandPhi  = "<<_secondCandPhi<<endl;
-      cout<<"Piminus_phi     = "<<Piminus_phi<<endl;
-      cout<<"_secondCandEta  = "<<_secondCandEta<<endl;
-      cout<<"Piminus_eta     = "<<Piminus_eta<<endl;
-      cout<<"deltaR_Piminus  = "<<deltaR_Piminus<<endl;
-      cout<<"-----------------------------------"<<endl;
-      }
-
     }
 
     else{ //Second cand positive and first cand negative
@@ -1371,14 +1381,6 @@ if (_isPhi){
       //deltaR Pi plus
       deltaR_Piplus = sqrt((_secondCandEta - Piplus_eta) * (_secondCandEta - Piplus_eta) + deltaPhi_Piplus * deltaPhi_Piplus);
       
-      if(verbose){
-      cout<<endl<<"-- MC Truth ------------------"<<endl;
-      cout<<"_secondCandPhi = "<<_secondCandPhi<<endl;
-      cout<<"Piplus_phi     = "<<Piplus_phi<<endl;
-      cout<<"_secondCandEta = "<<_secondCandEta<<endl;
-      cout<<"Piplus_eta     = "<<Piplus_eta<<endl;
-      cout<<"deltaR_Piplus  = "<<deltaR_Piplus<<endl;
-      }
       
       //phi angle folding Pi minus
       float deltaPhi_Piminus = fabs(_firstCandPhi - Piminus_phi);
@@ -1387,15 +1389,18 @@ if (_isPhi){
       //deltaR Pi minus
       deltaR_Piminus = sqrt((_firstCandEta - Piminus_eta) * (_firstCandEta - Piminus_eta) + deltaPhi_Piminus * deltaPhi_Piminus);
 
-      if(verbose){
-      cout<<endl<<"_seconCandPhi  = "<<_firstCandPhi<<endl;
-      cout<<"Piminus_phi     = "<<Piminus_phi<<endl;
-      cout<<"_firstCandEta = "<<_firstCandEta<<endl;
-      cout<<"Piminus_eta     = "<<Piminus_eta<<endl;
-      cout<<"deltaR_Piminus  = "<<deltaR_Piminus<<endl;
-      cout<<"-----------------------------------"<<endl;
-      }
-  }
+    }
+  } // if isRho END
+
+
+
+    //phi angle folding
+    //float deltaPhi_Kpm = fabs(Kplus_phi - Kminus_phi);
+    //if (deltaPhi_Kpm > M_PI) deltaPhi_Kpm = 2*M_PI - deltaPhi_Kpm;
+
+    //float deltaR_Kpm = sqrt((Kplus_eta - Kminus_eta) * (Kplus_eta - Kminus_eta) + deltaPhi_Kpm * deltaPhi_Kpm);
+
+    //cout<<"deltaR_Kpm   = "<<deltaR_Kpm<<endl;
 
 
 
@@ -1403,24 +1408,43 @@ if (_isPhi){
     
     if(verbose){
       cout<<"Photon eT = "<<ph_eT<<endl;
-      cout<<"ph_en_sigmaUP = "<< ph_en_sigmaUP<<endl;
-      cout<<"ph_en_sigmaDW = "<< ph_en_sigmaDW<<endl;
-      cout<<"ph_en_scaleUP = "<<ph_en_scaleUP<<endl;
-      cout<<"ph_en_scaleDW = "<<ph_en_scaleDW<<endl;
+      //cout<<"ph_en_sigmaUP = "<< ph_en_sigmaUP<<endl;
+      //cout<<"ph_en_sigmaDW = "<< ph_en_sigmaDW<<endl;
+      //cout<<"ph_en_scaleUP = "<<ph_en_scaleUP<<endl;
+      //cout<<"ph_en_scaleDW = "<<ph_en_scaleDW<<endl;
       cout<<"n Jets = "<<nJets25<<endl;
       cout<<"Jet + photon inv. mass = "<<_bestJet_Photon_invMass<<endl;
       cout<<"n. of daughters: "<<_bestJet_nDaughters<<endl;
       cout<<"Best couple pT = "<<_firstCandPt + _secondCandPt<<endl;
+      cout<<"_firstCandPt   = "<<_firstCandPt<<endl;
+      cout<<"_secondCandPt  = "<<_secondCandPt<<endl;
+      cout<<"genMeson_pT    = "<<genMeson_pT<<endl;
+      cout<<"genKplus pT    = "<<KplusPt<<endl;
+      cout<<"genKminus pT   = "<<KminusPt<<endl;
+      cout<<"trk1 dxy       = "<<bestFirstCand_dxy<<endl;
+      cout<<"trk2 dxy       = "<<bestSecondCand_dxy<<endl;
+      cout<<"trk1 dxyErr    = "<<bestFirstCand_dxyErr<<endl;
+      cout<<"trk2 dxyErr    = "<<bestSecondCand_dxyErr<<endl;
+      cout<<"deltaDxy       = "<<abs(bestFirstCand_dxy - bestSecondCand_dxy)<<endl;
+      cout<<"trk1 dz        = "<<bestFirstCand_dz<<endl;
+      cout<<"trk2 dz        = "<<bestSecondCand_dz<<endl;
+      cout<<"trk1 dzErr     = "<<bestFirstCand_dzErr<<endl;
+      cout<<"trk2 dzErr     = "<<bestSecondCand_dzErr<<endl;
+      cout<<"deltaDz        = "<<abs(bestFirstCand_dz - bestSecondCand_dz)<<endl;
+      cout<<"Kplus  dxy     = "<<Kplus_dxy<<endl;
+      cout<<"Kplus  dz      = "<<Kplus_dz<<endl;
+      cout<<"Kminus dxy     = "<<Kminus_dxy<<endl;
+      cout<<"Kminus dz      = "<<Kminus_dz<<endl;
       cout<<"Best couple DeltaR = "<<deltaR_KChosen<<endl;
       cout<<"Meson candidate inv. mass  = "<<_MesonMass<<endl;
       cout<<"isPhi = "<<isPhi<<" and isRho = "<<isRho<<endl;
       cout<<"H inv. mass = "<<_Hmass_From2K_Photon<<endl;
       cout<<"--------------------------------------------------"<<endl;
-      cout<<"MC Higgs found = "<<_Nevents_HiggsMatched<<",   Higgs NOT matched = "<<_Nevents_HiggsNotMatched<<endl;
+      cout<<"MC Higgs found = "<<_Nevents_HiggsMatched<<",   Higgs NOT matched = "<<_Nevents_HiggsNotMatched<<",   mesonPt not matched = "<<_Nevents_MesonPtNotMatched<<endl;
       cout<<"--------------------------------------------------"<<endl<<endl;
       }
-    } 
-  }  //ONLY FOR MC START 
+     
+  }  //ONLY FOR MC END 
  
  else //ONLY FOR DATA
  {
@@ -1501,12 +1525,22 @@ void HPhiGammaAnalysis::create_trees()
   mytree->Branch("bestJet_Photon_invMass",&_bestJet_Photon_invMass);
   mytree->Branch("bestJet_JECunc",&_bestJet_JECunc);
 
+  mytree->Branch("firstCandCharge",&_firstCandCharge);
   mytree->Branch("firstCandPt",&_firstCandPt);
   mytree->Branch("firstCandEta",&_firstCandEta);
   mytree->Branch("firstCandPhi",&_firstCandPhi);
+  mytree->Branch("firstCand_dxy",&bestFirstCand_dxy);
+  mytree->Branch("firstCand_dz",&bestFirstCand_dz);
+  mytree->Branch("firstCand_dxyErr",&bestFirstCand_dxyErr);
+  mytree->Branch("firstCand_dzErr",&bestFirstCand_dzErr);
+  mytree->Branch("secondCandCharge",&_secondCandCharge);
   mytree->Branch("secondCandPt",&_secondCandPt);
   mytree->Branch("secondCandEta",&_secondCandEta);
   mytree->Branch("secondCandPhi",&_secondCandPhi);
+  mytree->Branch("secondCand_dxy",&bestSecondCand_dxy);
+  mytree->Branch("secondCand_dz",&bestSecondCand_dz);
+  mytree->Branch("secondCand_dxyErr",&bestSecondCand_dxyErr);
+  mytree->Branch("secondCand_dzErr",&bestSecondCand_dzErr);
   mytree->Branch("bestCouplePt",&_bestCouplePt);
   mytree->Branch("bestCoupleEta",&_bestCoupleEta);
   mytree->Branch("bestCouplePhi",&_bestCouplePhi);
@@ -1555,7 +1589,16 @@ void HPhiGammaAnalysis::create_trees()
     mytree->Branch("genPhoton_eT",&genPhoton_eT);
     mytree->Branch("isMesonMatched",&is_meson_matched);
     mytree->Branch("genMeson_pT",&genMeson_pT);
+    mytree->Branch("genMeson_m",&genMeson_m);
+    mytree->Branch("KplusPt",&KplusPt);
+    mytree->Branch("KminusPt",&KminusPt);
+    mytree->Branch("Kminus_eta",&Kminus_eta);
+    mytree->Branch("Kplus_eta",&Kplus_eta);
+    mytree->Branch("Kminus_phi",&Kminus_phi);
+    mytree->Branch("Kplus_phi",&Kplus_phi);
+
     mytree->Branch("deltaR_Kplus",&deltaR_Kplus);
+    mytree->Branch("deltaR_wrong",&deltaR_wrong);
     mytree->Branch("deltaR_Kminus",&deltaR_Kminus);
     mytree->Branch("deltaR_Piplus",&deltaR_Piplus);
     mytree->Branch("deltaR_Piminus",&deltaR_Piminus);

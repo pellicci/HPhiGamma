@@ -67,6 +67,7 @@ private:
   int _Nevents_HiggsNotMatched; 
   int _Nevents_HiggsMassMatched; 
   int _Nevents_HiggsMassNotMatched; 
+  int _Nevents_MesonPtNotMatched;
   int _Nevents_bestCoupleFound;
   int _Nevents_candPtFilter;
   int _Nevents_coupleIsolationFilter;
@@ -97,9 +98,17 @@ private:
   float firstCandPx;
   float firstCandPy;
   float firstCandPz;
+  float bestFirstCand_dxy;
+  float bestFirstCand_dxyErr;
+  float bestFirstCand_dz;
+  float bestFirstCand_dzErr;
   float secondCandPx;
   float secondCandPy;
   float secondCandPz;
+  float bestSecondCand_dxy;
+  float bestSecondCand_dxyErr;
+  float bestSecondCand_dz;
+  float bestSecondCand_dzErr;
   float firstCandEnergy;
   float secondCandEnergy;
   float firstCandEnergy_K;
@@ -170,6 +179,7 @@ private:
   float PU_Weight;
   float MC_Weight;
   float deltaR_Kplus;
+  float deltaR_wrong;
   float deltaR_Kminus;
   float deltaR_Piplus;
   float deltaR_Piminus;
@@ -179,6 +189,17 @@ private:
   float genMeson_pT;
   float genMeson_eta;
   float genMeson_phi;
+  float genMeson_m;
+  float KplusPt;
+  float KminusPt;
+  float Kplus_dxy;
+  float Kplus_dz;
+  float Kminus_dxy;
+  float Kminus_dz;
+  float Kminus_eta;
+  float Kplus_eta;
+  float Kminus_phi;
+  float Kplus_phi;
 
   bool is_Kplus_matched;
   bool is_Kminus_matched;

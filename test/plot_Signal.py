@@ -40,7 +40,8 @@ histo_container = [] #just for memory management
 
 #Get the list of histograms
 list_histos = []
-signalfile = ROOT.TFile("histos/latest_production/histos_SR_preselection_SignalggH.root")
+#signalfile = ROOT.TFile("histos/latest_production/histos_SR_preselection_SignalggH.root")
+signalfile = ROOT.TFile(sys.argv[4])
 keylist = signalfile.GetListOfKeys()
 key = ROOT.TKey()
 for key in keylist :
@@ -75,7 +76,7 @@ for filename in list_inputfiles:
         if not histo_name == "h_nMuons" and not histo_name == "h_nPhotons" and not histo_name == "h_nJets_25" and not histo_name == "h_nElectrons" and not histo_name == "h_photonWP90" and not histo_name == "h_meson_InvMass_TwoTrk":
             print histo_name
             if isTightSelection and (histo_name == "h_firstTrk_Iso" or histo_name == "h_firstTrk_Iso_ch" or histo_name == "h_firstTrk_Iso_neutral" or histo_name == "h_secondTrk_Iso" or histo_name == "h_secondTrk_Iso_ch" or histo_name == "h_couple_AbsIsoCh" or histo_name == "h_couple_Iso" or histo_name == "h_couple_Iso_ch"):
-                histo_container[-1].Rebin(1)
+                histo_container[-1].Rebin(2)
             else:
                 histo_container[-1].Rebin(1)
         if histo_name == "h_meson_InvMass_TwoTrk": histo_container[-1].Rebin(2)
@@ -144,7 +145,7 @@ for histo_name in list_histos:
         if histo_name == "h_InvMass_TwoTrk_Photon":
             #hstack[histo_name].Rebin(2)            
             hstack[histo_name].GetXaxis().SetTitle("m_{ditrk,#gamma} [GeV]")
-            hstack[histo_name].GetXaxis().SetLimits(115.,135.)
+            #hstack[histo_name].GetXaxis().SetLimits(115.,135.)
 
         if histo_name == "h_nJets_25":
             hstack[histo_name].GetXaxis().SetTitle("nJets")
@@ -262,6 +263,9 @@ for histo_name in list_histos:
         if histo_name == "h_decayChannel":
             hstack[histo_name].GetXaxis().SetTitle("decay channel")
 
+        if histo_name == "h_RecoVsGenMesonPtRel":
+            hstack[histo_name].GetXaxis().SetTitle("p_{T}^{genMeson}[GeV]")
+            hstack[histo_name].GetYaxis().SetTitle("p_{T}^{recoMeson}/p_{T}^{genMeson}")
 
         hstack[histo_name].Draw("SAME,histo")
 
