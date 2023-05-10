@@ -49,8 +49,8 @@ for binIndex in binList:
 	alpha = ROOT.RooRealVar("alpha","The alpha of the Crystal Ball", alpha_central, alpha_min, alpha_max)
 	n     = ROOT.RooRealVar("n","The n of the Crystal Ball", n_central, n_min, n_max)
 
-	signalPDF = ROOT.RooCBShape("signalPDF","CB pdf",mass,mean,sigma,alpha,n)
-	#signalPDF = ROOT.RooGaussian("signalPDF","CB pdf",mass,mean,sigma)
+	#signalPDF = ROOT.RooCBShape("signalPDF","CB pdf",mass,mean,sigma,alpha,n)
+	signalPDF = ROOT.RooGaussian("signalPDF","CB pdf",mass,mean,sigma)
 
 
 	# Construct background pdf
@@ -72,11 +72,11 @@ for binIndex in binList:
 	# N   e v e n t s
 	# ---------------------------------------------------------------
 
-	nsig = ROOT.RooRealVar("nsig", "signal yield 1", 300., 0., 5000.)
+	nsig = ROOT.RooRealVar("nsig", "signal yield 1", 300., 200., 600.)
 	#nsig2 = ROOT.RooRealVar("nsig2", "signal yield 2", 300., 0., 5000.)
-	nbkgOffline   = ROOT.RooRealVar("nbkgOffline", "background yield", 1500., 0., 10000.)
-	nbkgTriggered = ROOT.RooRealVar("nbkgTriggered", "background yield", 1500., 0., 10000.)
-	efficiency = ROOT.RooRealVar("efficiency", "efficiency", 0.5, 0, 1)
+	nbkgOffline   = ROOT.RooRealVar("nbkgOffline", "background yield", 1500., 0., 5000.)
+	nbkgTriggered = ROOT.RooRealVar("nbkgTriggered", "background yield", 1500., 0., 5000.)
+	efficiency = ROOT.RooRealVar("efficiency", "efficiency", 0.95, 0., 1.)
 
 	# R e t r i e v e   d a t a s e t s
 	# ---------------------------------------------------------------
