@@ -11,12 +11,8 @@ import os, sys
 #Supress the opening of many Canvas's
 ROOT.gROOT.SetBatch(True) 
 
-# A r g   P a r s e
-# -------------------------------------------------------------
-p = argparse.ArgumentParser(description='Select rootfile to plot')
-p.add_argument('sample', help='Type which kind of sample it is')
-args = p.parse_args()
-#SAMPLE = args.sample
+#Import the Doube Crystal Ball PDF -----------------------------------
+ROOT.gROOT.ProcessLineSync(".L MassAnalysis/dCB/RooDoubleCBFast.cc+")
 
 # H i s t o s
 # -------------------------------------------------------------
@@ -29,6 +25,10 @@ h_width_triggered_Data = ROOT.TH1F("h_width_triggered_Data","width",3,0.,3.)
 h_mean_triggered_Data  = ROOT.TH1F("h_mean_triggered_Data","mean",3,0.,3.) 
 h_width_triggered_MC   = ROOT.TH1F("h_width_triggered_MC","width",3,0.,3.) 
 h_mean_triggered_MC    = ROOT.TH1F("h_mean_triggered_MC","mean",3,0.,3.) 
+
+h_efficiency_Data = ROOT.TH1F("h_efficiency_Data","eff data",3,0.,3.)
+h_efficiency_MC   = ROOT.TH1F("h_efficiency_MC","eff MC",3,0.,3.)
+
 
 # B i n   L o o p
 # -------------------------------------------------------------
@@ -54,21 +54,34 @@ for SAMPLE in ["Data", "MC"]:
 
 		# Construct signal pdf
 		mean_central ,  mean_min,  mean_max = 1.02,1.,1.04
-		sigma_central, sigma_min, sigma_max = 0.001,0.0001,0.01
+		sigma_central, sigma_min, sigma_max = 0.0012,0.0001,0.01
 		alpha_central, alpha_min, alpha_max = 1.2,-5.,10.
 		n_central    ,     n_min,     n_max = 4.,0.,20.
+
+		#if double sided CB
+		alphaL_central, alphaL_min, alphaL_max = 1.2,0.,15.
+		alphaR_central, alphaR_min, alphaR_max = 1.2,0.,15.
+		nL_central    ,     nL_min,     nL_max = 1.,0.,5.
+		nR_central    ,     nR_min,     nR_max = 1.,0.,5.
 
 		mean  = ROOT.RooRealVar("mean","The mean of the Crystal Ball", mean_central, mean_min, mean_max)
 		sigma = ROOT.RooRealVar("sigma","The width of the Crystal Ball", sigma_central, sigma_min, sigma_max)
 		alpha = ROOT.RooRealVar("alpha","The alpha of the Crystal Ball", alpha_central, alpha_min, alpha_max)
 		n     = ROOT.RooRealVar("n","The n of the Crystal Ball", n_central, n_min, n_max)
 
-		#signalPDF = ROOT.RooCBShape("signalPDF","CB pdf",mass,mean,sigma,alpha,n)
-		signalPDF = ROOT.RooGaussian("signalPDF","CB pdf",mass,mean,sigma)
+		#if double sided CB
+		alphaL = ROOT.RooRealVar("alphaL","The alpha left of the double Crystal Ball", alphaL_central, alphaL_min, alphaL_max)
+		alphaR = ROOT.RooRealVar("alphaR","The alpha right of the double Crystal Ball", alphaR_central, alphaR_min, alphaR_max)
+		nL     = ROOT.RooRealVar("nL","The n left of the double Crystal Ball", nL_central, nL_min, nL_max)
+		nR     = ROOT.RooRealVar("nR","The n right of the double Crystal Ball", nR_central, nR_min, nR_max)
+		
+		signalPDF = ROOT.RooCBShape("signalPDF","CB pdf",mass,mean,sigma,alpha,n)
+		#signalPDF = ROOT.RooGaussian("signalPDF","CB pdf",mass,mean,sigma)
+		#signalPDF = ROOT.RooDoubleCBFast("signalPDF","CB pdf",mass,mean,sigma,alphaL,alphaR,nL,nR)
 
 
 		# Construct background pdf
-		a1_central, a1_min, a1_max = 0.1,-0.3,0.3
+		a1_central, a1_min, a1_max = 0.1,-0.7,0.7
 		a2_central, a2_min, a2_max = 0.3,-2.,2.
 		a3_central, a3_min, a3_max = 0.3,-2.,2.
 
@@ -80,16 +93,16 @@ for SAMPLE in ["Data", "MC"]:
 		a2_trg = ROOT.RooRealVar("a2_trg","The a2 of background", a2_central, a2_min, a2_max)
 		a3_trg = ROOT.RooRealVar("a3_trg","The a3 of background", a3_central, a3_min, a3_max)
 
-		backgroundPDFOffline   = ROOT.RooChebychev("backgroundPDFOffline","The background PDF for offline dataset",mass,ROOT.RooArgList(a1_off,a2_off,a3_off))
-		backgroundPDFTriggered = ROOT.RooChebychev("backgroundPDFTriggered","The background PDF for triggered dataset",mass,ROOT.RooArgList(a1_trg,a2_trg,a3_trg))
+		backgroundPDFOffline   = ROOT.RooChebychev("backgroundPDFOffline","The background PDF for offline dataset",mass,ROOT.RooArgList(a1_off,a2_off))#,a3_off))
+		backgroundPDFTriggered = ROOT.RooChebychev("backgroundPDFTriggered","The background PDF for triggered dataset",mass,ROOT.RooArgList(a1_off,a2_off))#,a3_off))
 
 		# N   e v e n t s
 		# ---------------------------------------------------------------
 
-		nsig = ROOT.RooRealVar("nsig", "signal yield 1", 300., 100., 600.)
+		nsig = ROOT.RooRealVar("nsig", "signal yield 1", 700., 0., 3000.)
 		#nsig2 = ROOT.RooRealVar("nsig2", "signal yield 2", 300., 0., 5000.)
-		nbkgOffline   = ROOT.RooRealVar("nbkgOffline", "background yield", 1500., 0., 5000.)
-		nbkgTriggered = ROOT.RooRealVar("nbkgTriggered", "background yield", 1500., 0., 5000.)
+		nbkgOffline   = ROOT.RooRealVar("nbkgOffline", "background yield", 3000., 500., 10000.)
+		nbkgTriggered = ROOT.RooRealVar("nbkgTriggered", "background yield", 3000., 500., 10000.)
 		efficiency = ROOT.RooRealVar("efficiency", "efficiency", 0.95, 0., 1.)
 
 		# R e t r i e v e   d a t a s e t s
@@ -192,30 +205,32 @@ for SAMPLE in ["Data", "MC"]:
 		mean_err  = mean.getError()
 
 		#Build legends
-		x0, y0, x1, y1 = 0.5, 0.6, 0.91, 0.91 #legend size
+		x0, y0, x1, y1 = 0.4, 0.6, 0.91, 0.91 #legend size
 		legend1 = ROOT.TLegend(x0, y0, x1, y1)
 		legend1.SetBorderSize(0)
 		legend1.SetFillStyle(0)
 		legend1.SetTextSize(0.04)
+		legend1.AddEntry(0, "Offline", "")
 		legend1.AddEntry(frame1.findObject("curve1_total"), "Fit", "l")
 		legend1.AddEntry(frame1.findObject("curve1_bkg"), "Bkg-only", "l")
 		legend1.AddEntry(0, "#chi^{{2}}/ndf = {:.2f}".format(chi2_ndf1), "")
 		legend1.AddEntry(0,"N_{sig} = "+str(round(nsig1,1))+" #pm "+str(round(nsig1_err,1)),"brNDC")
 		legend1.AddEntry(0,"N_{bkg} = "+str(round(nbkgOffline.getValV(),1))+" #pm "+str(round(nbkgOffline.errorVar().getValV(),1)),"brNDC")
 		#legend1.AddEntry(0,"#epsilon = "+str(round(eff,3))+" #pm "+str(round(eff_err,3)),"brNDC")
-		legend1.AddEntry(0,"width = "+str(round(sigma_val,3))+" #pm "+str(round(sigma_err,3)),"brNDC")
+		legend1.AddEntry(0,"width = "+str(round(sigma_val,5))+" #pm "+str(round(sigma_err,5)),"brNDC")
 
 		legend2 = ROOT.TLegend(x0, y0, x1, y1)
 		legend2.SetBorderSize(0)
 		legend2.SetFillStyle(0)
 		legend2.SetTextSize(0.04)
+		legend2.AddEntry(0, "Triggered", "")
 		legend2.AddEntry(frame2.findObject("curve2_total"), "Fit", "l")
 		legend2.AddEntry(frame2.findObject("curve2_bkg"), "Bkg-only", "l")
 		legend2.AddEntry(0, "#chi^{{2}}/ndf = {:.2f}".format(chi2_ndf2), "")
 		legend2.AddEntry(0,"N_{sig} = "+str(round(nsig2,1))+" #pm "+str(round(nsig2_err,1)),"brNDC")
 		legend2.AddEntry(0,"N_{bkg} = "+str(round(nbkgTriggered.getValV(),1))+" #pm "+str(round(nbkgTriggered.errorVar().getValV(),1)),"brNDC")
 		legend2.AddEntry(0,"#epsilon = "+str(round(eff,3))+" #pm "+str(round(eff_err,3)),"brNDC")
-		legend2.AddEntry(0,"width = "+str(round(sigma_val,3))+" #pm "+str(round(sigma_err,3)),"brNDC")
+		legend2.AddEntry(0,"width = "+str(round(sigma_val,5))+" #pm "+str(round(sigma_err,5)),"brNDC")
 
 		canvas.cd(1)
 		frame1.Draw()
@@ -239,25 +254,31 @@ for SAMPLE in ["Data", "MC"]:
 		#Fill width and mean histos
 		if SAMPLE == "Data":
 			h_width_offline_Data.Fill(binIndex + 0.5,sigma_val)
-			h_width_offline_Data.SetBinError(binIndex,sigma_err)
+			h_width_offline_Data.SetBinError(binIndex + 1,sigma_err)
 			h_mean_offline_Data.Fill(binIndex + 0.5,mean_val)
-			h_mean_offline_Data.SetBinError(binIndex,mean_err)
+			h_mean_offline_Data.SetBinError(binIndex + 1,mean_err)
 
 			h_width_triggered_Data.Fill(binIndex + 0.5,sigma_val)
-			h_width_triggered_Data.SetBinError(binIndex,sigma_err)
+			h_width_triggered_Data.SetBinError(binIndex + 1,sigma_err)
 			h_mean_triggered_Data.Fill(binIndex + 0.5,mean_val)
-			h_mean_triggered_Data.SetBinError(binIndex,mean_err)
+			h_mean_triggered_Data.SetBinError(binIndex + 1,mean_err)
+
+			h_efficiency_Data.Fill(binIndex + 0.5,eff)
+			h_efficiency_Data.SetBinError(binIndex + 1,eff_err)
 
 		else:
 			h_width_offline_MC.Fill(binIndex + 0.5,sigma_val)
-			h_width_offline_MC.SetBinError(binIndex,sigma_err)
+			h_width_offline_MC.SetBinError(binIndex + 1,sigma_err)
 			h_mean_offline_MC.Fill(binIndex + 0.5,mean_val)
-			h_mean_offline_MC.SetBinError(binIndex,mean_err)
+			h_mean_offline_MC.SetBinError(binIndex + 1,mean_err)
 
 			h_width_triggered_MC.Fill(binIndex + 0.5,sigma_val)
-			h_width_triggered_MC.SetBinError(binIndex,sigma_err)
+			h_width_triggered_MC.SetBinError(binIndex + 1,sigma_err)
 			h_mean_triggered_MC.Fill(binIndex + 0.5,mean_val)
-			h_mean_triggered_MC.SetBinError(binIndex,mean_err)
+			h_mean_triggered_MC.SetBinError(binIndex + 1,mean_err)
+
+			h_efficiency_MC.Fill(binIndex + 0.5,eff)
+			h_efficiency_MC.SetBinError(binIndex + 1,eff_err)
 
 # P l o t s
 # ---------------------------------------------------
@@ -351,7 +372,7 @@ h_width_triggered_MC.SetMarkerStyle(20)
 h_width_triggered_MC.SetMarkerSize(2.)
 h_width_triggered_MC.SetMarkerColor(ROOT.kRed)
 h_width_triggered_MC.SetLineColor(ROOT.kRed)
-h_width_triggered_MC.SetAxisRange(0.0005,0.007,"Y")
+h_width_triggered_MC.SetAxisRange(0.000,0.007,"Y")
 h_width_triggered_MC.GetXaxis().SetBinLabel(1,"bin0")
 h_width_triggered_MC.GetXaxis().SetBinLabel(2,"bin1")
 h_width_triggered_MC.GetXaxis().SetBinLabel(3,"bin2")
@@ -399,11 +420,22 @@ h_mean_triggered_Data.Draw("SAME")
 leg4.Draw()
 
 
-widthOfflineCanvas.SaveAs("~/cernbox/www/latest_production/trigger_efficiency_TwoProngs_SimultaneousFit_latest_production/widthOffline.png")
-meanOfflineCanvas.SaveAs("~/cernbox/www/latest_production/trigger_efficiency_TwoProngs_SimultaneousFit_latest_production/meanOffline.png")
-widthTriggeredCanvas.SaveAs("~/cernbox/www/latest_production/trigger_efficiency_TwoProngs_SimultaneousFit_latest_production/widthTriggered.png")
-meanTriggeredCanvas.SaveAs("~/cernbox/www/latest_production/trigger_efficiency_TwoProngs_SimultaneousFit_latest_production/meanTriggered.png")
-widthOfflineCanvas.SaveAs("~/cernbox/www/latest_production/trigger_efficiency_TwoProngs_SimultaneousFit_latest_production/widthOffline.pdf")
-meanOfflineCanvas.SaveAs("~/cernbox/www/latest_production/trigger_efficiency_TwoProngs_SimultaneousFit_latest_production/meanOffline.pdf")
-widthTriggeredCanvas.SaveAs("~/cernbox/www/latest_production/trigger_efficiency_TwoProngs_SimultaneousFit_latest_production/widthTriggered.pdf")
-meanTriggeredCanvas.SaveAs("~/cernbox/www/latest_production/trigger_efficiency_TwoProngs_SimultaneousFit_latest_production/meanTriggered.pdf")
+widthOfflineCanvas.SaveAs("~/cernbox/www/latest_production/trigger_efficiency_TwoProngs_SimultaneousFit_latest_production/width.png")
+meanOfflineCanvas.SaveAs("~/cernbox/www/latest_production/trigger_efficiency_TwoProngs_SimultaneousFit_latest_production/mean.png")
+#widthTriggeredCanvas.SaveAs("~/cernbox/www/latest_production/trigger_efficiency_TwoProngs_SimultaneousFit_latest_production/widthTriggered.png")
+#meanTriggeredCanvas.SaveAs("~/cernbox/www/latest_production/trigger_efficiency_TwoProngs_SimultaneousFit_latest_production/meanTriggered.png")
+widthOfflineCanvas.SaveAs("~/cernbox/www/latest_production/trigger_efficiency_TwoProngs_SimultaneousFit_latest_production/width.pdf")
+meanOfflineCanvas.SaveAs("~/cernbox/www/latest_production/trigger_efficiency_TwoProngs_SimultaneousFit_latest_production/mean.pdf")
+#widthTriggeredCanvas.SaveAs("~/cernbox/www/latest_production/trigger_efficiency_TwoProngs_SimultaneousFit_latest_production/widthTriggered.pdf")
+#meanTriggeredCanvas.SaveAs("~/cernbox/www/latest_production/trigger_efficiency_TwoProngs_SimultaneousFit_latest_production/meanTriggered.pdf")
+
+fOut = ROOT.TFile("histos/histos_trigger_efficiency/histos_TwoProngs/histos_TwoProngsSimFit.root","RECREATE")
+fOut.cd()
+
+h_efficiency_MC.Write()
+h_efficiency_Data.Write()
+
+fOut.Close()
+
+
+

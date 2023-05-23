@@ -167,7 +167,7 @@ histo_map[list_histos[39]] = ROOT.TH1F(list_histos[39],"genPhoton eT", 100, 38.,
 histo_map[list_histos[40]] = ROOT.TH1F(list_histos[40],"genMeson pT", 100, 38.,110.)
 histo_map[list_histos[41]] = ROOT.TH2F(list_histos[41],"genPhotonPt vs PhotonPt/genPhotonPt;genPhotonPt;PhotonPt/genPhotonPt", 100, 38.,160.,100,0.88,1.12)
 histo_map[list_histos[42]] = ROOT.TH2F(list_histos[42],"genMesonPt vs MesonPt/genMesonPt;genMesonPt;MesonPt/genMesonPt", 100, 38., 160, 100, 0.88, 1.12)
-histo_map[list_histos[43]] = ROOT.TH1F(list_histos[43],"mMesonReco - mMesonGen", 100, -0.1,0.1)
+histo_map[list_histos[43]] = ROOT.TH1F(list_histos[43],"mMesonReco - mMesonGen", 100, -0.04,0.04)
 histo_map[list_histos[44]] = ROOT.TH1F(list_histos[44],"trk+ dxy", 100, -0.01,0.01)
 histo_map[list_histos[45]] = ROOT.TH1F(list_histos[45],"trk+ dz", 100, -0.02,0.02)
 histo_map[list_histos[46]] = ROOT.TH1F(list_histos[46],"trk+ dxy error", 100, 0.,0.004)
@@ -639,11 +639,11 @@ for jentry in xrange(nentries):
             subleadingKpT = min(KPlusPt,KMinusPt)
 
 
-            if (firstTrkPt < 0.95*leadingKpT or firstTrkPt > 1.05*leadingKpT): leadingTrkMatched = False #range within 5 GeV
-            if (secondTrkPt < 0.8*subleadingKpT or secondTrkPt > 1.2*subleadingKpT): subleadingTrkMatched = False #range within 5 GeV
+            if (firstTrkPt < 0.9*leadingKpT or firstTrkPt > 1.1*leadingKpT): leadingTrkMatched = False #range within 5 GeV
+            if (secondTrkPt < 0.9*subleadingKpT or secondTrkPt > 1.1*subleadingKpT): subleadingTrkMatched = False #range within 5 GeV
 
-            if (trkPlusPt < 0.8*KPlusPt or trkPlusPt > 1.2*KPlusPt): trkPlusMatched = False #range within 5 GeV
-            if (trkMinusPt < 0.8*KMinusPt or trkMinusPt > 1.2*KMinusPt ): trkMinusMatched = False #range within 5 GeV  
+            if (trkPlusPt < 0.7*KPlusPt or trkPlusPt > 1.3*KPlusPt): trkPlusMatched = False #range within 5 GeV
+            if (trkMinusPt < 0.7*KMinusPt or trkMinusPt > 1.3*KMinusPt ): trkMinusMatched = False #range within 5 GeV  
 
             if leadingTrkMatched:
                 nLeadingTrkMatched += 1
@@ -677,25 +677,30 @@ for jentry in xrange(nentries):
 
             deltaR_Kpm = math.sqrt((KPlusEta - KMinusEta) * (KPlusEta - KMinusEta) + deltaPhi_Kpm * deltaPhi_Kpm)
         
-            if (trkPlusMatched and trkMinusMatched): continue
-            if (trkPlusMatched == False and trkMinusMatched == False): continue
-            if (trkPlusMatched == True and trkMinusMatched == False): continue
+            #if (trkPlusMatched and trkMinusMatched): continue
+            #if (trkPlusMatched == False and trkMinusMatched == False): continue
+            #if (trkPlusMatched == True and trkMinusMatched == False): continue
 
-            print"-------- Event n.",jentry+1,"----------"
-            print"firstTrk charge      = ",firstTrkCharge
-            print"firstTrkPt           = ",firstTrkPt
-            print"leadingKpT           = ",leadingKpT
-            print"leadingTrkMatched    = ",str(leadingTrkMatched)
-            print ""
-            print"secondTrk charge     = ",secondTrkCharge,""
-            print"secondTrkPt          = ",secondTrkPt
-            print"subleadingKpT        = ",subleadingKpT
-            print"subleadingTrkMatched = ",str(subleadingTrkMatched)
-            print ""
-            print"MesonPt              = ",MesonPt
-            print"genMesonPt           = ",genMesonPt
-            print"MesonMatched         = ",str(mesonMatched)
-            print""
+            if debug:
+                print"-------- Event number",mytree.event_number,"----------"
+                print"firstTrk charge      = ",firstTrkCharge
+                print"firstTrkPt           = ",firstTrkPt
+                print"leadingKGenPt        = ",leadingKpT
+                print ""
+                print"secondTrk charge     = ",secondTrkCharge,""
+                print"secondTrkPt          = ",secondTrkPt
+                print"subleadingKGenPt     = ",subleadingKpT
+                print ""
+                print"MesonMass            = ",MesonMass
+                print"genMesonMass         = ",mytree.genMeson_m
+                print"MesonPt              = ",MesonPt
+                print"genMesonPt           = ",genMesonPt
+                print""
+                print"photonEt             = ",photonEt
+                print"genPhotonEt          = ",genPhotonEt
+                print""
+                print"Hmass                = ",Hmass
+                print""
 
 
         '''

@@ -91,7 +91,7 @@ if SAMPLE_NAME == "MC":
 
 #HISTOS ###########################################################################################################
 histo_map = dict()
-list_histos = ["h_mass_mumu","h_TwoProngs_pT","h_nTwoProngsTriggered_pT","h_nTwoProngsOffline_pT","h_triggerEff_TwoProngsPt","h_MesonMass","h_MesonMass_triggered","h_MesonEta","h_triggerEff_TwoProngsEta"]
+list_histos = ["h_mass_mumu","h_TwoProngs_pT","h_nTwoProngsTriggered_pT","h_nTwoProngsOffline_pT","h_triggerEff_TwoProngsPt","h_MesonMass","h_MesonMass_triggered","h_MesonEta","h_triggerEff_TwoProngsEta","h_nEventsPerBin_offline","h_nEventsPerBin_triggered","h_efficiency_perBin"]
 
 histo_map[list_histos[0]]  = ROOT.TH1F(list_histos[0],"M_{#mu#mu} in "+SAMPLE_NAME+" (TwoProngs leg)",100,65.,115.)
 histo_map[list_histos[1]]  = ROOT.TH1F(list_histos[1],"p_{T}^{prongs} in "+SAMPLE_NAME+" (TwoProngs leg)", 100, 30.,160.)
@@ -107,6 +107,9 @@ else:
 
 histo_map[list_histos[7]]  = ROOT.TH1F(list_histos[7],"Best pair #eta in "+SAMPLE_NAME+" (TwoProngs leg)", 100, 0.,2.5)
 histo_map[list_histos[8]]  = ROOT.TH1F(list_histos[8],"Trigger efficiency as function of #eta^{prongs} in "+SAMPLE_NAME+" (TwoProngs leg)", 10, 0.,2.5)
+histo_map[list_histos[9]]  = ROOT.TH1F(list_histos[9],"nEvents bin by bin in "+SAMPLE_NAME+" offline (TwoProngs leg)", 3, 0.,3.)
+histo_map[list_histos[10]] = ROOT.TH1F(list_histos[10],"nEvents bin by bin in "+SAMPLE_NAME+" triggered (TwoProngs leg)", 3, 0.,3.)
+histo_map[list_histos[11]] = ROOT.TH1F(list_histos[11],"Trigger efficiency bin by bin in "+SAMPLE_NAME+" (TwoProngs leg)", 3, 0.,3.)
 
 
 #    histo_map[list_histos[5]]  = ROOT.TH1F(list_histos[5],"Inv mass of the pair in "+SAMPLE_NAME+" (TwoProngs leg)", 100, 0.5,1.)
@@ -120,7 +123,7 @@ triggerFraction           = 0
 #EVENTS LOOP ##################################################################################################################### 
 
 #Create lists of bin min e max values
-pT_list = [38.,45.,53.,1000.]
+pT_list = [38.,42.,50.,2000.]
 
 #Event loop 
 print "This sample has ", mytree.GetEntriesFast(), " events"
@@ -147,14 +150,18 @@ for jentry in xrange(nentries):
     bestPairEta           = mytree.bestCoupleEta
     
     #Event weights
-    weight = 1.
+    if SAMPLE_NAME == "Data":
+        weight = 1.
+    else:
+        weight = 0.0726364661457 * 39.54 # xsec_DY50 * lumi
+
     if samplename == "DY10to50": weight = 0.187376434292/0.0726364661457 # DY10to50_xsec / DY50_xsec
 
     #Remove events not passing the offline selection
     if not isBestPairFound: continue 
     
     #Isolation cut
-    if bestPairIsoCh < 0.8: continue
+    if bestPairIsoCh < 0.7: continue
 
     if isPhiAnalysis:
         if isRho : 
@@ -185,22 +192,26 @@ for jentry in xrange(nentries):
     #Fill histos -----------------------------------------
     histo_map["h_mass_mumu"].Fill(MuMuMass, weight)        
     histo_map["h_TwoProngs_pT"].Fill(TwoProngsPt, weight)
-    
+
     # create pT bins for the denominator (offline selection only)
     if (TwoProngsPt >= pT_list[0] and TwoProngsPt < pT_list[1]): #bin0
         histo_map["h_MesonMass"].Fill(MesonMass, weight)
         bin0DenEvents[0] = MesonMass
         tree_output_bin0_den.Fill()
-    
+        if(MesonMass > 1.011 and MesonMass < 1.028): histo_map["h_nEventsPerBin_offline"].Fill(0,1)
+
     if (TwoProngsPt >= pT_list[1] and TwoProngsPt < pT_list[2]): #bin1
         histo_map["h_MesonMass"].Fill(MesonMass, weight)
         bin1DenEvents[0] = MesonMass
         tree_output_bin1_den.Fill()
+        if(MesonMass > 1.011 and MesonMass < 1.028): histo_map["h_nEventsPerBin_offline"].Fill(1,1)
 
     if (TwoProngsPt >= pT_list[2] and TwoProngsPt < pT_list[3]): #bin2
         histo_map["h_MesonMass"].Fill(MesonMass, weight)
         bin2DenEvents[0] = MesonMass
         tree_output_bin2_den.Fill()
+        if(MesonMass > 1.011 and MesonMass < 1.028): histo_map["h_nEventsPerBin_offline"].Fill(2,1)
+
 
     #if (TwoProngsPt >= pT_list[3] and TwoProngsPt < pT_list[4]): #bin3
      #   histo_map["h_MesonMass"].Fill(MesonMass, weight)
@@ -218,16 +229,19 @@ for jentry in xrange(nentries):
                 histo_map["h_MesonMass_triggered"].Fill(MesonMass, weight)
                 bin0NumEvents[0] = MesonMass
                 tree_output_bin0_num.Fill()
+                if(MesonMass > 1.011 and MesonMass < 1.028): histo_map["h_nEventsPerBin_triggered"].Fill(0,1)
 
             if (TwoProngsPt >= pT_list[1] and TwoProngsPt < pT_list[2]): #bin1
                 histo_map["h_MesonMass_triggered"].Fill(MesonMass, weight)
                 bin1NumEvents[0] = MesonMass
                 tree_output_bin1_num.Fill()
+                if(MesonMass > 1.011 and MesonMass < 1.028): histo_map["h_nEventsPerBin_triggered"].Fill(1,1)
 
             if (TwoProngsPt >= pT_list[2] and TwoProngsPt < pT_list[3]): #bin2
                 histo_map["h_MesonMass_triggered"].Fill(MesonMass, weight)
                 bin2NumEvents[0] = MesonMass
                 tree_output_bin2_num.Fill()
+                if(MesonMass > 1.011 and MesonMass < 1.028): histo_map["h_nEventsPerBin_triggered"].Fill(2,1)
 
           #  if (TwoProngsPt >= pT_list[3] and TwoProngsPt < pT_list[4]): #bin3
            #     histo_map["h_MesonMass_triggered"].Fill(MesonMass, weight)
@@ -246,6 +260,28 @@ tree_output_bin2_den.Write()
 tree_output_bin2_num.Write()
 #tree_output_bin3_den.Write()
 #tree_output_bin3_num.Write()
+
+histo_map["h_nEventsPerBin_triggered"].Divide(histo_map["h_nEventsPerBin_offline"])
+#CALCULATE EFFICIENCY ERRORS ########################################################
+print "##########################################"
+for bin_index in [1,2,3]:
+    
+    N = histo_map["h_nEventsPerBin_offline"].GetBinContent(bin_index)
+    epsilon = histo_map["h_nEventsPerBin_triggered"].GetBinContent(bin_index)
+    error = math.sqrt(epsilon * (1 - epsilon) * (1/N))
+    
+    print "For bin ",bin_index,": N = ",N,", eff = ",epsilon, " and efficiency error = ",error
+
+    histo_map["h_nEventsPerBin_triggered"].SetBinError(bin_index,error)
+print "##########################################"
+
+histo_map["h_efficiency_perBin"] = histo_map["h_nEventsPerBin_triggered"]
+
+canvas = ROOT.TCanvas("c","c",1000,1000)
+canvas.cd()
+histo_map["h_efficiency_perBin"].Draw("E1")
+
+canvas.SaveAs("~/cernbox/www/efficiencyBinByBin.png")
 
 fOut.Close()
 

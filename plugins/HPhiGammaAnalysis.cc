@@ -130,7 +130,7 @@ effectiveAreas_ph_( (iConfig.getParameter<edm::FileInPath>("effAreasConfigFile_p
 
 
   debug=false;  //DEBUG datamember 
-  verbose=true; 
+  verbose=false; 
 
   h_pileup   = fs->make<TH1F>("pileup", "pileup", 75,0,75);
 
@@ -191,9 +191,9 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
   //Retrieve the run number
   if(runningOnData_){
     run_number = iEvent.id().run();
-    event_number = iEvent.id().event();
   }
 
+  event_number = iEvent.id().event();
 
   //*************************************************************//
   //                                                             //
@@ -1480,6 +1480,9 @@ void HPhiGammaAnalysis::create_trees()
 //Save run number info when running on data
   if(runningOnData_){
     mytree->Branch("run_number",&run_number);
+    mytree->Branch("event_number",&event_number);
+  }
+  else{
     mytree->Branch("event_number",&event_number);
   }
 
