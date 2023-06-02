@@ -107,7 +107,7 @@ data_blinded = observed_data.reduce("mesonGammaMass < 120. || mesonGammaMass > 1
 #Do the fit ------------------------------------------------------------------------------------------------------------------------------
 fitResult_chebychev   = bkgPDF_chebychev.fitTo(observed_data,ROOT.RooFit.Save())
 fitResult_bernstein   = bkgPDF_bernstein.fitTo(observed_data,ROOT.RooFit.Save(),ROOT.RooFit.Verbose())
-#fitResult_exponential = bkgPDF_exponential.fitTo(observed_data,ROOT.RooFit.Save())
+fitResult_exponential = bkgPDF_exponential.fitTo(observed_data,ROOT.RooFit.Save())
 #ROOT.RooFit.Range("LowSideband,HighSideband")
 #Do the F-test ------------------------------------------------------------------------------------------------------------------------------
 #print "################## F-TEST"
@@ -168,7 +168,7 @@ canvas_bernstein = ROOT.TCanvas()
 canvas_bernstein.cd()
 
 if isPhiGammaAnalysis:
-	xframe_bernstein = mass.frame(14)
+	xframe_bernstein = mass.frame(28)
 else:
 	xframe_bernstein = mass.frame(56)
 
@@ -204,7 +204,7 @@ CMS_lumi.CMS_lumi(canvas_bernstein, iPeriod, iPos) #Print integrated lumi and en
 
 canvas_bernstein.SaveAs("/eos/user/g/gumoret/www/latest_production/massanalysis_latest_production/fit_sidebands_GFpreselection_bernstein.pdf")
 canvas_bernstein.SaveAs("/eos/user/g/gumoret/www/latest_production/massanalysis_latest_production/fit_sidebands_GFpreselection_bernstein.png")
-'''
+
 
 #Exponential frame
 canvas_exponential = ROOT.TCanvas()
@@ -247,7 +247,7 @@ CMS_lumi.CMS_lumi(canvas_exponential, iPeriod, iPos) #Print integrated lumi and 
 
 canvas_exponential.SaveAs("/eos/user/g/gumoret/www/latest_production/massanalysis_latest_production/fit_sidebands_GFpreselection_exponential.pdf")
 canvas_exponential.SaveAs("/eos/user/g/gumoret/www/latest_production/massanalysis_latest_production/fit_sidebands_GFpreselection_exponential.png")
-'''
+
 # Multipdf ------------------------------------------------------------------------------------------------------------------------------
 cat = ROOT.RooCategory("pdf_index_GFpreselection","Index of Pdf which is active")
 mypdfs = ROOT.RooArgList()

@@ -18,7 +18,8 @@ process	0	 	-1	     1
 rate	0.01    0.01	 1     
 -------------------------------------
 lumi_13TeV_2018    lnN     1.025   1.025   -  
-xsecQCDscale       lnN     1.039   1.004   -  
+xsecQCDscale       lnN     1.039   1.004   - 
+trackingEff        lnN     1.044   1.044   -  
 CMS_pileup_2018    lnN     1.046   1.046   -  
 pdf_Higgs          lnN     1.032   1.021   -  
 CMS_trig_TwoProngs lnN     1.054   1.054   -  

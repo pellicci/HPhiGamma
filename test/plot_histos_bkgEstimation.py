@@ -236,7 +236,7 @@ for histo_name in list_histos:
         if histo_name == "h_InvMass_TwoTrk_Photon":
             #hstack[histo_name].Rebin(2)            
             hstack[histo_name].GetXaxis().SetTitle("m_{ditrk#gamma} [GeV]")
-            hstack[histo_name].GetXaxis().SetLimits(70.,170.)
+            hstack[histo_name].GetXaxis().SetLimits(100.,170.)
 
 
         if histo_name == "h_nJets_25":

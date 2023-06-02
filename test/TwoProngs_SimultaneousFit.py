@@ -81,7 +81,7 @@ for SAMPLE in ["Data", "MC"]:
 
 
 		# Construct background pdf
-		a1_central, a1_min, a1_max = 0.1,-0.7,0.7
+		a1_central, a1_min, a1_max = 0.1,-0.5,0.5
 		a2_central, a2_min, a2_max = 0.3,-2.,2.
 		a3_central, a3_min, a3_max = 0.3,-2.,2.
 
@@ -99,11 +99,12 @@ for SAMPLE in ["Data", "MC"]:
 		# N   e v e n t s
 		# ---------------------------------------------------------------
 
-		nsig = ROOT.RooRealVar("nsig", "signal yield 1", 700., 0., 3000.)
-		#nsig2 = ROOT.RooRealVar("nsig2", "signal yield 2", 300., 0., 5000.)
+		if SAMPLE == "Data": nsig = ROOT.RooRealVar("nsig", "signal yield 1", 700., 300., 1200.)
+		if SAMPLE == "MC":   nsig = ROOT.RooRealVar("nsig", "signal yield 1", 150., 50., 300.)
+
 		nbkgOffline   = ROOT.RooRealVar("nbkgOffline", "background yield", 3000., 500., 10000.)
 		nbkgTriggered = ROOT.RooRealVar("nbkgTriggered", "background yield", 3000., 500., 10000.)
-		efficiency = ROOT.RooRealVar("efficiency", "efficiency", 0.95, 0., 1.)
+		efficiency    = ROOT.RooRealVar("efficiency", "efficiency", 0.95, 0.9, 1.)
 
 		# R e t r i e v e   d a t a s e t s
 		# ---------------------------------------------------------------
@@ -123,6 +124,8 @@ for SAMPLE in ["Data", "MC"]:
 		sample.defineType("Offline")
 		sample.defineType("Triggered")
 
+		#allData = ROOT.RooFit.RooDataset("allData","all data", ROOT.RooArgSet(mass), ROOT.RooFit.Import("Offline", data1))
+
 		jointData = ROOT.RooDataSet("jointData", "joint data", ROOT.RooArgSet(mass), ROOT.RooFit.Index(sample), ROOT.RooFit.Import("Offline", data1), ROOT.RooFit.Import("Triggered", data2))
 
 		# C o n s t r u c t   a   s i m u l t a n e o u s   p d f   i n   ( x , s a m p l e )
@@ -130,12 +133,23 @@ for SAMPLE in ["Data", "MC"]:
 		simPdf = ROOT.RooSimultaneous("simPdf", "simultaneous pdf", sample)
 
 		# Create model for each dataset
-		modelOffline = ROOT.RooAddPdf("modelOffline", "Signal and Background PDF for Offline", ROOT.RooArgList(signalPDF, backgroundPDFOffline), ROOT.RooArgList(signal_yield1_formula, nbkgOffline))
+		modelOffline   = ROOT.RooAddPdf("modelOffline", "Signal and Background PDF for Offline", ROOT.RooArgList(signalPDF, backgroundPDFOffline), ROOT.RooArgList(signal_yield1_formula, nbkgOffline))
 		modelTriggered = ROOT.RooAddPdf("modelTriggered", "Signal and Background PDF for Triggered", ROOT.RooArgList(signalPDF, backgroundPDFTriggered), ROOT.RooArgList(signal_yield2_formula, nbkgTriggered))
 
 		simPdf.addPdf(modelOffline, "Offline")
 		simPdf.addPdf(modelTriggered, "Triggered")
+		
+		'''
+		allData = ROOT.RooDataSet("allData","all data",ROOT.RooArgSet(mass),ROOT.RooFit.Index(sample), ROOT.RooFit.Import("Offline", data1))
+		modelOffline.fitTo(allData)
 
+		mean.setConstant(1)
+		sigma.setConstant(1)
+		alpha.setConstant(1)
+		n.setConstant(1)
+		a1_off.setConstant(1)
+		a2_off.setConstant(1)
+		'''
 		# P e r f o r m   a   s i m u l t a n e o u s   f i t
 		# ---------------------------------------------------
 		fitResult = simPdf.fitTo(jointData, ROOT.RooFit.Extended(True), ROOT.RooFit.Save())

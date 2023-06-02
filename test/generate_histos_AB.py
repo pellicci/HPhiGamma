@@ -16,7 +16,7 @@ isBDT          = False #BDT bool
 isPhiAnalysis  = False # for H -> Phi Gamma
 isRhoAnalysis  = False # for H -> Rho Gamma
 isPhotonEtaCat = False # for barrel and endcap categories
-
+isGenStudies   = False
 #Supress the opening of many Canvas's
 ROOT.gROOT.SetBatch(True)   
 
@@ -37,9 +37,9 @@ mytree = fInput.Get("HPhiGammaAnalysis/mytree")
 h_Events = fInput.Get("HPhiGammaAnalysis/h_Events")
 
 #Trigger eff scale factors
-fInput_TwoProngsTriggerSF = ROOT.TFile("scale_factors/TwoProngsTriggerSF.root") 
+fInput_TwoProngsTriggerSF = ROOT.TFile("scale_factors/TwoProngsTriggerSF_Simultaneous.root") 
 fInput_PhotonTriggerSF    = ROOT.TFile("scale_factors/Photon35TriggerSF.root") #Photon35 is the new histo containing SFs calculated changing the Photon eT threshold to 35 GeV at HLT level
-h_TwoProngsTriggerSF = fInput_TwoProngsTriggerSF.Get("h_trigger_efficiency")
+h_TwoProngsTriggerSF = fInput_TwoProngsTriggerSF.Get("h_efficiency_Data")
 h_PhotonTriggerSF    = fInput_PhotonTriggerSF.Get("h_triggerEff_eT")
 
 #Track iso syst scale factors
@@ -121,7 +121,7 @@ else: weightSum = 1.
 histo_map = dict()
 list_histos = ["h_InvMass_TwoTrk_Photon","h_meson_InvMass_TwoTrk","h_firstTrk_pT","h_secondTrk_pT","h_firstTrk_Eta","h_secondTrk_Eta","h_firstTrk_Phi","h_secondTrk_Phi","h_bestCouplePt","h_bestCoupleEta","h_bestCoupleDeltaR","h_bestJetPt","h_bestJetEta","h_firstTrk_Iso","h_firstTrk_Iso_ch","h_secondTrk_Iso","h_secondTrk_Iso_ch","h_couple_Iso","h_couple_Iso_ch","h_photon_energy","h_photon_eta","h_nJets_25","h_nMuons","h_nElectrons","h_nPhotons38WP80","h_efficiency","h_decayChannel","h_couple_Iso_neutral","h_cutOverflow","h_met_pT","h_dPhiGammaTrk","h_nPhotons20WP90","h_pTOverHmass","h_eTOverHmass","h_JetChargedEmEnergy","h_JetNeutralEmEnergy","h_JetChargedHadEnergy","h_JetNeutralHadEnergy","h_massResolution","h_genPhotonEt","h_genMesonPt","h_RecoVsGenPhotonPtRel","h_RecoVsGenMesonPtRel","h_MrecoMinusMgen","h_trkPlus_dxy","h_trkPlus_dz","h_trkPlus_dxyErr","h_trkPlus_dzErr","h_trkMinus_dxy","h_trkMinus_dz","h_trkMinus_dxyErr","h_trkMinus_dzErr","h_firstTrkCharge","h_secondTrkCharge","h_deltaRKpm"]#,"h_GenVsReco_DeltaR_trkPlus","h_GenVsReco_DeltaR_trkMinus"]#,"h_BDT_out"]
 
-histo_map[list_histos[0]]  = ROOT.TH1F(list_histos[0],"M_{H}",300,70.,170.) 
+histo_map[list_histos[0]]  = ROOT.TH1F(list_histos[0],"M_{H}",300,100.,170.) 
 if   isPhiAnalysis: histo_map[list_histos[1]]  = ROOT.TH1F(list_histos[1],"M_{meson}", 100, 1., 1.05) 
 elif isRhoAnalysis: histo_map[list_histos[1]]  = ROOT.TH1F(list_histos[1],"M_{meson}", 100, 0.5, 1.) 
 histo_map[list_histos[2]]  = ROOT.TH1F(list_histos[2],"p_{T} of the 1st track", 100, 20.,60.)
@@ -460,14 +460,17 @@ for jentry in xrange(nentries):
         
         PhotonTriggerSF += PhotonTriggerSF_err     
 
-        if MesonPt < 100.:
-            TwoProngsTriggerSF     = h_TwoProngsTriggerSF.GetBinContent(h_TwoProngsTriggerSF.GetXaxis().FindBin(MesonPt))
-            TwoProngsTriggerSF_err = h_TwoProngsTriggerSF.GetBinError(h_TwoProngsTriggerSF.GetXaxis().FindBin(MesonPt))
+        if (38. < MesonPt <= 42.):
+            TwoProngsTriggerSF     = h_TwoProngsTriggerSF.GetBinContent(1)
+            TwoProngsTriggerSF_err = h_TwoProngsTriggerSF.GetBinError(1)
+        elif(42. < MesonPt < 50.):
+            TwoProngsTriggerSF     = h_TwoProngsTriggerSF.GetBinContent(2)
+            TwoProngsTriggerSF_err = h_TwoProngsTriggerSF.GetBinError(2)
         else:
-            TwoProngsTriggerSF,TwoProngsTriggerSF_err = h_TwoProngsTriggerSF.GetBinContent(4),h_TwoProngsTriggerSF.GetBinError(4)
+            TwoProngsTriggerSF,TwoProngsTriggerSF_err = h_TwoProngsTriggerSF.GetBinContent(3),h_TwoProngsTriggerSF.GetBinError(3)
 
-#        TwoProngsTriggerSF -= TwoProngsTriggerSF_err
-        
+        #TwoProngsTriggerSF -= TwoProngsTriggerSF_err
+
 
         #iso track neutral 
         isoNeutralSF     = h_isoNeutralSF.GetBinContent(h_isoNeutralSF.GetXaxis().FindBin(MesonIso0))
@@ -561,7 +564,7 @@ for jentry in xrange(nentries):
     nEventsInHmassRange+=1
 
     if samplename == 'Data':
-         if (CRflag == 0 and Hmass >  70. and Hmass < 115.) : nEventsLeftSB  += 1
+         if (CRflag == 0 and Hmass > 100. and Hmass < 115.) : nEventsLeftSB  += 1
          if (CRflag == 0 and Hmass > 135. and Hmass < 170.) : nEventsRightSB += 1
     
     if (abs(photonEta) > 1.444 and abs(photonEta) < 1.566): continue
@@ -596,7 +599,7 @@ for jentry in xrange(nentries):
     print ""
     '''
     
-    if not samplename == "Data":
+    if not samplename == "Data" and isPhiAnalysis:
 
         #bools
         leadingTrkMatched    = True 
@@ -764,14 +767,16 @@ for jentry in xrange(nentries):
     histo_map["h_JetNeutralHadEnergy"].Fill(JetNeutralHadEn, eventWeight)
     histo_map["h_JetNeutralHadEnergy"].Fill(JetNeutralHadEn, eventWeight)
     histo_map["h_massResolution"].Fill(massResolution, eventWeight)
-    histo_map["h_trkPlus_dxy"].Fill(trkPlus_dxy,eventWeight)
-    histo_map["h_trkPlus_dz"].Fill(trkPlus_dz,eventWeight)
-    histo_map["h_trkPlus_dxyErr"].Fill(trkPlus_dxyErr,eventWeight)
-    histo_map["h_trkPlus_dzErr"].Fill(trkPlus_dzErr/trkPlus_dz,eventWeight)
-    histo_map["h_trkMinus_dxy"].Fill(trkMinus_dxy,eventWeight)
-    histo_map["h_trkMinus_dz"].Fill(trkMinus_dz,eventWeight)
-    histo_map["h_trkMinus_dxyErr"].Fill(trkMinus_dxyErr,eventWeight)
-    histo_map["h_trkMinus_dzErr"].Fill(trkMinus_dzErr/trkMinus_dz,eventWeight)
+    if isPhiAnalysis and not samplename == "Data":
+        histo_map["h_trkPlus_dxy"].Fill(trkPlus_dxy,eventWeight)
+        histo_map["h_trkPlus_dz"].Fill(trkPlus_dz,eventWeight)
+        histo_map["h_trkPlus_dxyErr"].Fill(trkPlus_dxyErr,eventWeight)
+        histo_map["h_trkPlus_dzErr"].Fill(trkPlus_dzErr/trkPlus_dz,eventWeight)
+        histo_map["h_trkMinus_dxy"].Fill(trkMinus_dxy,eventWeight)
+        histo_map["h_trkMinus_dz"].Fill(trkMinus_dz,eventWeight)
+        histo_map["h_trkMinus_dxyErr"].Fill(trkMinus_dxyErr,eventWeight)
+        histo_map["h_trkMinus_dzErr"].Fill(trkMinus_dzErr/trkMinus_dz,eventWeight)
+    
     histo_map["h_firstTrkCharge"].Fill(firstTrkCharge,eventWeight)
     histo_map["h_secondTrkCharge"].Fill(secondTrkCharge,eventWeight)
 
@@ -781,7 +786,7 @@ for jentry in xrange(nentries):
         histo_map["h_RecoVsGenPhotonPtRel"].Fill(genPhotonEt, (photonEt/genPhotonEt)) #TH2F
         histo_map["h_RecoVsGenMesonPtRel"].Fill(genMesonPt, (MesonPt/genMesonPt)) #TH2F
         histo_map["h_MrecoMinusMgen"].Fill(MesonMass - genMesonMass, eventWeight)
-        histo_map["h_deltaRKpm"].Fill(deltaR_Kpm, eventWeight)
+        if isPhiAnalysis: histo_map["h_deltaRKpm"].Fill(deltaR_Kpm, eventWeight)
 
     #------------------------------------------------------------------------------------
     #If preselection, reweight events as function of the mass resolution. Just for the BDT.
@@ -1052,22 +1057,18 @@ if samplename == 'Data' and CRflag == 0:
     print "Total events in the sidebands = ", nEventsRightSB + nEventsLeftSB
 
 if not samplename == "Data":
-    print "n Photon matched = ",nPhotonMatched
-    print "n trk +  matched = ",nTrkPlusMatched
-    print "n trk -  matched = ",nTrkMinusMatched
-    print "n meson  matched = ",nMesonMatched
-    print "n Higgs  matched = ",nHmatched
     print "Signal weight sum   = ",float(weightSum)
     print "Signal integral     = ",histo_map["h_InvMass_TwoTrk_Photon"].Integral()
     print "Total signal events = ",bin1content
     print "Signal efficiency   = ",nEventsOverCuts/bin1content
-    print "nMesonPtMatched           = ",nMesonPtMatched
-    print "nMesonPtNotMatched        = ",nMesonPtNotMatched," (", 100*nMesonPtNotMatched/(nMesonPtMatched + nMesonPtNotMatched)," percento of total)"
-    print "nLeadingTrkMatched        = ",nLeadingTrkMatched
-    print "nLeadingTrkNotMatched     = ",nLeadingTrkNotMatched
-    print "nSubleadingTrkMatched     = ",nSubleadingTrkMatched
-    print "nSubleadingTrkNotMatched  = ",nSubleadingTrkNotMatched
-    print "nOneTrkMatched            = ",nOneTrkMatched
+    if isPhiAnalysis:
+        print "nMesonPtMatched           = ",nMesonPtMatched
+        print "nMesonPtNotMatched        = ",nMesonPtNotMatched," (", 100*nMesonPtNotMatched/(nMesonPtMatched + nMesonPtNotMatched)," percento of total)"
+        print "nLeadingTrkMatched        = ",nLeadingTrkMatched
+        print "nLeadingTrkNotMatched     = ",nLeadingTrkNotMatched
+        print "nSubleadingTrkMatched     = ",nSubleadingTrkMatched
+        print "nSubleadingTrkNotMatched  = ",nSubleadingTrkNotMatched
+        print "nOneTrkMatched            = ",nOneTrkMatched
 
     #print "nPhotonEtMatched    = ",nPhotonEtMatched
     #print "nPhotonEtNotMatched = ",nPhotonEtNotMatched," (", 100*nPhotonEtNotMatched/(nPhotonEtMatched + nPhotonEtNotMatched)," percento of total)"

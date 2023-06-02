@@ -40,12 +40,12 @@ if __name__ == '__main__':
             print "Failed submitting task: %s" % (cle)
 
 
-    #config.General.requestName = '2018_HPhiGammaTwoProngsTriggerAnalysis_SingleMuonB'
-    #config.Data.inputDataset = '/SingleMuon/Run2018B-UL2018_MiniAODv2-v2/MINIAOD'
-    #config.Data.runRange = '317527-319310'
-    #p = Process(target=submit, args=(config,))
-    #p.start()
-    #p.join()
+    config.General.requestName = '2018_HPhiGammaTwoProngsTriggerAnalysis_SingleMuonB'
+    config.Data.inputDataset = '/SingleMuon/Run2018B-UL2018_MiniAODv2-v2/MINIAOD'
+    config.Data.runRange = '317527-319310'
+    p = Process(target=submit, args=(config,))
+    p.start()
+    p.join()
 
     config.General.requestName = '2018_HPhiGammaTwoProngsTriggerAnalysis_SingleMuonC'
     config.Data.inputDataset = '/SingleMuon/Run2018C-UL2018_MiniAODv2-v2/MINIAOD'

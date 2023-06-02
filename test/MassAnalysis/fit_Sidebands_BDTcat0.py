@@ -63,7 +63,8 @@ e2_bkg = ROOT.RooRealVar("e2_bkg_exponential_"+CHANNEL+"_GFcat_bdt0","e2_bkg",-0
 exp2   = ROOT.RooExponential("exponential2_GFcat_bdt0_bkg","bkgPDF",mass,e2_bkg)
 frac_exp = ROOT.RooRealVar("f0_bkg_exponential_"+CHANNEL+"_GFcat_bdt0","frac_exp",0.,1.)
 
-bkgPDF_exponential = ROOT.RooAddPdf("exponential_GFcat_bdt0_bkg","bkgPDF",ROOT.RooArgList(exp1,exp2),ROOT.RooArgList(frac_exp))
+#bkgPDF_exponential = ROOT.RooAddPdf("exponential_GFcat_bdt0_bkg","bkgPDF",ROOT.RooArgList(exp1,exp2),ROOT.RooArgList(frac_exp))
+bkgPDF_exponential = ROOT.RooExponential("exponential_GFcat_bdt0_bkg","bkgPDF",mass,e1_bkg)
 #if CHANNEL == "Phi": bkgPDF_exponential = ROOT.RooExponential("exponential_GFcat_bdt0_bkg","bkgPDF",mass,e1_bkg)
 
 #Initialize a Bernstein pdf
