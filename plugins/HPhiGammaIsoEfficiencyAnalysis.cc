@@ -50,6 +50,10 @@
 #include "DataFormats/PatCandidates/interface/Photon.h"
 #include "DataFormats/PatCandidates/interface/VIDCutFlowResult.h"
 
+#include <Math/PxPyPzE4D.h>
+#include <TRandom3.h>
+
+
 typedef math::XYZTLorentzVector LorentzVector;
 
 using namespace std;  
@@ -222,94 +226,160 @@ void HPhiGammaIsoEfficiencyAnalysis::analyze(const edm::Event& iEvent, const edm
   return; //Return only if there're not any muons
   }
 
-  //*************************************************************//
-  //                                                             //
-  //------------------ Variable initialization ------------------//
-  //                                                             //
-  //*************************************************************//
 
-  isBestMuMu_Found = false;
-  float currentMuMuPt = -1.;
-  bestMuMuPt = -1.;
-  float currentMuMuMass = -1.;
-  bestMuMuMass = -1.;
-  LorentzVector tagMuP4;
-  LorentzVector probeMuP4;
+ //*************************************************************//
+//                                                             //
+//---------------------------- Muons --------------------------//
+//                                                             //
+//*************************************************************//
+if (verbose)
+  cout << "Muons forloop start" << endl;
 
+// Variable declaration
+bestMuMuPt   = -1.;
+bestMuMuMass = -1.;
+LorentzVector tagMuP4;
+LorentzVector probeMuP4;
+isBestMuMuFound = false;
 
-  //*************************************************************//
-  //                                                             //
-  //---------------------------- Muons --------------------------//
-  //                                                             //
-  //*************************************************************//
-  if (verbose) cout<<"Muons forloop start"<<endl;
+// First loop over muons: first muon
+for (std::vector<reco::Muon>::size_type firstMuIndex = 0; firstMuIndex < slimmedMuons->size(); firstMuIndex++) {
+  const reco::Muon& firstMuon = slimmedMuons->at(firstMuIndex);
 
-  //First loop over muons: TAG muon
-  for(std::vector<reco::Muon>::size_type tagMuIndex = 0; tagMuIndex < slimmedMuons->size();tagMuIndex ++){ //Muon first forloop start
-      
-      //refuse muons not passing over basic requirements
-      if(slimmedMuons->at(tagMuIndex).pt() < 25. || !slimmedMuons->at(tagMuIndex).CutBasedIdMedium || fabs(slimmedMuons->at(tagMuIndex).eta()) > 2.4 || fabs(slimmedMuons->at(tagMuIndex).muonBestTrack()->dxy((&slimmedPV->at(0))->position())) >= 0.2 || fabs(slimmedMuons->at(tagMuIndex).muonBestTrack()->dz((&slimmedPV->at(0))->position())) >= 0.5) continue;
-      if(!slimmedMuons->at(tagMuIndex).PFIsoLoose) continue;
-    
-      //Second loop over muons: PROBE muon
-      for(std::vector<pat::Muon> ::size_type probeMuIndex = tagMuIndex + 1; probeMuIndex < slimmedMuons->size();probeMuIndex ++){ //Muon second forloop start
-          
-          //refuse muons not passing over basic requirements
-        if(slimmedMuons->at(probeMuIndex).pt() < 10. || !slimmedMuons->at(probeMuIndex).CutBasedIdMedium || fabs(slimmedMuons->at(probeMuIndex).eta()) > 2.4 || fabs(slimmedMuons->at(probeMuIndex).muonBestTrack()->dxy((&slimmedPV->at(0))->position())) >= 0.2 || fabs(slimmedMuons->at(probeMuIndex).muonBestTrack()->dz((&slimmedPV->at(0))->position())) >= 0.5) continue; 
-
-          //take only muons with opposite charges
-          if(slimmedMuons->at(tagMuIndex).charge() * slimmedMuons->at(probeMuIndex).charge() >= 0.) continue; 
-
-          //take only muons pairs falling in an invariant mass range
-          currentMuMuMass = (slimmedMuons->at(tagMuIndex).p4() + slimmedMuons->at(probeMuIndex).p4()).M();
-          if(currentMuMuMass < 60. || currentMuMuMass > 120.) continue; //MuMu inv mass for Z
-
-          float tagPhi = slimmedMuons->at(tagMuIndex).phi();
-          float tagEta = slimmedMuons->at(tagMuIndex).eta();
-          float proPhi = slimmedMuons->at(probeMuIndex).phi();
-          float proEta = slimmedMuons->at(probeMuIndex).eta();
-
-          float deltaPhi = fabs(tagPhi - proPhi);
-          if (deltaPhi > M_PI) deltaPhi = 2*M_PI - deltaPhi;
-
-          float deltaEta = fabs(tagEta - proEta);
-
-          float deltaR = sqrt(deltaPhi * deltaPhi + deltaEta * deltaEta);
-
-          if (deltaR < 0.4) continue; //consider only muons with high deltaR to compute the isolation
-
-          //choose the pair with largest pT 
-          currentMuMuPt = (slimmedMuons->at(tagMuIndex).p4() + slimmedMuons->at(probeMuIndex).p4()).pt();
-          if(currentMuMuPt <= bestMuMuPt) continue; 
-
-          //Save the variables of the current pair until a better one doesn't replace it
-          bestMuMuPt   = currentMuMuPt;
-          bestMuMuMass = currentMuMuMass;
-          tagMuP4      = slimmedMuons->at(tagMuIndex).p4();
-          probeMuP4    = slimmedMuons->at(probeMuIndex).p4();
-          tagMuEta     = tagEta;
-          tagMuPhi     = tagPhi;
-          probeMuEta   = proEta;
-          probeMuPhi   = proPhi;
-          isBestMuMu_Found = true;
-
-      } //Muon second forloop end
-    }//Muon first forloop end
-
-  if(!isBestMuMu_Found) { 
-    if (verbose) cout<<"RETURN: No Z->mumu found."<<endl<<endl;
-    return;
+  // Select the first muon with pT > 10 GeV
+  if (firstMuon.pt() <= 10.) {
+    if (verbose) {
+      cout << "First muon rejected due to low pT: " << firstMuon.pt() << " GeV." << endl;
+    }
+    continue;
   }
 
-  _nEvents_ZmumuFound++;
+  // Second loop over muons: second muon
+  for (std::vector<reco::Muon>::size_type secondMuIndex = firstMuIndex + 1; secondMuIndex < slimmedMuons->size(); secondMuIndex++) {
+    const reco::Muon& secondMuon = slimmedMuons->at(secondMuIndex);
 
-  if(isBestMuMu_Found && verbose){
-    cout<<"Muon pair found, with pT = "<<bestMuMuPt<<" and inv mass = "<<bestMuMuMass<<endl;
-  } 
+    // Select the second muon with pT > 10 GeV
+    if (secondMuon.pt() <= 10.) {
+      if (verbose) {
+        cout << "Second muon rejected due to low pT: " << secondMuon.pt() << " GeV." << endl;
+      }
+      continue;
+    }
 
-  //return if probe pT < 35 GeV (which is the HLT threshold on TwoProngs pT)
-  if (probeMuP4.pt() < 35.) return;
- 
+    // Select only pairs with opposite charges
+    if (firstMuon.charge() * secondMuon.charge() >= 0.) {
+      if (verbose) {
+        cout << "Muons with the same charge rejected." << endl;
+      }
+      continue;
+    }
+
+    // Calculate the invariant mass of the pair
+    float currentMuMuMass = (firstMuon.p4() + secondMuon.p4()).M();
+
+    // Select only pairs with invariant mass between 60 and 120 GeV
+    if (currentMuMuMass < 60. || currentMuMuMass > 120.) {
+      if (verbose) {
+        cout << "Muon pair rejected due to invalid invariant mass: " << currentMuMuMass << " GeV." << endl;
+      }
+      continue;
+    }
+
+    // Calculate the deltaR between the tracks
+    float deltaPhi = fabs(firstMuon.phi() - secondMuon.phi());
+    if (deltaPhi > M_PI) deltaPhi = 2 * M_PI - deltaPhi;
+
+    float deltaEta = fabs(firstMuon.eta() - secondMuon.eta());
+
+    float deltaR   = sqrt(deltaPhi * deltaPhi + deltaEta * deltaEta);
+
+    // Select only pairs with deltaR > 0.4
+    if (deltaR <= 0.4) {
+      if (verbose) {
+        cout << "Muon pair rejected due to small deltaR: " << deltaR << endl;
+      }
+      continue;
+    }
+
+    // Select the pair with the highest pT
+    float currentMuMuPt = (firstMuon.p4() + secondMuon.p4()).Pt();
+    if (currentMuMuPt <= bestMuMuPt) {
+      if (verbose) {
+        cout << "Muon pair rejected due to lower pT: " << currentMuMuPt << " GeV." << endl;
+      }
+      continue;
+    }
+
+    // Randomly assign one muon as tag and the other as probe
+    bool isFirstTag = (gRandom->Rndm() < 0.5);
+    const reco::Muon* tagMu;
+    int tagIndex;
+
+    if (isFirstTag) {
+      tagMuP4   = firstMuon.p4();
+      probeMuP4 = secondMuon.p4();
+      tagMu     = &firstMuon;
+      tagIndex  = firstMuIndex;
+
+    } else {
+      tagMuP4   = secondMuon.p4();
+      probeMuP4 = firstMuon.p4();
+      tagMu     = &secondMuon;
+      tagIndex  = secondMuIndex;
+    }
+
+    // Check the requirements on the tag muon
+    if (!slimmedMuons->at(tagIndex).CutBasedIdMedium|| fabs(tagMu->eta()) > 2.4 || fabs(tagMu->muonBestTrack()->dxy((&slimmedPV->at(0))->position())) >= 0.2 || fabs(tagMu->muonBestTrack()->dz((&slimmedPV->at(0))->position())) >= 0.5 || !slimmedMuons->at(tagIndex).PFIsoLoose) {
+      if (verbose) {
+        cout << "Tag muon failed the requirements." << endl;
+      }
+      continue;
+    }
+
+    // Check only the pT requirement on the probe muon (pT > 35)
+    if (probeMuP4.Pt() <= 35.) {
+      if (verbose) {
+        cout << "Probe muon failed the requirements." << endl;
+      }
+      continue;
+    }
+
+    // Save the variables of the current pair
+    bestMuMuPt   = currentMuMuPt;
+    bestMuMuMass = currentMuMuMass;
+    tagMuPt      = tagMuP4.Pt();
+    tagMuEta     = tagMuP4.Eta();
+    tagMuPhi     = tagMuP4.Phi();
+    probeMuPt    = probeMuP4.Pt();
+    probeMuEta   = probeMuP4.Eta();
+    probeMuPhi   = probeMuP4.Phi();
+
+    isBestMuMuFound = true;
+
+    // Exit the loops since a valid pair has been found
+    break;
+  }
+
+  // Exit the first loop if a valid pair has been found
+  if (isBestMuMuFound)
+    break;
+}
+
+if (!isBestMuMuFound) {
+  if (verbose)
+    cout << "RETURN: No valid muon pair found." << endl << endl;
+  return;
+}
+
+_nEvents_ZmumuFound++;
+
+if (isBestMuMuFound && verbose) {
+  cout << "Muon pair found with pT = " << bestMuMuPt << " and inv mass = " << bestMuMuMass << endl;
+  cout << "Tag muon: pT = " << tagMuPt << ", eta = " << tagMuEta << ", phi = " << tagMuPhi << endl;
+  cout << "Probe muon: pT = " << probeMuPt << ", eta = " << probeMuEta << ", phi = " << probeMuPhi << endl;
+}
+
+
   //*************************************************************//
   //                                                             //
   //--------------------------- Isolation -----------------------//
@@ -347,9 +417,6 @@ for(auto cand_iso = PFCandidates->begin(); cand_iso != PFCandidates->end(); ++ca
   
 
 //DATAMEMBER FOR TREE FILLING 
-
-tagMuPt   = tagMuP4.pt();
-probeMuPt = probeMuP4.pt();
 
 _iso    = probeMuPt / (sum_pT_05 + probeMuPt);
 _iso_ch = probeMuPt / (sum_pT_05_ch + probeMuPt);

@@ -73,7 +73,7 @@ private:
   float sum_pT_05_ch;
 
   bool isIsoMuTrigger;
-  bool isBestMuMu_Found;
+  bool isBestMuMuFound;
 
   float _iso;
   float _iso_ch;
