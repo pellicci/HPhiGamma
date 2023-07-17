@@ -21,8 +21,8 @@ secs_table["Signal_Phi_VBF"]       =  3.78*0.49
 secs_table["Signal_Rho_VBF"]       =  3.78
 
 #ttbar
-secs_table["ttbarToSemiLeptonic"] = 687.1 #OLD = 365.34 # accounting for the 2 possible charge signs of the W
-secs_table["ttbarToHadronic"]     = 687.1 #OLD = 377.96
+#secs_table["ttbarToSemiLeptonic"] = 687.1 #OLD = 365.34 # accounting for the 2 possible charge signs of the W
+#secs_table["ttbarToHadronic"]     = 687.1 #OLD = 377.96
 #secs_table["ttbarlnu"]            = 687.1 #OLD = 88.29 #NNLO-2018
 '''
 #Drell-Yan
@@ -77,9 +77,9 @@ frac_table["Signal_Phi_VBF"]       = 0.
 frac_table["Signal_Rho_VBF"]       = 0.
 
 #ttbar
-frac_table["ttbarToSemiLeptonic"] = 0.003957 #OLD = 0.
-frac_table["ttbarToHadronic"]     = 0.00388 #OLD = 0.
-frac_table["ttbarlnu"]            = 0.00379 #OLD = 0.
+#frac_table["ttbarToSemiLeptonic"] = 0.003957 #OLD = 0.
+#frac_table["ttbarToHadronic"]     = 0.00388 #OLD = 0.
+#frac_table["ttbarlnu"]            = 0.00379 #OLD = 0.
 '''
 #Drell-Yan
 frac_table["DY50"]                = 0.1643 #UL

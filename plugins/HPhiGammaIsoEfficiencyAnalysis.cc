@@ -241,6 +241,8 @@ bestMuMuMass = -1.;
 LorentzVector tagMuP4;
 LorentzVector probeMuP4;
 isBestMuMuFound = false;
+bool hasProbeMuFiredTrigger = false;
+
 
 // First loop over muons: first muon
 for (std::vector<reco::Muon>::size_type firstMuIndex = 0; firstMuIndex < slimmedMuons->size(); firstMuIndex++) {
@@ -314,18 +316,21 @@ for (std::vector<reco::Muon>::size_type firstMuIndex = 0; firstMuIndex < slimmed
     bool isFirstTag = (gRandom->Rndm() < 0.5);
     const reco::Muon* tagMu;
     int tagIndex;
+    int probeIndex;
 
     if (isFirstTag) {
-      tagMuP4   = firstMuon.p4();
-      probeMuP4 = secondMuon.p4();
-      tagMu     = &firstMuon;
-      tagIndex  = firstMuIndex;
+      tagMuP4    = firstMuon.p4();
+      probeMuP4  = secondMuon.p4();
+      tagMu      = &firstMuon;
+      tagIndex   = firstMuIndex;
+      probeIndex = secondMuIndex;
 
     } else {
-      tagMuP4   = secondMuon.p4();
-      probeMuP4 = firstMuon.p4();
-      tagMu     = &secondMuon;
-      tagIndex  = secondMuIndex;
+      tagMuP4    = secondMuon.p4();
+      probeMuP4  = firstMuon.p4();
+      tagMu      = &secondMuon;
+      tagIndex   = secondMuIndex;
+      probeIndex = firstMuIndex;
     }
 
     // Check the requirements on the tag muon
@@ -343,6 +348,9 @@ for (std::vector<reco::Muon>::size_type firstMuIndex = 0; firstMuIndex < slimmed
       }
       continue;
     }
+
+    // Verify if the probe muon fired HLT_IsoMu24
+    hasProbeMuFiredTrigger = slimmedMuons->at(probeIndex).triggered("HLT_IsoMu24_v*");
 
     // Save the variables of the current pair
     bestMuMuPt   = currentMuMuPt;
@@ -366,12 +374,15 @@ for (std::vector<reco::Muon>::size_type firstMuIndex = 0; firstMuIndex < slimmed
 }
 
 if (!isBestMuMuFound) {
-  if (verbose)
-    cout << "RETURN: No valid muon pair found." << endl << endl;
+  if (verbose) cout << "RETURN: No valid muon pair found." << endl << endl;
   return;
 }
 
 _nEvents_ZmumuFound++;
+
+if (hasProbeMuFiredTrigger){
+  return;
+}
 
 if (isBestMuMuFound && verbose) {
   cout << "Muon pair found with pT = " << bestMuMuPt << " and inv mass = " << bestMuMuMass << endl;

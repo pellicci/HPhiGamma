@@ -37,14 +37,14 @@ mytree = fInput.Get("HPhiGammaAnalysis/mytree")
 h_Events = fInput.Get("HPhiGammaAnalysis/h_Events")
 
 #Trigger eff scale factors
-fInput_TwoProngsTriggerSF = ROOT.TFile("scale_factors/TwoProngsTriggerSF_Simultaneous.root") 
+fInput_TwoProngsTriggerSF = ROOT.TFile("scale_factors/TwoProngsTriggerSF.root") 
 fInput_PhotonTriggerSF    = ROOT.TFile("scale_factors/Photon35TriggerSF.root") #Photon35 is the new histo containing SFs calculated changing the Photon eT threshold to 35 GeV at HLT level
+fInput_IsoChSF            = ROOT.TFile("scale_factors/IsoChEfficiencySF.root") 
+fInput_IsoNeuSF           = ROOT.TFile("scale_factors/IsoNeuEfficiencySF.root") 
 h_TwoProngsTriggerSF = fInput_TwoProngsTriggerSF.Get("h_efficiency_Data")
 h_PhotonTriggerSF    = fInput_PhotonTriggerSF.Get("h_triggerEff_eT")
-
-#Track iso syst scale factors
-fInput_isoNeutralSF = ROOT.TFile("scale_factors/isoTrackSyst.root")
-h_isoNeutralSF = fInput_isoNeutralSF.Get("h_iso_couple_all_Data")
+h_IsoChSF            = fInput_IsoChSF.Get("h_efficiency_Data")
+h_IsoNeuSF           = fInput_IsoNeuSF.Get("h_efficiency_Data")
 
 #Bools ######################################################################################################
 print "################################################################################"
@@ -119,9 +119,9 @@ else: weightSum = 1.
 
 #HISTOS ###########################################################################################################
 histo_map = dict()
-list_histos = ["h_InvMass_TwoTrk_Photon","h_meson_InvMass_TwoTrk","h_firstTrk_pT","h_secondTrk_pT","h_firstTrk_Eta","h_secondTrk_Eta","h_firstTrk_Phi","h_secondTrk_Phi","h_bestCouplePt","h_bestCoupleEta","h_bestCoupleDeltaR","h_bestJetPt","h_bestJetEta","h_firstTrk_Iso","h_firstTrk_Iso_ch","h_secondTrk_Iso","h_secondTrk_Iso_ch","h_couple_Iso","h_couple_Iso_ch","h_photon_energy","h_photon_eta","h_nJets_25","h_nMuons","h_nElectrons","h_nPhotons38WP80","h_efficiency","h_decayChannel","h_couple_Iso_neutral","h_cutOverflow","h_met_pT","h_dPhiGammaTrk","h_nPhotons20WP90","h_pTOverHmass","h_eTOverHmass","h_JetChargedEmEnergy","h_JetNeutralEmEnergy","h_JetChargedHadEnergy","h_JetNeutralHadEnergy","h_massResolution","h_genPhotonEt","h_genMesonPt","h_RecoVsGenPhotonPtRel","h_RecoVsGenMesonPtRel","h_MrecoMinusMgen","h_trkPlus_dxy","h_trkPlus_dz","h_trkPlus_dxyErr","h_trkPlus_dzErr","h_trkMinus_dxy","h_trkMinus_dz","h_trkMinus_dxyErr","h_trkMinus_dzErr","h_firstTrkCharge","h_secondTrkCharge","h_deltaRKpm"]#,"h_GenVsReco_DeltaR_trkPlus","h_GenVsReco_DeltaR_trkMinus"]#,"h_BDT_out"]
+list_histos = ["h_InvMass_TwoTrk_Photon","h_meson_InvMass_TwoTrk","h_firstTrk_pT","h_secondTrk_pT","h_firstTrk_Eta","h_secondTrk_Eta","h_firstTrk_Phi","h_secondTrk_Phi","h_bestCouplePt","h_bestCoupleEta","h_bestCoupleDeltaR","h_bestJetPt","h_bestJetEta","h_firstTrk_Iso","h_firstTrk_Iso_ch","h_secondTrk_Iso","h_secondTrk_Iso_ch","h_couple_Iso","h_couple_Iso_ch","h_photon_energy","h_photon_eta","h_nJets_25","h_nMuons","h_nElectrons","h_nPhotons38WP80","h_efficiency","h_decayChannel","h_couple_Iso_neutral","h_cutOverflow","h_met_pT","h_dPhiGammaTrk","h_nPhotons15WP90barrel","h_pTOverHmass","h_eTOverHmass","h_JetChargedEmEnergy","h_JetNeutralEmEnergy","h_JetChargedHadEnergy","h_JetNeutralHadEnergy","h_massResolution","h_genPhotonEt","h_genMesonPt","h_RecoVsGenPhotonPtRel","h_RecoVsGenMesonPtRel","h_MrecoMinusMgen","h_trkPlus_dxy","h_trkPlus_dz","h_trkPlus_dxyErr","h_trkPlus_dzErr","h_trkMinus_dxy","h_trkMinus_dz","h_trkMinus_dxyErr","h_trkMinus_dzErr","h_firstTrkCharge","h_secondTrkCharge","h_deltaRKpm","h_deltaDZ","h_deltaDXY","h_isoSumPtNeu","h_nPhotons25WP90endcap","h_nPhotons20WP90eta2p5","h_theta_pol"]#,"h_GenVsReco_DeltaR_trkPlus","h_GenVsReco_DeltaR_trkMinus"]#,"h_BDT_out"]
 
-histo_map[list_histos[0]]  = ROOT.TH1F(list_histos[0],"M_{H}",300,100.,170.) 
+histo_map[list_histos[0]]  = ROOT.TH1F(list_histos[0],"M_{H}",140,100.,170.) 
 if   isPhiAnalysis: histo_map[list_histos[1]]  = ROOT.TH1F(list_histos[1],"M_{meson}", 100, 1., 1.05) 
 elif isRhoAnalysis: histo_map[list_histos[1]]  = ROOT.TH1F(list_histos[1],"M_{meson}", 100, 0.5, 1.) 
 histo_map[list_histos[2]]  = ROOT.TH1F(list_histos[2],"p_{T} of the 1st track", 100, 20.,60.)
@@ -155,7 +155,7 @@ histo_map[list_histos[27]] = ROOT.TH1F(list_histos[27],"Iso_neutral of the meson
 histo_map[list_histos[28]] = ROOT.TH1F(list_histos[28],"Data cut overflow", 5, 0.,5.)
 histo_map[list_histos[29]] = ROOT.TH1F(list_histos[29],"p_{T} of the met", 200, 0.,120.)
 histo_map[list_histos[30]] = ROOT.TH1F(list_histos[30],"#Delta#phi between leading track and photon", 100, 0.,3.14)
-histo_map[list_histos[31]] = ROOT.TH1F(list_histos[31],"n. of #gamma 20wp90", 6, -0.5,5.5)
+histo_map[list_histos[31]] = ROOT.TH1F(list_histos[31],"n. of #gamma 15wp90 barrel", 6, -0.5,5.5)
 histo_map[list_histos[32]] = ROOT.TH1F(list_histos[32],"p_{T} of the meson divided by m_{ditrk#gamma}", 100, 0.2,0.75)
 histo_map[list_histos[33]] = ROOT.TH1F(list_histos[33],"E_{T} of the #gamma divided by m_{ditrk#gamma}", 100, 0.2,1.1)
 histo_map[list_histos[34]] = ROOT.TH1F(list_histos[34],"Charged em energy of the jet", 100, 0.,0.001)
@@ -179,6 +179,13 @@ histo_map[list_histos[51]] = ROOT.TH1F(list_histos[51],"trk- dz error", 100, 0.,
 histo_map[list_histos[52]] = ROOT.TH1F(list_histos[52],"trk 1 charge", 3, -1.5,1.5)
 histo_map[list_histos[53]] = ROOT.TH1F(list_histos[53],"trk 2 charge", 3, -1.5,1.5)
 histo_map[list_histos[54]] = ROOT.TH1F(list_histos[54],"#Delta R_{K^{#pm}}", 100, 0.,0.026)
+histo_map[list_histos[55]] = ROOT.TH1F(list_histos[55],"#Delta dz", 100, 0.,0.08)
+histo_map[list_histos[56]] = ROOT.TH1F(list_histos[56],"#Delta dxy", 100, 0.,0.05)
+histo_map[list_histos[57]] = ROOT.TH1F(list_histos[57],"Neutral energy of the isolation cone", 100, 0.,20.)
+histo_map[list_histos[58]] = ROOT.TH1F(list_histos[58],"n. of #gamma 25wp90 endcap", 6, -0.5,5.5)
+histo_map[list_histos[59]] = ROOT.TH1F(list_histos[59],"n. of #gamma 20 high eta", 6, -0.5,5.5)
+histo_map[list_histos[60]] = ROOT.TH1F(list_histos[60],"theta pol", 100, -1.,1.)
+
 #histo_map[list_histos[29]] = ROOT.TH1F(list_histos[29],"BDT output", 40, -1.,1.)
 
 #CREATE OUTPUT ROOTFILE ##################################################################################################
@@ -207,6 +214,7 @@ _bestCoupleEta       = np.zeros(1, dtype=float)
 _bestCoupleDeltaR    = np.zeros(1, dtype=float) 
 _photonEta           = np.zeros(1, dtype=float)  
 _eventWeight         = np.zeros(1, dtype=float)
+_BDTweight           = np.zeros(1, dtype=float)
 _metPt               = np.zeros(1, dtype=float)
 _nJets               = np.zeros(1, dtype=float)
 _dPhiGammaTrk        = np.zeros(1, dtype=float)
@@ -239,6 +247,7 @@ tree_output.Branch('_bestCoupleEta',_bestCoupleEta,'_bestCoupleEta/D')
 tree_output.Branch('_bestCoupleDeltaR',_bestCoupleDeltaR,'_bestCoupleDeltaR/D')
 tree_output.Branch('_photonEta',_photonEta,'_photonEta/D')
 tree_output.Branch('_eventWeight',_eventWeight,'_eventWeight/D')
+tree_output.Branch('_BDTweight',_BDTweight,'_BDTweight/D')
 tree_output.Branch('_metPt',_metPt,'_metPt/D')
 tree_output.Branch('_nJets',_nJets,'_nJets/D')
 tree_output.Branch('_dPhiGammaTrk',_dPhiGammaTrk,'_dPhiGammaTrk/D')
@@ -248,6 +257,40 @@ tree_output.Branch('_JetChargedEmEnergy',_JetChargedEmEnergy,'_JetChargedEmEnerg
 tree_output.Branch('_JetNeutralEmEnergy',_JetNeutralEmEnergy,'_JetNeutralEmEnergy/D')
 tree_output.Branch('_JetChargedHadEnergy',_JetChargedHadEnergy,'_JetChargedHadEnergy/D')
 tree_output.Branch('_JetNeutralHadEnergy',_JetNeutralHadEnergy,'_JetNeutralHadEnergy/D')
+
+if not isBDT:
+    tree_output_forMVA = ROOT.TTree('tree_output_forMVA','tree_output_forMVA')
+    tree_output_forMVA.Branch('mesonGammaMass',mesonGammaMass,'mesonGammaMass/D')
+    tree_output_forMVA.Branch('massResolution',massResolution,'massResolution/D')
+    tree_output_forMVA.Branch('mesonMass',mesonMass,'mesonMass/D')
+    tree_output_forMVA.Branch('_coupleIsoCh',_coupleIsoCh,'_coupleIsoCh/D')
+    tree_output_forMVA.Branch('_coupleIso',_coupleIso,'_coupleIso/D')
+    tree_output_forMVA.Branch('_coupleIso0',_coupleIso0,'_coupleIso0/D')
+    tree_output_forMVA.Branch('_bestJetPt',_bestJetPt,'_bestJetPt/D')
+    tree_output_forMVA.Branch('_bestCouplePt',_bestCouplePt,'_bestCouplePt/D')
+    tree_output_forMVA.Branch('_firstTrkPt',_firstTrkPt,'_firstTrkPt/D')
+    tree_output_forMVA.Branch('_secondTrkPt',_secondTrkPt,'_secondTrkPt/D')
+    tree_output_forMVA.Branch('_photonEt',_photonEt,'_photonEt/D')
+    tree_output_forMVA.Branch('_firstTrkIso',_firstTrkIso,'_firstTrkIso/D')
+    tree_output_forMVA.Branch('_firstTrkIsoCh',_firstTrkIsoCh,'_firstTrkIsoCh/D')
+    tree_output_forMVA.Branch('_secondTrkIso',_secondTrkIso,'_secondTrkIso/D')
+    tree_output_forMVA.Branch('_secondTrkIsoCh',_secondTrkIsoCh,'_secondTrkIsoCh/D')
+    tree_output_forMVA.Branch('_firstTrkEta',_firstTrkEta,'_firstTrkEta/D')
+    tree_output_forMVA.Branch('_secondTrkEta',_secondTrkEta,'_secondTrkEta/D')
+    tree_output_forMVA.Branch('_bestCoupleEta',_bestCoupleEta,'_bestCoupleEta/D')
+    tree_output_forMVA.Branch('_bestCoupleDeltaR',_bestCoupleDeltaR,'_bestCoupleDeltaR/D')
+    tree_output_forMVA.Branch('_photonEta',_photonEta,'_photonEta/D')
+    tree_output_forMVA.Branch('_eventWeight',_eventWeight,'_eventWeight/D')
+    tree_output_forMVA.Branch('_BDTweight',_BDTweight,'_BDTweight/D')
+    tree_output_forMVA.Branch('_metPt',_metPt,'_metPt/D')
+    tree_output_forMVA.Branch('_nJets',_nJets,'_nJets/D')
+    tree_output_forMVA.Branch('_dPhiGammaTrk',_dPhiGammaTrk,'_dPhiGammaTrk/D')
+    tree_output_forMVA.Branch('_runNumber',_runNumber,'_runNumber/D')
+    tree_output_forMVA.Branch('_eventNumber',_eventNumber,'_eventNumber/D')
+    tree_output_forMVA.Branch('_JetChargedEmEnergy',_JetChargedEmEnergy,'_JetChargedEmEnergy/D')
+    tree_output_forMVA.Branch('_JetNeutralEmEnergy',_JetNeutralEmEnergy,'_JetNeutralEmEnergy/D')
+    tree_output_forMVA.Branch('_JetChargedHadEnergy',_JetChargedHadEnergy,'_JetChargedHadEnergy/D')
+    tree_output_forMVA.Branch('_JetNeutralHadEnergy',_JetNeutralHadEnergy,'_JetNeutralHadEnergy/D')
 
 print "This sample has ", mytree.GetEntriesFast(), " events"
 nentries = mytree.GetEntriesFast()
@@ -320,8 +363,6 @@ for jentry in xrange(nentries):
     secondTrkisoCh = mytree.iso_K2_ch
     photonEta      = mytree.photon_eta
     nJets          = mytree.nJets25
-    nPhotons38WP80 = mytree.nPhotons38WP80
-    nPhotons20WP90 = mytree.nPhotons20WP90
     MesonEta       = mytree.bestCoupleEta
     isPhiEvent     = mytree.isPhi
     isRhoEvent     = mytree.isRho
@@ -337,6 +378,13 @@ for jentry in xrange(nentries):
     trk2dz         = mytree.secondCand_dz
     trk2dxyErr     = mytree.secondCand_dxyErr
     trk2dzErr      = mytree.secondCand_dzErr
+    deltaDZ        = math.fabs(trk1dz - trk2dz)
+    deltaDXY       = math.fabs(trk1dxy - trk2dxy)
+    isoSumPtNeu    = mytree.Couple_sum_pT_05 - mytree.Couple_sum_pT_05_ch 
+    nPhotons38WP80              = mytree.nPhotons38WP80
+    nPhotonsWP90_pT15_barrel    = mytree.nPhotonsWP90_pT15_barrel
+    nPhotonsWP90_pT25_endcap    = mytree.nPhotonsWP90_pT25_endcap
+    nPhotonsWP90_pT20_2p5eta3p0 = mytree.nPhotonsWP90_pT20_2p5eta3p0
 
     dPhiGammaTrk   = math.fabs(firstTrkphi - mytree.photon_phi)
     if dPhiGammaTrk > 3.14:
@@ -408,8 +456,15 @@ for jentry in xrange(nentries):
         if CRflag == 1 and (MesonMass > 0.62 and MesonMass < 0.92) :
             continue
 
+        if CRflag == 3 and (MesonMass > 0.62): #left sideband tests
+            continue
+
+        if CRflag == 4 and (MesonMass < 0.92): #right sideband tests
+            continue
+
 ################### line used to take simmetrical sidebands ################
-    if (isPhiAnalysis and MesonMass > 1.04): continue
+    if (isPhiAnalysis and MesonMass > 1.05): continue
+    if (not isPhiAnalysis and MesonMass < 0.58): continue
     nEventsAfterRegionDefiner+=1
 ############################################################################
     
@@ -432,16 +487,15 @@ for jentry in xrange(nentries):
         coupleDeltaPhi = 6.28 - coupleDeltaPhi
     deltaR = math.sqrt((mytree.firstCandEta - mytree.secondCandEta)**2 + (coupleDeltaPhi)**2)
 
-    #---------------- FIXMEEEEEE
     #if firstTrkphi > 0.65 and firstTrkphi < 0.8: continue
-    #if abs(photonEta) > 2.1: continue
-    #if abs(MesonEta) > 2.1: continue
+    if abs(photonEta) > 2.1: continue
+    if abs(MesonEta) > 2.1: continue
     #if (Hmass > 114. and Hmass < 118.): continue #NoTail
     #if (Hmass < 114. or  Hmass > 118.): continue #Tail
 
     #--------------------------------------------------------------------------
     central_photonEt = photonEt
-    #photonEt = phEt_sigmaUP
+    photonEt = phET_scaleUP
 
     #NORMALIZATION -------------------------------------------------------------------
     #normalization for MC
@@ -450,35 +504,44 @@ for jentry in xrange(nentries):
         PUWeight               = mytree.PU_Weight
         weight_sign            = mytree.MC_Weight/abs(mytree.MC_Weight) #just take the sign of the MC gen weight
         photonSF, photonSF_err = myWF.get_photon_scale(photonEt,mytree.photon_eta)
-     #   photonSF              += photonSF_err
+        #photonSF              += photonSF_err
         
-        #Trigger eff scale factors
+        #Photon leg SF
         if photonEt < 80.:
             PhotonTriggerSF        = h_PhotonTriggerSF.GetBinContent(h_PhotonTriggerSF.GetXaxis().FindBin(photonEt))
             PhotonTriggerSF_err    = h_PhotonTriggerSF.GetBinError(h_PhotonTriggerSF.GetXaxis().FindBin(photonEt))
         else: PhotonTriggerSF,PhotonTriggerSF_err = h_PhotonTriggerSF.GetBinContent(9),h_PhotonTriggerSF.GetBinError(9)
         
-        PhotonTriggerSF += PhotonTriggerSF_err     
+        #PhotonTriggerSF += PhotonTriggerSF_err     
 
-        if (38. < MesonPt <= 42.):
-            TwoProngsTriggerSF     = h_TwoProngsTriggerSF.GetBinContent(1)
-            TwoProngsTriggerSF_err = h_TwoProngsTriggerSF.GetBinError(1)
-        elif(42. < MesonPt < 50.):
-            TwoProngsTriggerSF     = h_TwoProngsTriggerSF.GetBinContent(2)
-            TwoProngsTriggerSF_err = h_TwoProngsTriggerSF.GetBinError(2)
+        # TwoProngs SF
+        if MesonPt < 80.:
+            TwoProngsTriggerSF     = h_TwoProngsTriggerSF.GetBinContent(h_TwoProngsTriggerSF.GetXaxis().FindBin(MesonPt))
+            TwoProngsTriggerSF_err = h_TwoProngsTriggerSF.GetBinError(h_TwoProngsTriggerSF.GetXaxis().FindBin(MesonPt))
         else:
-            TwoProngsTriggerSF,TwoProngsTriggerSF_err = h_TwoProngsTriggerSF.GetBinContent(3),h_TwoProngsTriggerSF.GetBinError(3)
-
+            TwoProngsTriggerSF, TwoProngsTriggerSF_err = h_TwoProngsTriggerSF.GetBinContent(2),h_TwoProngsTriggerSF.GetBinError(2)
         #TwoProngsTriggerSF -= TwoProngsTriggerSF_err
 
+        #IsoCh SF
+        if MesonPt < 80.:
+            IsoChSF     = h_IsoChSF.GetBinContent(h_IsoChSF.GetXaxis().FindBin(MesonPt))
+            IsoChSF_err = h_IsoChSF.GetBinError(h_IsoChSF.GetXaxis().FindBin(MesonPt))
+        else:
+            IsoChSF,IsoChSF_err = h_IsoChSF.GetBinContent(6),h_IsoChSF.GetBinError(6)
 
-        #iso track neutral 
-        isoNeutralSF     = h_isoNeutralSF.GetBinContent(h_isoNeutralSF.GetXaxis().FindBin(MesonIso0))
-        isoNeutralSF_err = h_isoNeutralSF.GetBinError(h_isoNeutralSF.GetXaxis().FindBin(MesonIso0))
+        #IsoNeu SF
+        if MesonPt < 80.:
+            IsoNeuSF     = h_IsoNeuSF.GetBinContent(h_IsoNeuSF.GetXaxis().FindBin(MesonPt))
+            IsoNeuSF_err = h_IsoNeuSF.GetBinError(h_IsoNeuSF.GetXaxis().FindBin(MesonPt))
+        else:
+            IsoNeuSF,IsoNeuSF_err = h_IsoNeuSF.GetBinContent(6),h_IsoNeuSF.GetBinError(6)
 
-        #isoNeutralSF += isoNeutralSF_err
+        #Polarization effect
+        theta_pol  = mytree.theta_pol
+        weight_pol = 1.5 * math.sin(theta_pol) * math.sin(theta_pol) 
+        if isRhoAnalysis: weight_pol = 1.
 
-        eventWeight =  luminosity * normalization_weight * weight_sign * PUWeight * photonSF * PhotonTriggerSF * TwoProngsTriggerSF #* isoNeutralSF
+        eventWeight =  luminosity * normalization_weight * weight_sign * PUWeight * weight_pol * photonSF * PhotonTriggerSF * TwoProngsTriggerSF * IsoNeuSF * IsoChSF
 
 
         if debug:
@@ -491,6 +554,7 @@ for jentry in xrange(nentries):
             print "mytree.MC_Weight       = ",mytree.MC_Weight, " (this is not considered)"
             print "weight sign            = ",weight_sign
             print "PUWeight               = ",PUWeight
+            print "weight_pol             = ",weight_pol
             print "photonSF               = ",photonSF
             print "photonSF_err           = ",photonSF_err
             print "TwoProngsTriggerSF     = ",TwoProngsTriggerSF
@@ -502,7 +566,8 @@ for jentry in xrange(nentries):
             print "Photon Et scaled up    = ",phET_scaleUP
             print "PhotonTriggerSF        = ",PhotonTriggerSF
             print "Meson iso0             = ",MesonIso0
-            print "isoNeutralSF           = ",isoNeutralSF
+            print "IsoChSF                = ",IsoChSF
+            print "IsoNeuSF               = ",IsoNeuSF
     #        print "PhotonTriggerSF_err    = ",PhotonTriggerSF_err
             print "Final eventWeight **** = ",eventWeight
             print "isHiggsMatched         = ",isHiggsMatched
@@ -524,7 +589,7 @@ for jentry in xrange(nentries):
 
 
     #DiPhoton veto ------------------------------------------
-    if nPhotons20WP90 > 1: continue
+    if (nPhotonsWP90_pT15_barrel > 1 or nPhotonsWP90_pT25_endcap > 1): continue
     nEventsOverDiPhotonVeto += 1
 
     #-------------- n events in the sidebands -----------------------------
@@ -642,8 +707,8 @@ for jentry in xrange(nentries):
             subleadingKpT = min(KPlusPt,KMinusPt)
 
 
-            if (firstTrkPt < 0.9*leadingKpT or firstTrkPt > 1.1*leadingKpT): leadingTrkMatched = False #range within 5 GeV
-            if (secondTrkPt < 0.9*subleadingKpT or secondTrkPt > 1.1*subleadingKpT): subleadingTrkMatched = False #range within 5 GeV
+            if (firstTrkPt < 0.7*leadingKpT or firstTrkPt > 1.3*leadingKpT): leadingTrkMatched = False #range within 5 GeV
+            if (secondTrkPt < 0.7*subleadingKpT or secondTrkPt > 1.3*subleadingKpT): subleadingTrkMatched = False #range within 5 GeV
 
             if (trkPlusPt < 0.7*KPlusPt or trkPlusPt > 1.3*KPlusPt): trkPlusMatched = False #range within 5 GeV
             if (trkMinusPt < 0.7*KMinusPt or trkMinusPt > 1.3*KMinusPt ): trkMinusMatched = False #range within 5 GeV  
@@ -661,7 +726,7 @@ for jentry in xrange(nentries):
             if (leadingTrkMatched and subleadingTrkMatched): 
                 nMesonPtMatched += 1 
                 mesonMatched = True
-            #    continue
+                #continue
             #else:
              #   continue
 
@@ -670,8 +735,9 @@ for jentry in xrange(nentries):
                 #continue
             if (leadingTrkMatched == True and subleadingTrkMatched == False) or (subleadingTrkMatched == True and leadingTrkMatched == False): 
                 nOneTrkMatched +=1
+                #continue
 
-            #if (leadingTrkMatched == False and subleadingTrkMatched == False): continue
+            if (leadingTrkMatched == False and subleadingTrkMatched == False): continue
             #if (leadingTrkMatched == False and subleadingTrkMatched == True): continue
 
             #phi angle folding
@@ -721,6 +787,7 @@ for jentry in xrange(nentries):
             nPhotonEtMatched += 1
         '''
 
+    
     #FILL HISTOS --------------------------------------------------------------------------
     #if DATA -> Blind Analysis on H inv mass plot
     if samplename == "Data":
@@ -753,7 +820,6 @@ for jentry in xrange(nentries):
     histo_map["h_photon_eta"].Fill(photonEta, eventWeight)
     histo_map["h_nJets_25"].Fill(nJets, eventWeight)
     histo_map["h_nPhotons38WP80"].Fill(nPhotons38WP80, eventWeight)
-    histo_map["h_nPhotons20WP90"].Fill(nPhotons20WP90, eventWeight)
     histo_map["h_bestCoupleEta"].Fill(MesonEta, eventWeight)
     histo_map["h_decayChannel"].Fill(isPhiEvent, eventWeight)
     histo_map["h_couple_Iso_neutral"].Fill(MesonIso0, eventWeight)
@@ -767,6 +833,11 @@ for jentry in xrange(nentries):
     histo_map["h_JetNeutralHadEnergy"].Fill(JetNeutralHadEn, eventWeight)
     histo_map["h_JetNeutralHadEnergy"].Fill(JetNeutralHadEn, eventWeight)
     histo_map["h_massResolution"].Fill(massResolution, eventWeight)
+    histo_map["h_isoSumPtNeu"].Fill(isoSumPtNeu, eventWeight)
+    histo_map["h_nPhotons15WP90barrel"].Fill(nPhotonsWP90_pT15_barrel, eventWeight)
+    histo_map["h_nPhotons25WP90endcap"].Fill(nPhotonsWP90_pT25_endcap, eventWeight)
+    histo_map["h_nPhotons20WP90eta2p5"].Fill(nPhotonsWP90_pT20_2p5eta3p0, eventWeight)
+
     if isPhiAnalysis and not samplename == "Data":
         histo_map["h_trkPlus_dxy"].Fill(trkPlus_dxy,eventWeight)
         histo_map["h_trkPlus_dz"].Fill(trkPlus_dz,eventWeight)
@@ -776,10 +847,13 @@ for jentry in xrange(nentries):
         histo_map["h_trkMinus_dz"].Fill(trkMinus_dz,eventWeight)
         histo_map["h_trkMinus_dxyErr"].Fill(trkMinus_dxyErr,eventWeight)
         histo_map["h_trkMinus_dzErr"].Fill(trkMinus_dzErr/trkMinus_dz,eventWeight)
-    
+        histo_map["h_theta_pol"].Fill(math.cos(theta_pol),eventWeight)
+
     histo_map["h_firstTrkCharge"].Fill(firstTrkCharge,eventWeight)
     histo_map["h_secondTrkCharge"].Fill(secondTrkCharge,eventWeight)
-
+    histo_map["h_deltaDZ"].Fill(deltaDZ)
+    histo_map["h_deltaDXY"].Fill(deltaDXY)
+    
     if not samplename == "Data":
         histo_map["h_genPhotonEt"].Fill(genPhotonEt, eventWeight)
         histo_map["h_genMesonPt"].Fill(genMesonPt, eventWeight)
@@ -790,7 +864,10 @@ for jentry in xrange(nentries):
 
     #------------------------------------------------------------------------------------
     #If preselection, reweight events as function of the mass resolution. Just for the BDT.
-    if not (isBDT and samplename == "Data"): eventWeight = eventWeight/massResolution
+    if not (samplename == "Data"): 
+        BDTweight = eventWeight/massResolution
+    else:
+        BDTweight = 1.
 
     #FILL TREE
     mesonGammaMass[0]     = Hmass
@@ -813,6 +890,7 @@ for jentry in xrange(nentries):
     _bestCoupleDeltaR[0]  = deltaR
     _photonEta[0]         = photonEta  
     _eventWeight[0]       = eventWeight
+    _BDTweight[0]         = BDTweight
     _metPt[0]             = metPt
     _nJets[0]             = nJets
     _dPhiGammaTrk[0]      = dPhiGammaTrk
@@ -825,9 +903,9 @@ for jentry in xrange(nentries):
         _runNumber[0]         = runNumber
     
     if not isBDT: #this is done to train the BDT with events under the peak
-        if (Hmass > 115. and Hmass < 135.): tree_output.Fill()
-    else:
-        tree_output.Fill()
+        if (Hmass > 115. and Hmass < 135.): tree_output_forMVA.Fill()
+
+    tree_output.Fill()
 
 
     if debug:
@@ -840,7 +918,7 @@ for jentry in xrange(nentries):
     nEventsOverCuts += 1
 
     if not samplename == 'Data' :
-        weightSum += _eventWeight
+        weightSum += eventWeight
 
 
 #HISTO LABELS
@@ -890,8 +968,12 @@ histo_map["h_nJets_25"].GetXaxis().SetTitle("nJets over 25 GeV")
 histo_map["h_nJets_25"].SetTitle("# of jets with pT > 25 GeV")
 histo_map["h_nPhotons38WP80"].GetXaxis().SetTitle("n.#gamma_{38wp80}")
 histo_map["h_nPhotons38WP80"].SetTitle("n.#gamma over selections")
-histo_map["h_nPhotons20WP90"].GetXaxis().SetTitle("n.#gamma_{20wp90}")
-histo_map["h_nPhotons20WP90"].SetTitle("n.#gamma over selections")
+histo_map["h_nPhotons15WP90barrel"].GetXaxis().SetTitle("n.#gamma_{15wp90_barrel}")
+histo_map["h_nPhotons15WP90barrel"].SetTitle("n.#gamma over selections")
+histo_map["h_nPhotons25WP90endcap"].GetXaxis().SetTitle("n.#gamma_{25wp90_endcap}")
+histo_map["h_nPhotons25WP90endcap"].SetTitle("n.#gamma over selections")
+histo_map["h_nPhotons20WP90eta2p5"].GetXaxis().SetTitle("n.#gamma_{20wp90_eta2p5}")
+histo_map["h_nPhotons20WP90eta2p5"].SetTitle("n.#gamma over selections")
 histo_map["h_efficiency"].GetXaxis().SetTitle("")
 histo_map["h_efficiency"].GetYaxis().SetTitle("#epsilon (%)")
 histo_map["h_decayChannel"].SetTitle("Decay channel")
@@ -922,6 +1004,9 @@ histo_map["h_trkMinus_dxyErr"].GetXaxis().SetTitle("#sigma_dxy^{trk^{-}}")
 histo_map["h_trkMinus_dzErr"].GetXaxis().SetTitle("#sigma_dz^{trk^{-}}")
 histo_map["h_firstTrkCharge"].GetXaxis().SetTitle("q_{trk_{1}}")
 histo_map["h_secondTrkCharge"].GetXaxis().SetTitle("q_{trk_{2}}")
+histo_map["h_deltaDZ"].GetXaxis().SetTitle("#Deltadz")
+histo_map["h_deltaDXY"].GetXaxis().SetTitle("#Deltadxy")
+histo_map["h_isoSumPtNeu"].GetXaxis().SetTitle("#Sigma pT")
 
 if not samplename == "Data":
     histo_map["h_genPhotonEt"].GetXaxis().SetTitle("E_{T}^{gen#gamma}[GeV]")
@@ -934,7 +1019,7 @@ if not samplename == "Data":
     histo_map["h_RecoVsGenMesonPtRel"].GetYaxis().SetTitle("p_{T}^{recoMeson}/p_{T}^{genMeson}")
     histo_map["h_MrecoMinusMgen"].GetXaxis().SetTitle("m_{recoMeson}-m_{genMeson} [GeV]")
     histo_map["h_deltaRKpm"].GetXaxis().SetTitle("#DeltaR_{K^{#pm}}")
-
+    histo_map["h_theta_pol"].GetXaxis().SetTitle("cos(K,#phi)")
  #   histo_map["h_GenVsReco_DeltaR_trkPlus"].GetXaxis().SetTitle("#DeltaR_{GenVsReco}^{trk^{+}}")
   #  histo_map["h_GenVsReco_DeltaR_trkPlus"].SetTitle("#DeltaR_{GenVsReco}^{trk^{+}}")
   #  histo_map["h_GenVsReco_DeltaR_trkMinus"].GetXaxis().SetTitle("#DeltaR_{GenVsReco}^{trk^{-}}")
@@ -943,6 +1028,7 @@ if not samplename == "Data":
 #########################################################################
 #Tree writing
 tree_output.Write()
+if not isBDT: tree_output_forMVA.Write()
 #tree_output.Scan()
 
 #EFFICIENCY STEP PLOT MANAGEMENT

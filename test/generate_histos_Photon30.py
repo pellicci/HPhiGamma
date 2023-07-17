@@ -8,7 +8,7 @@ import tdrstyle, CMS_lumi
 
 
 #bools
-debug = False #Bool for verbose
+debug = True #Bool for verbose
 
 #Supress the opening of many Canvas's
 ROOT.gROOT.SetBatch(True)   
@@ -60,6 +60,13 @@ nEventsIsoMuTrigger    = 0
 nEventsPhotonTrigger   = 0
 nEventsPhoton35Trigger = 0
 nEventsOfflinePhoton   = 0
+nEventsGenMatched      = 0
+nEventsGenMatchedTriggered = 0
+nEventsGenIsMuon       = 0
+nEventsGenIsElectron   = 0
+nEventsGenIsPi0        = 0
+nEventsGenIsTau        = 0
+nEventsGenIsK0S        = 0
 triggerFraction        = 0
 
 #EVENTS LOOP ##################################################################################################################### 
@@ -81,6 +88,7 @@ for jentry in xrange(nentries):
     isPhoton30Mu17Trigger = mytree.isPhotonTrigger      
     isPhoton35Trigger     = mytree.isPhoton35Trigger      
     isbestPhotonFound     = mytree.cand_photon_found
+    genID                 = mytree.genID
 
     if not CONST_NAME == "Data" :
         eventWeight = luminosity * normalization_weight
@@ -104,7 +112,9 @@ for jentry in xrange(nentries):
         nEventsPhoton35Trigger = nEventsPhoton35Trigger + 1
     if isbestPhotonFound:
         nEventsOfflinePhoton   = nEventsOfflinePhoton + 1
+        if genID == 22: nEventsGenMatched      = nEventsGenMatched + 1
 
+    print "genID = ",genID
 
     histo_map["h_mass_mumu"].Fill(MuMuMass,eventWeight)
     histo_map["h_gamma_eT"].Fill(gammaEt)
@@ -112,6 +122,12 @@ for jentry in xrange(nentries):
     if isPhoton35Trigger:
         histo_map["h_nPhotonTriggered_eT"].Fill(gammaEt)
         histo_map["h_triggerEff_eT"].Fill(gammaEt) #create the histo starting from the numerator
+        if genID == 22: nEventsGenMatchedTriggered  = nEventsGenMatchedTriggered + 1
+        if abs(genID) == 13: nEventsGenIsMuon     = nEventsGenIsMuon + 1
+        if abs(genID) == 11: nEventsGenIsElectron = nEventsGenIsElectron + 1
+        if genID == 111: nEventsGenIsPi0          = nEventsGenIsPi0 + 1
+        if abs(genID) == 15: nEventsGenIsTau      = nEventsGenIsTau + 1
+        if genID == 310: nEventsGenIsK0S          = nEventsGenIsK0S + 1
 
     if isbestPhotonFound: histo_map["h_nPhotonOffline_eT"].Fill(gammaEt)
 
@@ -143,6 +159,13 @@ if debug:
     print "nEventsPhotonTrigger   = ",nEventsPhotonTrigger
     print "nEventsPhoton35Trigger = ",nEventsPhoton35Trigger
     print "nEventsOfflinePhoton   = ",nEventsOfflinePhoton
+    print "nEventsGenMatchedTrig  = ",nEventsGenMatchedTriggered
+    print "nEventsGenMatched      = ",nEventsGenMatched
+    print "nEventsGenIsMuon       = ",nEventsGenIsMuon
+    print "nEventsGenIsElectron   = ",nEventsGenIsElectron
+    print "nEventsGenIsPi0        = ",nEventsGenIsPi0
+    print "nEventsGenIsTau        = ",nEventsGenIsTau
+    print "nEventsGenIsK0S        = ",nEventsGenIsK0S
     print "Trigger fraction       = ",triggerFraction
     print "########################################"
 

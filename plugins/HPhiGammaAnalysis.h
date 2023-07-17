@@ -55,7 +55,9 @@ private:
   int nElectrons10;
   int nElectrons20;
   int nPhotonsChosen;
-  int nPhotons20WP90;
+  int nPhotonsWP90_pT25_endcap;
+  int nPhotonsWP90_pT15_barrel;
+  int nPhotonsWP90_pT20_2p5eta3p0;
   int nPhotons38WP80;
   int nJets30;
   int nJets25;
@@ -94,6 +96,7 @@ private:
   bool is_photon_wp90;
   float eTphMax;
   float photonRegressionError;
+  bool isPhotonTriggerMatched;
 
   float firstCandPx;
   float firstCandPy;
@@ -174,10 +177,12 @@ private:
   float _bestJet_invMass;
   float _bestJet_Photon_invMass;
   float _bestJet_JECunc;
-  
+  bool isJetTriggerMatched;
+
   //MC truth
   float PU_Weight;
   float MC_Weight;
+  float theta_pol;
   float deltaR_Kplus;
   float deltaR_wrong;
   float deltaR_Kminus;

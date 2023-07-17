@@ -88,7 +88,7 @@ for filename in list_inputfiles:
             histo_container[-1].SetLineColor(46)   #blue, 2 for red
 
         histo_container[-1].SetLineWidth(4)   #kind of thick
-        histo_container[-1].Scale(1./histo_container[-1].GetEntries()) #normalize to 1
+        if not histo_container[-1].GetEntries() == 0: histo_container[-1].Scale(1./histo_container[-1].GetEntries()) #normalize to 1
         hsignal[histo_name] = histo_container[-1]
         hstack[histo_name].Add(histo_container[-1])
 
@@ -266,6 +266,10 @@ for histo_name in list_histos:
         if histo_name == "h_RecoVsGenMesonPtRel":
             hstack[histo_name].GetXaxis().SetTitle("p_{T}^{genMeson}[GeV]")
             hstack[histo_name].GetYaxis().SetTitle("p_{T}^{recoMeson}/p_{T}^{genMeson}")
+
+        if histo_name == "h_theta_pol":
+            hstack[histo_name].GetXaxis().SetTitle("cos(#theta_{pol})")
+            hstack[histo_name].GetYaxis().SetTitle("a.u.")
 
         hstack[histo_name].Draw("SAME,histo")
 

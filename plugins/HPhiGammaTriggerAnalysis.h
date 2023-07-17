@@ -21,6 +21,8 @@ private:
   const edm::InputTag pvCollection_;  
   const edm::InputTag bsCollection_;  
   const edm::InputTag PileupSrc_;
+  const edm::InputTag prunedGenParticles_;
+
   
   edm::LumiReWeighting Lumiweights_;
 
@@ -72,6 +74,12 @@ private:
   bool isBestMuMu_Found;
   bool cand_photon_found;
 
+  bool is_hltEG35R9Id90HE10IsoMEcalIsoFilter;
+  bool is_hltEG35R9Id90HE10IsoMHcalIsoFilter;
+  bool is_hltEG35R9Id90HE10IsoMTrackIsoFilter;
+
+  int genID;
+
 //rho for isolation
   float rho_;
 
@@ -88,6 +96,7 @@ private:
   edm::EDGetTokenT<GenEventInfoProduct> GenInfoToken_;
   edm::EDGetTokenT<edm::TriggerResults> triggerBitsToken_;
   edm::EDGetTokenT<std::vector<pat::TriggerObjectStandAlone> > triggerObjectsToken_;
+  edm::EDGetTokenT<std::vector<reco::GenParticle>> prunedGenParticlesToken_;
 
   //Ele ID decisions objects
   edm::EDGetToken electronsMiniAODToken_;

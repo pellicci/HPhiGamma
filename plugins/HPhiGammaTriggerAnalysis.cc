@@ -61,6 +61,7 @@ HPhiGammaTriggerAnalysis::HPhiGammaTriggerAnalysis(const edm::ParameterSet& iCon
   effectiveAreas_ph_( (iConfig.getParameter<edm::FileInPath>("effAreasConfigFile_ph")).fullPath() )
 {
   packedPFCandidatesToken_            = consumes<std::vector<pat::PackedCandidate> >(edm::InputTag("packedPFCandidates")); 
+  prunedGenParticlesToken_            = consumes<std::vector<reco::GenParticle> >(edm::InputTag("prunedGenParticles"));
   slimmedMuonsToken_                  = consumes<std::vector<pat::Muon> >(edm::InputTag("slimmedMuons"));
   photonsMiniAODToken_                = consumes<std::vector<pat::Photon> > (edm::InputTag("slimmedPhotons"));
   offlineSlimmedPrimaryVerticesToken_ = consumes<std::vector<reco::Vertex> > (edm::InputTag("offlineSlimmedPrimaryVertices"));  
@@ -91,12 +92,31 @@ HPhiGammaTriggerAnalysis::~HPhiGammaTriggerAnalysis()
 {
 }
 
+//--------- Function to match reco object with trigger object ---------//
+namespace{
+  std::vector<const pat::TriggerObjectStandAlone*> getMatchedObjs(const float eta,const float phi,const std::vector<pat::TriggerObjectStandAlone>& trigObjs,const float maxDeltaR=0.1)
+  {
+    std::vector<const pat::TriggerObjectStandAlone*> matchedObjs;
+    const float maxDR2 = maxDeltaR*maxDeltaR;
+    for(auto& trigObj : trigObjs){
+      const float dR2 = reco::deltaR2(eta,phi,trigObj.eta(),trigObj.phi());
+      if(dR2<maxDR2) matchedObjs.push_back(&trigObj);
+    }
+    return matchedObjs;
+  }
+}
+//------------------------------------------------------------------------------//
+
+
 // ------------ method called for each event  ------------
 void HPhiGammaTriggerAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
   
   edm::Handle<std::vector<pat::PackedCandidate>  > PFCandidates;
   iEvent.getByToken(packedPFCandidatesToken_, PFCandidates);
+
+  edm::Handle<std::vector<reco::GenParticle>  > prunedGenParticles;
+  if(!runningOnData_)iEvent.getByToken(prunedGenParticlesToken_, prunedGenParticles);
 
   edm::Handle<std::vector<pat::Muon>  > slimmedMuons;
   iEvent.getByToken(slimmedMuonsToken_, slimmedMuons);
@@ -255,8 +275,14 @@ void HPhiGammaTriggerAnalysis::analyze(const edm::Event& iEvent, const edm::Even
     isPhoton35Trigger = true;
     if (verbose) cout<<"HLT photon over 35 triggered"<<endl;
   }
-  //-------------------------------------------------------------------------
 
+    //Create unpacked filter names
+    for(auto& trigObj : *triggerObjects){
+      unpackedTrigObjs.push_back(trigObj);
+      unpackedTrigObjs.back().unpackFilterLabels(iEvent,*triggerBits);
+  }
+
+  //-------------------------------------------------------------------------
 
   //*************************************************************//
   //                                                             //
@@ -287,6 +313,8 @@ void HPhiGammaTriggerAnalysis::analyze(const edm::Event& iEvent, const edm::Even
   ph_iso_eArho = 0.;
 
   eTphMax  = -1000.;
+
+  genID = 0;
 
 
    //*************************************************************//
@@ -323,10 +351,10 @@ void HPhiGammaTriggerAnalysis::analyze(const edm::Event& iEvent, const edm::Even
       } //Muon second forloop end
     }//Muon first forloop end
 
-  if(!isBestMuMu_Found) { 
-    if (verbose) cout<<"RETURN: No Z->mumu found."<<endl<<endl;
-    return;
-  }
+  //if(!isBestMuMu_Found) { 
+    //if (verbose) cout<<"RETURN: No Z->mumu found."<<endl<<endl;
+    //return;
+  //}
   
   if(isBestMuMu_Found && verbose){
     cout<<"Muon pair found, with pT = "<<bestMuMuPt<<" and inv mass = "<<bestMuMuMass<<endl;
@@ -346,6 +374,9 @@ void HPhiGammaTriggerAnalysis::analyze(const edm::Event& iEvent, const edm::Even
 
   bool cand_photon_found = false;
   float corr_et = -1.;
+  is_hltEG35R9Id90HE10IsoMEcalIsoFilter  = false;
+  is_hltEG35R9Id90HE10IsoMHcalIsoFilter  = false;
+  is_hltEG35R9Id90HE10IsoMTrackIsoFilter = false;
 
   for(auto photon = slimmedPhotons->begin(); photon != slimmedPhotons->end(); ++photon){ //Photons forloop start
 
@@ -386,7 +417,7 @@ void HPhiGammaTriggerAnalysis::analyze(const edm::Event& iEvent, const edm::Even
     // Apply energy scale corrections to MC
     ph_energy = photon->energy(); //userFloat("ecalEnergyPostCorr");
     ph_p4     = photon->p4();  //* photon->userFloat("ecalEnergyPostCorr")/photon->energy();
-    
+
     cand_photon_found = true;
     nPhotonsChosen++;
   } //Photon forloops end
@@ -404,12 +435,78 @@ void HPhiGammaTriggerAnalysis::analyze(const edm::Event& iEvent, const edm::Even
     cout<<"PU_Weight = "<<PU_Weight<<endl;
     }
   }
+
   if(verbose) cout<<_Nevents_isPhoton<<" best photons chosen after offline selection"<<endl;
 
   //  std::cout << "Nphotons " << _Nevents_isPhoton << std::endl;
 
   if (verbose) cout<<"endl";
   if (verbose) cout<<"cand_photon_found = "<<cand_photon_found<<endl;
+
+  float deltaRMax  = 0.3;
+  float deltapTMax = 1000.;
+
+  //Trigger matching
+  for (pat::TriggerObjectStandAlone obj : *triggerObjects){ // note: not "const &" since we want to call unpackPathNames
+    
+    //bool isAcceptedPath = false;
+    obj.unpackPathNames(names);
+    
+    std::vector pathNamesAll = obj.pathNames(false);
+    
+    for (unsigned h = 0, n = pathNamesAll.size(); h < n; ++h) {
+      // Record also if the object is associated to a 'l3' filter (always true for the definition used
+      // in the PAT trigger producer) and if it's associated to the last filter of a successfull path (which means
+      // that this object did cause this trigger to succeed; however, it doesn't work on some multi-object triggers)
+      bool isSuccessfulTrigger = obj.hasPathName( pathNamesAll[h], true, true );
+      //std::cout << "   " << pathNamesAll[h];
+      if(!isSuccessfulTrigger) continue;
+      //std::cout << pathNamesAll[h] << "(L,3)" << std::endl; 
+      
+      if(pathNamesAll[h].find("HLT_Photon35_TwoProngs35_v") != std::string::npos) {
+      //now match ALL objects in a cone of DR<0.1
+      //it is important to match all objects as there are different ways to reconstruct the same electron
+      //eg, L1 seeded, unseeded, as a jet etc
+      //and so you want to be sure you get all possible objects
+      std::vector<const pat::TriggerObjectStandAlone*> matchedTrigObjs = getMatchedObjs(ph_eta,ph_phi,unpackedTrigObjs,0.1);
+      for(const auto trigObj : matchedTrigObjs){
+        //now just check if it passes the filters
+        if(trigObj->hasFilterLabel("hltEG35R9Id90HE10IsoMEcalIsoFilter")) {
+          is_hltEG35R9Id90HE10IsoMEcalIsoFilter = true;
+          //cout<<"is_hltEG35R9Id90HE10IsoMEcalIsoFilter passed!"<<endl;
+        }
+        if(trigObj->hasFilterLabel("hltEG35R9Id90HE10IsoMHcalIsoFilter")){
+          is_hltEG35R9Id90HE10IsoMHcalIsoFilter = true;
+          //cout<<"hltEG35R9Id90HE10IsoMHcalIsoFilter passed!"<<endl;
+        }
+        if(trigObj->hasFilterLabel("hltEG35R9Id90HE10IsoMTrackIsoFilter")){
+          is_hltEG35R9Id90HE10IsoMTrackIsoFilter = true;
+          //cout<<"hltEG35R9Id90HE10IsoMTrackIsoFilter passed!"<<endl;
+        }
+      }
+    }
+  }
+}
+
+  //MC truth
+  if(!runningOnData_){ //ONLY FOR MC START ----------------------------------------------------------------------
+    for (auto gen = prunedGenParticles->begin(); gen != prunedGenParticles->end(); ++gen){ //loop on genParticles start
+       //gen particles phi folding  
+        float deltaPhi = fabs(ph_phi-gen->phi());
+        if (deltaPhi > M_PI) deltaPhi = 2*M_PI - deltaPhi;
+
+        float deltaR  = sqrt((ph_eta-gen->eta())*(ph_eta-gen->eta())+deltaPhi*deltaPhi);
+        float deltapT = fabs(ph_eT-gen->pt());
+
+        if(deltaR > deltaRMax || deltapT > deltapTMax) continue;
+        deltapTMax = deltapT;
+        genID = gen->pdgId();
+    } //loop on genParticles end
+
+  }
+
+  cout<<"genID = "<<genID<<endl;
+
   mytree->Fill();
 }
 
@@ -427,6 +524,7 @@ void HPhiGammaTriggerAnalysis::create_trees()
   mytree->Branch("isIsoMuTrigger",&isIsoMuTrigger);
   mytree->Branch("isPhotonTrigger",&isPhotonTrigger);
   mytree->Branch("isPhoton35Trigger",&isPhoton35Trigger);
+  mytree->Branch("isBestMuMu_Found",&isBestMuMu_Found);
 
   //Save run number info when running on data
   if(runningOnData_){
@@ -450,10 +548,15 @@ void HPhiGammaTriggerAnalysis::create_trees()
   mytree->Branch("photon_iso_Photon",&ph_iso_Photon);
   mytree->Branch("photon_iso_eArho",&ph_iso_eArho);
 
+  mytree->Branch("is_hltEG35R9Id90HE10IsoMEcalIsoFilter",&is_hltEG35R9Id90HE10IsoMEcalIsoFilter);
+  mytree->Branch("is_hltEG35R9Id90HE10IsoMHcalIsoFilter",&is_hltEG35R9Id90HE10IsoMHcalIsoFilter);
+  mytree->Branch("is_hltEG35R9Id90HE10IsoMTrackIsoFilter",&is_hltEG35R9Id90HE10IsoMTrackIsoFilter);
+
   //Save MC info
   if(!runningOnData_){ //NO INFO FOR DATA
     mytree->Branch("PU_Weight",&PU_Weight);
     mytree->Branch("MC_Weight",&MC_Weight);
+    mytree->Branch("genID",&genID);
   }
 }
   

@@ -4,8 +4,10 @@ import argparse
 
 #INPUT FILES
 fIn_bkg  = ROOT.TFile("../histos/latest_production/histos_CR_preselection_Sidebands.root")
+#tree_bkg = fIn_bkg.Get("tree_output_forMVA")
 tree_bkg = fIn_bkg.Get("tree_output")
 fIn_sig  = ROOT.TFile("../histos/latest_production/histos_SR_preselection_SignalggH.root")
+#tree_sig = fIn_sig.Get("tree_output_forMVA")
 tree_sig = fIn_sig.Get("tree_output")
 
 #OUTPUT FILE
@@ -56,7 +58,7 @@ dataloader.AddSignalTree(tree_sig, sig_weight)
 print "before AddBackgroundTree"
 dataloader.AddBackgroundTree(tree_bkg, bkg_weight)
 
-dataloader.SetWeightExpression("_eventWeight") #_eventWeight is the weight variable of the tree
+dataloader.SetWeightExpression("_BDTweight") #_eventWeight is the weight variable of the tree
 
 mycutSig = ROOT.TCut("")
 mycutBkg = ROOT.TCut("")

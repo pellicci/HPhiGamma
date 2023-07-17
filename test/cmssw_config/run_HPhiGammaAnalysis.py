@@ -67,9 +67,9 @@ else:
    #inputFiles = {"/store/mc/RunIIAutumn18MiniAOD/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/MINIAODSIM/102X_upgrade2018_realistic_v15-v1/80000/F9947F2D-F185-4E43-9A4B-EA7FAF2CE4C2.root"}
    #inputFiles = listOfFiles
    #Choose this for Phi ggH signal
-   #inputFiles = {'/store/mc/RunIISummer20UL18MiniAODv2/GluGlu_HToPhiGamma_M125_TuneCP5_PSWeights_13TeV_powheg_pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v3/40000/466C2A54-EAA8-D441-AECE-92FBA662611A.root','/store/mc/RunIISummer20UL18MiniAODv2/GluGlu_HToPhiGamma_M125_TuneCP5_PSWeights_13TeV_powheg_pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v3/40000/10358A5B-CBF1-554A-983D-37E0015C2DCC.root'}
+   inputFiles = {'/store/mc/RunIISummer20UL18MiniAODv2/GluGlu_HToPhiGamma_M125_TuneCP5_PSWeights_13TeV_powheg_pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v3/40000/466C2A54-EAA8-D441-AECE-92FBA662611A.root','/store/mc/RunIISummer20UL18MiniAODv2/GluGlu_HToPhiGamma_M125_TuneCP5_PSWeights_13TeV_powheg_pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v3/40000/10358A5B-CBF1-554A-983D-37E0015C2DCC.root'}
    #Choose this for Phi VBF signal   
-   inputFiles = {'/store/mc/RunIISummer20UL18MiniAODv2/VBF_HToPhiGamma_M125_TuneCP5_PSWeights_13TeV_powheg_pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v1/2560000/00B7EB0B-2697-F241-BE5F-1735C9656C30.root'}
+   #inputFiles = {'/store/mc/RunIISummer20UL18MiniAODv2/VBF_HToPhiGamma_M125_TuneCP5_PSWeights_13TeV_powheg_pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v1/2560000/00B7EB0B-2697-F241-BE5F-1735C9656C30.root'}
    #Choose this for Rho VBF signal
    #inputFiles = {'/store/mc/RunIISummer20UL18MiniAODv2/VBF_HToRhoGamma_M125_TuneCP5_PSWeights_13TeV_powheg_pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v3/40000/43213ED1-8A32-9A41-B818-382412E0B6AD.root'}#,'/store/mc/RunIISummer20UL18MiniAODv2/VBF_HToRhoGamma_M125_TuneCP5_PSWeights_13TeV_powheg_pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v3/40000/1E9AFC8F-9D47-3F49-808D-33F4FF9086DE.root'}
    #Choose fot Rho ggH signal

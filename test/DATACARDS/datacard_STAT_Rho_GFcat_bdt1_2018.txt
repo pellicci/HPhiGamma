@@ -25,5 +25,7 @@ pdf_Higgs          lnN     1.032   1.021   -
 CMS_trig_TwoProngs lnN     1.054   1.054   -  
 CMS_trig_PhotonLeg lnN     1.027   1.027   -  
 CMS_photonID       lnN     1.016   1.016   -  
+IsoNeuEff          lnN     1.017   1.017   - 
+IsoChEff           lnN     1.028   1.028   -
 -------------------------------------
 pdf_index_GFcat_bdt1 discrete

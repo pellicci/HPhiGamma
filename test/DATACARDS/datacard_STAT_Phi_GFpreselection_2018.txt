@@ -17,12 +17,14 @@ process	ggH		VBFH	bkg
 process	0	 	-1	     1     
 rate	0.01    0.01	 1     
 -------------------------------------
-lumi_13TeV        lnN     1.025	  1.025	  -  
-#xsec              lnN     1.025	  1.025	  -  
+lumi_13TeV        lnN     1.025	   1.025 -  
+#xsec              lnN     1.025   1.025   -  
 #PU_rew            lnN     1.046   1.046   -  
 #alfaS             lnN     1.032   1.021   -  
 #trigEffTwoProngs  lnN     1.054   1.054   -  
 #trigEffPhotonLeg  lnN     1.027   1.027   -  
 #photonID          lnN     1.016   1.016   -  
+#IsoNeuEff         lnN     1.025   1.025   - 
+#IsoChEff          lnN     1.018   1.018   -
 -------------------------------------
 pdf_index_GFpreselection discrete

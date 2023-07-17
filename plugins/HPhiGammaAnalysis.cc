@@ -310,12 +310,14 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
  nElectrons10          = 0;
  nMuons20              = 0;
  nElectrons20          = 0;
- nPhotons38WP80        = 0;
- nPhotons20WP90        = 0;
  nPhotonsChosen        = 0;
  nJets30               = 0;
  nJets25               = 0;
  nJets20               = 0;
+ nPhotons38WP80              = 0;
+ nPhotonsWP90_pT20_2p5eta3p0 = 0;
+ nPhotonsWP90_pT15_barrel    = 0;
+ nPhotonsWP90_pT25_endcap    = 0;
  
   //These variables will go in the tree
  ph_eT     = 0.;
@@ -465,14 +467,16 @@ for(auto el = slimmedElectrons->begin(); el != slimmedElectrons->end(); ++el){
   for(auto photon = slimmedPhotons->begin(); photon != slimmedPhotons->end(); ++photon){ //PHOTON FORLOOP START --------------------------------
     
     // Apply energy scale corrections, from 18Apr2023 the correction are embedded in the config file with the postReco tool
-    corr_et   = photon->et();// * photon->userFloat("ecalEnergyPostCorr") / photon->energy(); 
+    corr_et = photon->et();// * photon->userFloat("ecalEnergyPostCorr") / photon->energy(); 
 
-    if(corr_et < 20. || fabs(photon->eta()) > 2.5) continue; //loose selection to reject diphoton bkg 
     if(photon->photonID("mvaPhoID-RunIIFall17-v2-wp90") == 0) continue; //WP90
     if(!photon->passElectronVeto()) continue; 
 
-    nPhotons20WP90++;
+    if(corr_et > 20. && fabs(photon->eta()) >= 2.5   && fabs(photon->eta()) < 3.)    nPhotonsWP90_pT20_2p5eta3p0++;
+    if(corr_et > 15. && fabs(photon->eta()) >= 0.    && fabs(photon->eta()) < 1.444) nPhotonsWP90_pT15_barrel++;
+    if(corr_et > 25. && fabs(photon->eta()) > 1.566  && fabs(photon->eta()) < 2.5)   nPhotonsWP90_pT25_endcap++;
 
+    if(fabs(photon->eta()) > 2.1) continue; //eta cut corresponding to the trigger's one
     if(corr_et < 38.) continue;
     if(photon->photonID("mvaPhoID-RunIIFall17-v2-wp80") == 0) continue; //WP80
 
@@ -489,6 +493,9 @@ for(auto el = slimmedElectrons->begin(); el != slimmedElectrons->end(); ++el){
     ph_p4 = photon->p4();// * photon->userFloat("ecalEnergyPostCorr") / photon->energy();
 
     if(corr_et < eTphMax) continue; //choose as best photon the one with highest eT
+    
+    //reinitialize the trigger matching bool
+    isPhotonTriggerMatched = false;
     
     eTphMax = corr_et;
     ph_iso_ChargedHadron = photon->chargedHadronIso();
@@ -508,6 +515,9 @@ for(auto el = slimmedElectrons->begin(); el != slimmedElectrons->end(); ++el){
     photonRegressionError = photon->getCorrectedEnergyError(reco::Photon::P4type::regression2);
     if(debug) cout << "Regression2 Energy Error: " << photonRegressionError << endl;
     
+    // Verify if the photon fired the HLT
+    //isPhotonTriggerMatched = photon->triggered("HLT_Photon35_TwoProngs35_v*");
+
     cand_photon_found = true;
     nPhotonsChosen++;
 
@@ -633,6 +643,8 @@ JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(JetCorPar);
     _Jet_Photon_invMass=(jet->p4()+ph_p4).M(); //calculate inv mass
     nDaughters= jet->numberOfDaughters(); //calculate number of daughters
 
+    if(verbose) cout<<"nDaughters = "<<nDaughters<<endl;
+
     //----------------------------- Pre-Filters --------------------------------------------------------
     if(jet->neutralHadronEnergyFraction() > 0.9) continue; //reject if neutralhadron-energy fraction is > 0.9
     if(jet->neutralEmEnergyFraction() > 0.9) continue; //reject if neutralEm-energy fraction is > 0.9, alias NO-PHOTON FILTER                              
@@ -658,7 +670,7 @@ JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(JetCorPar);
     if (debug) cout <<"jet pT = "<<jet->pt()<<", jet pT shifted = "<<jetPt_shifted<<endl;
     //------------------------------------------------------------------------
 
-    if(jet->pt() < 40. || abs(jet->eta()) > 2.5) continue;
+    if(jet->pt() < 40. || abs(jet->eta()) > 2.1) continue;
     if(_Jet_Photon_invMass < 100.) continue; //reject jets with inv mass lower then 100 GeV
                            
      //-------------------------------------------------------------------------------------------------      
@@ -900,6 +912,9 @@ JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(JetCorPar);
             continue; //choose the couple with greatest pt
           }
 
+          //reinitialize the trigger matching bool
+          isJetTriggerMatched = false;
+
           //If passed, this is the pair with the largest pT of the event so far
           bestCoupleOfTheJet_pT = couple_p4.pt();     
           if (verbose) cout<<"couple_p4.pt() = "<<bestCoupleOfTheJet_pT<<endl;
@@ -924,7 +939,9 @@ JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(JetCorPar);
           bestFirstCand_dzErr     = firstCand_dzErr;
           bestSecondCand_dxyErr   = secondCand_dxyErr;
           bestSecondCand_dzErr    = secondCand_dzErr;
-          
+
+          // Verify if the best jet fired the HLT
+          //isJetTriggerMatched = slimmedJets->at(jetIndex).triggered("HLT_Photon35_TwoProngs35_v*");
 
           best_firstCand_p4  = firstCand_p4; 
           best_secondCand_p4 = secondCand_p4;
@@ -1034,9 +1051,6 @@ if(verbose){
 }
 
 
-
-_Nevents_coupleIsolationFilter++;
-
 /*
 //VBF veto -------------------------------------------------------------
 int jet_i = 0;
@@ -1136,7 +1150,7 @@ cout<<"---------------------------------"<<endl;
 }
 
 //VBF definition : nJets >= 2 (without counting the jet containing the candidate meson), pT leading jet > 30, pT subleading jet > 20, deltaEta > 3, mJJ > 400
-if(leadingJetPt > 30 && deltaEtaJets > 3 ){ //&& mJJ > 400){
+if(leadingJetPt > 30 && deltaEtaJets > 3 && mJJ > 300){
 
   isVBF = true;
   cout<<"VBF-like event: RETURN!"<<endl;
@@ -1403,6 +1417,33 @@ if(!runningOnData_) //ONLY FOR MC START
     //cout<<"deltaR_Kpm   = "<<deltaR_Kpm<<endl;
 
 
+    //For the polarization reweighting
+    theta_pol = 0.;
+
+    if(!runningOnData_){
+
+    TLorentzVector mu[2];
+
+    for(auto genParticle = prunedGenParticles->begin(); genParticle != prunedGenParticles->end(); ++genParticle){
+     // last in the collection
+     if( genParticle->pdgId()==321 && genParticle->mother() && genParticle->mother()->pdgId()==333) {
+       const reco::GenParticle* phi = dynamic_cast<const reco::GenParticle*>(genParticle->mother());
+       if( phi->mother() && phi->mother()->pdgId()==25) {
+    mu[1].SetPxPyPzE(genParticle->px(),genParticle->py(),
+         genParticle->pz(),genParticle->energy());
+    mu[0].SetPxPyPzE(phi->px(),phi->py(),
+         phi->pz(),phi->energy());
+    break;
+          }
+        }
+      }
+
+      TVector3 phiBoost = mu[0].BoostVector();
+      mu[1].Boost(-phiBoost);
+      theta_pol = mu[0].Vect().Angle(mu[1].Vect());
+    }
+
+
 
     //some prints
     
@@ -1491,7 +1532,9 @@ void HPhiGammaAnalysis::create_trees()
   mytree->Branch("nElectrons10",&nElectrons10);
   mytree->Branch("nElectrons20",&nElectrons20);
   mytree->Branch("nPhotons38WP80",&nPhotons38WP80);
-  mytree->Branch("nPhotons20WP90",&nPhotons20WP90);
+  mytree->Branch("nPhotonsWP90_pT20_2p5eta3p0",&nPhotonsWP90_pT20_2p5eta3p0);
+  mytree->Branch("nPhotonsWP90_pT15_barrel",&nPhotonsWP90_pT15_barrel);
+  mytree->Branch("nPhotonsWP90_pT25_endcap",&nPhotonsWP90_pT25_endcap);
   mytree->Branch("nPhotonsChosen",&nPhotonsChosen);
   mytree->Branch("nJets30",&nJets30);
   mytree->Branch("nJets25",&nJets25);
@@ -1511,6 +1554,7 @@ void HPhiGammaAnalysis::create_trees()
   //mytree->Branch("photon_iso_Photon",&ph_iso_Photon);
   mytree->Branch("photon_iso_eArho",&ph_iso_eArho);
   mytree->Branch("photonRegressionError",&photonRegressionError);
+  mytree->Branch("isPhotonTriggerMatched",&isPhotonTriggerMatched);
 
   mytree->Branch("bestJet_pT",&_bestJet_pT);
   mytree->Branch("bestJet_eta",&_bestJet_eta);
@@ -1527,6 +1571,7 @@ void HPhiGammaAnalysis::create_trees()
   mytree->Branch("bestJet_invMass",&_bestJet_invMass);
   mytree->Branch("bestJet_Photon_invMass",&_bestJet_Photon_invMass);
   mytree->Branch("bestJet_JECunc",&_bestJet_JECunc);
+  mytree->Branch("isJetTriggerMatched",&isJetTriggerMatched);
 
   mytree->Branch("firstCandCharge",&_firstCandCharge);
   mytree->Branch("firstCandPt",&_firstCandPt);
@@ -1575,6 +1620,7 @@ void HPhiGammaAnalysis::create_trees()
   if(!runningOnData_){ //NO INFO FOR DATA
     mytree->Branch("PU_Weight",&PU_Weight);
     mytree->Branch("MC_Weight",&MC_Weight);
+    mytree->Branch("theta_pol",&theta_pol);
     mytree->Branch("minPDFWeight",&minPDFWeight);
     mytree->Branch("maxPDFWeight",&maxPDFWeight);
     mytree->Branch("minQCDWeight",&minQCDWeight);

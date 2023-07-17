@@ -61,3 +61,11 @@ if __name__ == '__main__':
     p = Process(target=submit, args=(config,))
     p.start()
     p.join()
+
+    config.General.requestName = 'HPhiGammaTriggerAnalysis_WJets' #Requires FileBased splitting
+    #config.Data.unitsPerJob = 5
+    config.Data.inputDataset = '/TTWJetsToLNu_TuneCP5_13TeV-amcatnloFXFX-madspin-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v1/MINIAODSIM'
+    p = Process(target=submit, args=(config,))
+    p.start()
+    p.join()
+

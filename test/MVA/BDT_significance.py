@@ -11,10 +11,10 @@ BR_inj = 0.00001
 
 #Input files
 fInputSignal = ROOT.TFile("../histos/latest_production/histos_SR_preselection_SignalggH.root")
-sig_tree     = fInputSignal.Get("tree_output")
+sig_tree     = fInputSignal.Get("tree_output_forMVA")
 
 fInputData  = ROOT.TFile("../histos/latest_production/histos_SR_preselection_Data.root")
-data_tree   = fInputData.Get("tree_output")
+data_tree   = fInputData.Get("tree_output_forMVA")
 h_mesonMass = fInputData.Get("h_meson_InvMass_TwoTrk")
 
 Nbkg_passed = 0
@@ -30,7 +30,7 @@ for dataEntry in xrange(nEntriesData):
         continue
     
     Hmass = data_tree.mesonGammaMass
-    #if (Hmass < 110. or Hmass > 140.): continue
+    if (Hmass < 120. or Hmass > 130.): continue
     Nbkg_passed += 1
 
 Nsig_passed = 0 #Initialize the number of signal events from the sum of the weights (before applying BDT cuts), take this number running the generate_histos for signal
@@ -67,7 +67,7 @@ signif  = []
 _effS   = 0
 
 for jbin in range(1,h_BDT_effB_effS.GetNbinsX()+1):
-    if h_BDT_effB_effS.GetBinCenter(jbin) > 0.52: #insert the number before whom the function fluctuates too much to estimate the maximum
+    if h_BDT_effB_effS.GetBinCenter(jbin) > 0.2: #insert the number before whom the function fluctuates too much to estimate the maximum
         sig_eff.append(h_BDT_effB_effS.GetBinCenter(jbin))
         if h_BDT_effB_effS.GetBinContent(jbin) <= 0.:
             bkg_eff.append(0.)
@@ -125,7 +125,6 @@ for entry in xrange(h_BDT_effS.GetNbinsX()):
     signif_maximizing_eff = float(format(signif_maximizing_eff, '.3f'))
     #print "effS: ", effS, "signif_max_eff: ", signif_maximizing_eff
     if effS == signif_maximizing_eff:
-        #if effS == 0.55:
         BDT_output =  h_BDT_effS.GetBinCenter(entry)
         _effS = effS
 

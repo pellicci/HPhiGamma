@@ -42,7 +42,7 @@ CMS_lumi.cmsTextSize = 0.8
 CMS_lumi.lumi_13TeV = "39.54 fb^{-1}" 
 
 #Define the observable ---------------------------------------------------------------
-mass = ROOT.RooRealVar("mesonGammaMass","mesonGammaMass",125.,100.,170.,"GeV/c^2")
+mass = ROOT.RooRealVar("mesonGammaMass","mesonGammaMass",125.,110.,160.,"GeV/c^2")
 
 #Double Crystal Ball definition ---------------------------------------------------------------
 dCB_pole_ggH  = ROOT.RooRealVar("dCB_pole_"+CHANNEL+"_GFcat_bdt1_ggH", "Double CB pole", 125.,120.,130.)
@@ -74,9 +74,9 @@ fitResult_ggH = signalPDF_ggH.fitTo(dataset_ggH,ROOT.RooFit.Save())
 
 #Plot ------------------------------------------------------------------------------------------------------------------------------
 if isPhiGammaAnalysis:
-	xframe_ggH = mass.frame(56)
+	xframe_ggH = mass.frame(60)
 else:
-	xframe_ggH = mass.frame(56)
+	xframe_ggH = mass.frame(60)
 
 dataset_ggH.plotOn(xframe_ggH)
 signalPDF_ggH.plotOn(xframe_ggH)
@@ -87,7 +87,7 @@ signalPDF_ggH.paramOn(xframe_ggH,ROOT.RooFit.Layout(0.53,0.94,0.91),ROOT.RooFit.
 xframe_ggH.getAttText().SetLineWidth(0)
 xframe_ggH.getAttText().SetTextSize(0.019)
 xframe_ggH.GetXaxis().SetTitle("m_{ditrk,#gamma} [GeV]")
-xframe_ggH.GetXaxis().SetRangeUser(100.,170.)
+xframe_ggH.GetXaxis().SetRangeUser(110.,160.)
 xframe_ggH.GetYaxis().SetMaxDigits(2)
 
 #ChiSquare test ---------------------------------------------------------------------------------------------------------------------------
@@ -135,9 +135,9 @@ fitResult_VBF = signalPDF_VBF.fitTo(dataset_VBF)
 
 #Plot
 if isPhiGammaAnalysis:
-	xframe_VBF = mass.frame(56)
+	xframe_VBF = mass.frame(60)
 else:
-	xframe_VBF = mass.frame(56)
+	xframe_VBF = mass.frame(60)
 dataset_VBF.plotOn(xframe_VBF)
 signalPDF_VBF.plotOn(xframe_VBF)
 xframe_VBF.SetTitle("")
@@ -147,7 +147,7 @@ signalPDF_VBF.paramOn(xframe_VBF,ROOT.RooFit.Layout(0.53,0.94,0.91),ROOT.RooFit.
 xframe_VBF.getAttText().SetLineWidth(0)
 xframe_VBF.getAttText().SetTextSize(0.019)
 xframe_VBF.GetXaxis().SetTitle("m_{ditrk,#gamma} [GeV]")
-xframe_VBF.GetXaxis().SetRangeUser(100.,170.)
+xframe_VBF.GetXaxis().SetRangeUser(110.,160.)
 xframe_VBF.GetYaxis().SetMaxDigits(2)
 
 c2 = ROOT.TCanvas()

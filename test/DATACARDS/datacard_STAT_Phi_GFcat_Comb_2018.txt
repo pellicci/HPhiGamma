@@ -1,7 +1,7 @@
 Combination of GFcat_bdt0=datacard_STAT_Phi_GFcat_bdt0_2018.txt  GFcat_bdt1=datacard_STAT_Phi_GFcat_bdt1_2018.txt
 imax 2 number of bins
 jmax 2 number of processes minus 1
-kmax 8 number of nuisance parameters
+kmax 10 number of nuisance parameters
 ----------------------------------------------------------------------------------------------------------------------------------
 shapes VBFH        GFcat_bdt0  workspaces/workspace_STAT_Phi_GFcat_bdt0_2018.root workspace_STAT_Phi_GFcat_bdt0_2018:crystal_ball_Phi_GFcat_bdt0_VBF
 shapes bkg         GFcat_bdt0  workspaces/workspace_STAT_Phi_GFcat_bdt0_2018.root workspace_STAT_Phi_GFcat_bdt0_2018:multipdf_Phi_GFcat_bdt0_bkg
@@ -24,6 +24,8 @@ CMS_photonID            lnN           1.015       1.015       -           1.058 
 CMS_pileup_2018         lnN           1.046       1.046       -           1.046       1.046       -         
 CMS_trig_PhotonLeg      lnN           1.028       1.028       -           1.03        1.034       -         
 CMS_trig_TwoProngs      lnN           1.053       1.053       -           1.048       1.049       -         
+IsoChEff                lnN           1.018       1.018       -           1.018       1.018       -         
+IsoNeuEff               lnN           1.025       1.025       -           1.025       1.025       -         
 QCDscale                lnN           1.039       1.007       -           1.039       1.007       -         
 lumi_13TeV_2018         lnN           1.025       1.025       -           1.025       1.025       -         
 pdf_Higgs               lnN           1.032       1.021       -           1.032       1.021       -         

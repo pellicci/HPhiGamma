@@ -41,10 +41,10 @@ CMS_lumi.cmsTextSize = 0.8
 CMS_lumi.lumi_13TeV = "39.54 fb^{-1}" 
 
 #Parameters of the PDF ---------------------------------------------------------------
-mass = ROOT.RooRealVar("mesonGammaMass","mesonGammaMass",100.,170.,"GeV")
-mass.setRange("LowSideband",100.,120.)
-mass.setRange("HighSideband",130.,170.)
-mass.setRange("full",100.,170.)
+mass = ROOT.RooRealVar("mesonGammaMass","mesonGammaMass",110.,160.,"GeV")
+mass.setRange("LowSideband",110.,120.)
+mass.setRange("HighSideband",130.,160.)
+mass.setRange("full",110.,160.)
 
 #Initialize a Chebychev pdf
 a_bkg = ROOT.RooRealVar("a_bkg_chebychev_"+CHANNEL+"_GFcat_bdt0","a_bkg",-1.,-2.,0.)
@@ -117,9 +117,9 @@ canvas_chebychev.cd()
 
 #Chebychev frame
 if isPhiGammaAnalysis:
-	xframe_chebychev = mass.frame(14)
+	xframe_chebychev = mass.frame(30)
 else:
-	xframe_chebychev = mass.frame(56)
+	xframe_chebychev = mass.frame(60)
 
 data_blinded.plotOn(xframe_chebychev)
 bkgPDF_chebychev.plotOn(xframe_chebychev,ROOT.RooFit.NormRange("LowSideband,HighSideband"),ROOT.RooFit.Range("LowSideband,HighSideband"),ROOT.RooFit.Name("bkgPDF_chebychev"),ROOT.RooFit.LineColor(ROOT.kBlue))
@@ -162,9 +162,9 @@ canvas_bernstein = ROOT.TCanvas()
 canvas_bernstein.cd()
 
 if isPhiGammaAnalysis:
-	xframe_bernstein = mass.frame(14)
+	xframe_bernstein = mass.frame(30)
 else:
-	xframe_bernstein = mass.frame(56)
+	xframe_bernstein = mass.frame(60)
 
 data_blinded.plotOn(xframe_bernstein)
 bkgPDF_bernstein.plotOn(xframe_bernstein,ROOT.RooFit.NormRange("LowSideband,HighSideband"),ROOT.RooFit.Range("LowSideband,HighSideband"),ROOT.RooFit.Name("bkgPDF_bernstein"), ROOT.RooFit.LineColor(ROOT.kGreen))
@@ -204,9 +204,9 @@ canvas_exponential = ROOT.TCanvas()
 canvas_exponential.cd()
 
 if isPhiGammaAnalysis:
-	xframe_exponential = mass.frame(14)
+	xframe_exponential = mass.frame(30)
 else:
-	xframe_exponential = mass.frame(56)
+	xframe_exponential = mass.frame(60)
 
 data_blinded.plotOn(xframe_exponential)
 bkgPDF_exponential.plotOn(xframe_exponential,ROOT.RooFit.Range("LowSideband,HighSideband"),ROOT.RooFit.Name("bkgPDF_exponential"), ROOT.RooFit.LineColor(ROOT.kRed))
@@ -248,9 +248,9 @@ canvas_chebychev4.cd()
 
 #chebychev4 frame
 if isPhiGammaAnalysis:
-	xframe_chebychev4 = mass.frame(14)
+	xframe_chebychev4 = mass.frame(30)
 else:
-	xframe_chebychev4 = mass.frame(56)
+	xframe_chebychev4 = mass.frame(60)
 
 data_blinded.plotOn(xframe_chebychev4)
 bkgPDF_chebychev4.plotOn(xframe_chebychev4,ROOT.RooFit.NormRange("LowSideband,HighSideband"),ROOT.RooFit.Range("LowSideband,HighSideband"),ROOT.RooFit.Name("bkgPDF_chebychev4"),ROOT.RooFit.LineColor(ROOT.kBlue))

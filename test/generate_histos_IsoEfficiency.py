@@ -20,6 +20,7 @@ ROOT.gROOT.SetBatch(True)
 #Input
 p = argparse.ArgumentParser(description='Select rootfile to plot')
 p.add_argument('is_Data', help='Type which kind of sample it is')
+p.add_argument('variable', help='Type the variable')
 p.add_argument('rootfile_name', help='Type rootfile name')
 p.add_argument('outputfile_option', help='Provide output file name')
 
@@ -32,13 +33,15 @@ if args.is_Data == "Data":
 else:
     SAMPLE_NAME = "MC"
 
+VARIABLE = args.variable
+
 #Output
 output_filename = args.outputfile_option
 fOut = ROOT.TFile(output_filename,"RECREATE")
 fOut.cd()
 
 #Create lists of bin min e max values
-pT_list = [38.,43.,48.,53.,58.,63.,68.,1000.]
+pT_list = [38.,40.,42.,44.,46.,50.,55.,1000.]
 
 # D i c t i o n a r i e s
 #-------------------------------
@@ -104,7 +107,7 @@ histo_map[list_histos[9]]  = ROOT.TH1F(list_histos[9],"#eta^{probe#mu} in "+SAMP
 print "This sample has ", mytree.GetEntriesFast(), " events"
 nentries = mytree.GetEntriesFast()
 
-nentries = 1000000 #FIXMEEEEEEEE
+nentries = 500000 #FIXMEEEEEEEE
 
 #Counters
 nIsolatedProbes = 0
@@ -113,7 +116,7 @@ for jentry in xrange(nentries):
     ientry = mytree.LoadTree( jentry )
     if ientry < 0:
         break
-    nb = mytree.GetEntry(jentry )
+    nb = mytree.GetEntry(jentry)
     if nb <= 0:
         continue
 
@@ -134,8 +137,17 @@ for jentry in xrange(nentries):
     isoNeu     = probeMuPt/(probeMuPt + (mytree.sum_pT_05 - mytree.sum_pT_05_ch))
     mumuMass   = mytree.MuMuMass
     
+    #weight
+    if SAMPLE_NAME == "MC":
+        weight = mytree.PU_Weight
+    else:
+        weight  = 1.
+
+    #pT cut
     if probeMuPt < 38.: continue
 
+    if not VARIABLE == "IsoCh": 
+        if (isoCh < 0.9): continue
 
     #Fill trees -----------------------------------------
     pT_bin = None
@@ -154,28 +166,53 @@ for jentry in xrange(nentries):
     # Check if the event falls within a pT bin and if probe mu passes the isolation cut
     if (pT_bin is None): continue 
 
-    if(isoCh > 0.9):
+    if VARIABLE == "IsoCh": 
+        if(isoCh > 0.9):
 
-        nIsolatedProbes = nIsolatedProbes + 1
+            nIsolatedProbes = nIsolatedProbes + 1
 
-        variablesDict["bin{}passEvents".format(pT_bin)][0] = mumuMass
-        treeDict["tree_output_bin{}_pass".format(pT_bin)].Fill()
-       
-        histo_map["h_mumuMassPass"].Fill(mumuMass)
-        histo_map["h_tagMuPt"].Fill(tagMuPt)
-        histo_map["h_probeMuPt"].Fill(probeMuPt)
-        histo_map["h_tagMuPhi"].Fill(tagMuPhi)
-        histo_map["h_probeMuPhi"].Fill(probeMuPhi)
-        histo_map["h_tagMuEta"].Fill(tagMuEta)
-        histo_map["h_probeMuEta"].Fill(probeMuEta)
-        histo_map["h_isoCh"].Fill(isoCh)
-        histo_map["h_isoNeu"].Fill(isoNeu)
+            variablesDict["bin{}passEvents".format(pT_bin)][0] = mumuMass
+            treeDict["tree_output_bin{}_pass".format(pT_bin)].Fill()
+           
+            histo_map["h_mumuMassPass"].Fill(mumuMass, weight)
+            histo_map["h_tagMuPt"].Fill(tagMuPt, weight)
+            histo_map["h_probeMuPt"].Fill(probeMuPt, weight)
+            histo_map["h_tagMuPhi"].Fill(tagMuPhi, weight)
+            histo_map["h_probeMuPhi"].Fill(probeMuPhi, weight)
+            histo_map["h_tagMuEta"].Fill(tagMuEta, weight)
+            histo_map["h_probeMuEta"].Fill(probeMuEta, weight)
+            histo_map["h_isoCh"].Fill(isoCh, weight)
+            histo_map["h_isoNeu"].Fill(isoNeu, weight)
 
-    else:
-        variablesDict["bin{}failEvents".format(pT_bin)][0] = mumuMass
-        treeDict["tree_output_bin{}_fail".format(pT_bin)].Fill()  
+        else:
+            variablesDict["bin{}failEvents".format(pT_bin)][0] = mumuMass
+            treeDict["tree_output_bin{}_fail".format(pT_bin)].Fill()  
 
-        histo_map["h_mumuMassFail"].Fill(mumuMass)
+            histo_map["h_mumuMassFail"].Fill(mumuMass, weight)
+
+    if VARIABLE == "IsoNeu": 
+        if(isoNeu > 0.7):
+
+            nIsolatedProbes = nIsolatedProbes + 1
+
+            variablesDict["bin{}passEvents".format(pT_bin)][0] = mumuMass
+            treeDict["tree_output_bin{}_pass".format(pT_bin)].Fill()
+           
+            histo_map["h_mumuMassPass"].Fill(mumuMass, weight)
+            histo_map["h_tagMuPt"].Fill(tagMuPt, weight)
+            histo_map["h_probeMuPt"].Fill(probeMuPt, weight)
+            histo_map["h_tagMuPhi"].Fill(tagMuPhi, weight)
+            histo_map["h_probeMuPhi"].Fill(probeMuPhi, weight)
+            histo_map["h_tagMuEta"].Fill(tagMuEta, weight)
+            histo_map["h_probeMuEta"].Fill(probeMuEta, weight)
+            histo_map["h_isoCh"].Fill(isoCh, weight)
+            histo_map["h_isoNeu"].Fill(isoNeu, weight)
+
+        else:
+            variablesDict["bin{}failEvents".format(pT_bin)][0] = mumuMass
+            treeDict["tree_output_bin{}_fail".format(pT_bin)].Fill()  
+
+            histo_map["h_mumuMassFail"].Fill(mumuMass, weight)
 
 # F i n a l   P r i n t s
 #---------------------------------- 
