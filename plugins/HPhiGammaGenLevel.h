@@ -21,6 +21,7 @@ class HPhiGammaGenLevel : public edm::EDAnalyzer {
 
   TTree *mytree;
 
+  int event_number;
   int genH_ID_tree;
   float genH_pT_tree;
   float genH_eta_tree;

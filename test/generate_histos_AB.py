@@ -539,7 +539,7 @@ for jentry in xrange(nentries):
         #Polarization effect
         theta_pol  = mytree.theta_pol
         weight_pol = 1.5 * math.sin(theta_pol) * math.sin(theta_pol) 
-        if isRhoAnalysis: weight_pol = 1.
+        weight_pol = 1.
 
         eventWeight =  luminosity * normalization_weight * weight_sign * PUWeight * weight_pol * photonSF * PhotonTriggerSF * TwoProngsTriggerSF * IsoNeuSF * IsoChSF
 

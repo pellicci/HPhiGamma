@@ -127,6 +127,8 @@ effectiveAreas_ph_( (iConfig.getParameter<edm::FileInPath>("effAreasConfigFile_p
   _Nevents_candPtFilter          = 0;
   _Nevents_coupleIsolationFilter = 0;
   _Nevents_VBFVeto               = 0;
+  nKK_found                      = 0;
+  nKK_notFound                   = 0;
 
 
   debug=false;  //DEBUG datamember 
@@ -194,6 +196,30 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
   }
 
   event_number = iEvent.id().event();
+
+  //FIXMEEEEE
+  bool Kplus_found  = false;
+  bool Kminus_found = false;
+
+  //cout <<endl<<"---------- event n. "<<event_number<<" ------------"<<endl;
+
+  if (!runningOnData_){
+    for(auto gen = prunedGenParticles->begin(); gen != prunedGenParticles->end(); ++gen){
+      //if (gen->mother()) cout<<"pdgID = "<<gen->pdgId()<<" (mother ID = "<<gen->mother()->pdgId()<<")"<<endl;
+      if( gen->pdgId() == 321  && gen->mother()->pdgId() == 333 && gen->mother()->mother()->pdgId() == 25) Kplus_found  = true;
+      if( gen->pdgId() == -321 && gen->mother()->pdgId() == 333 && gen->mother()->mother()->pdgId() == 25) Kminus_found = true;
+    }
+    if (Kplus_found && Kminus_found){
+      //cout<<"KK pair found!"<<endl;
+      nKK_found ++;
+    }
+    else{
+      //cout<<"KK not found!"<<endl;
+      nKK_notFound ++;
+    }
+  }
+  //cout <<endl<<"nKK_found = "<<nKK_found<<", nKK_notFound = "<<nKK_notFound<<endl;
+  //cout <<endl<<"-----------------------------------------------------"<<endl;
 
   //*************************************************************//
   //                                                             //
@@ -296,7 +322,7 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
 
   if(!isTwoProngTrigger){
    if(verbose) cout<<"Event not triggered, RETURN."<<endl;
-   return;
+   //return; FIXMEEEEEE
  }
  _Nevents_triggered++;
 
@@ -1149,15 +1175,40 @@ cout<<"mJJ                = "<<mJJ<<endl;
 cout<<"---------------------------------"<<endl;
 }
 
+/*
 //VBF definition : nJets >= 2 (without counting the jet containing the candidate meson), pT leading jet > 30, pT subleading jet > 20, deltaEta > 3, mJJ > 400
-if(leadingJetPt > 30 && deltaEtaJets > 3 && mJJ > 300){
-
+if(leadingJetPt > 30){
   isVBF = true;
   cout<<"VBF-like event: RETURN!"<<endl;
  }
+else if (p4_jets_vector[0].Eta() * p4_jets_vector[1].Eta() < 0. && deltaEtaJets > 3.){
+  isVBF = true;
+  cout<<"VBF-like event: RETURN!"<<endl;
+ } 
+}
+*/
+
+if((leadingJetPt < 30.) || (p4_jets_vector[0].Eta() * p4_jets_vector[1].Eta() > 0) || (p4_jets_vector[0].Eta() * p4_jets_vector[1].Eta() < 0 && deltaEtaJets < 3) || (mJJ < 300.)){
+  isVBF = false;
+}
+else {
+  isVBF = true;
+  }
+
+if(verbose){
+cout<<"leadingJetPt    = "<<leadingJetPt<<endl;
+cout<<"eta_j1 * eta_j2 = "<<p4_jets_vector[0].Eta() * p4_jets_vector[1].Eta()<<endl;
+cout<<"deltaEta        = "<<deltaEtaJets<<endl;
+cout<<"mJJ             = "<<mJJ<<endl;
+cout<<"isVBF           = "<<isVBF<<endl;
+  }
 }
 
-if(isVBF) return;
+if(isVBF){
+
+  cout<<"VBF-like event: RETURN!"<<endl;
+  return;
+}
 
 _Nevents_VBFVeto++;
 
@@ -1269,6 +1320,7 @@ _Nevents_VBFVeto++;
 
   if(!runningOnData_){
     for(auto gen = prunedGenParticles->begin(); gen != prunedGenParticles->end(); ++gen){
+      //if( gen->pdgId() == 333) cout<<"pdg ID = "<<gen->pdgId()<<" (mother ID = "<<gen->mother()->pdgId()<<")"<<endl;
       if( gen->pdgId() == 321  && gen->mother()->pdgId() == 333 && gen->mother()->mother()->pdgId() == 25)  Kplus_phi   = gen->phi(), Kplus_eta   = gen->eta(), KplusPt  = gen->pt();//, Kplus_dz  = gen->dz();//(&slimmedPV->at(0))->position()
       if( gen->pdgId() == -321 && gen->mother()->pdgId() == 333 && gen->mother()->mother()->pdgId() == 25)  Kminus_phi  = gen->phi(), Kminus_eta  = gen->eta(), KminusPt = gen->pt();//, Kminus_dxy = gen->dxy(), Kminus_dz = gen->dz();
       if( gen->pdgId() == 211  && gen->mother()->pdgId() == 113 && gen->mother()->mother()->pdgId() == 25)  Piplus_phi  = gen->phi(), Piplus_eta  = gen->eta();
@@ -1527,6 +1579,7 @@ void HPhiGammaAnalysis::create_trees()
     mytree->Branch("event_number",&event_number);
   }
 
+  mytree->Branch("isTwoProngTrigger",&isTwoProngTrigger);
   mytree->Branch("nMuons10",&nMuons10);
   mytree->Branch("nMuons20",&nMuons20);
   mytree->Branch("nElectrons10",&nElectrons10);

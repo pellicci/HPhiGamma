@@ -36,6 +36,8 @@ void HPhiGammaGenLevel::analyze(const edm::Event& iEvent, const edm::EventSetup&
   edm::Handle<std::vector<reco::GenParticle>  > genParticles;
   iEvent.getByToken(genParticlesToken_, genParticles);
 
+  event_number = iEvent.id().event();
+  
   int genH_ID    = -999;
   float genH_pT  = -999.;
   float genH_eta = -999.;
@@ -213,6 +215,8 @@ void HPhiGammaGenLevel::analyze(const edm::Event& iEvent, const edm::EventSetup&
 void HPhiGammaGenLevel::create_trees()
 {
   mytree = fs->make<TTree>("mytree", "Tree containing gen info");
+
+  mytree->Branch("event_number",&event_number);
 
   mytree->Branch("genH_ID",&genH_ID_tree);
   mytree->Branch("genH_pT",&genH_pT_tree);

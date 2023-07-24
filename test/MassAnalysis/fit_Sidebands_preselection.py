@@ -57,9 +57,7 @@ if CHANNEL == "Phi":
 else:
 	bkgPDF_chebychev = ROOT.RooChebychev("chebychev_GFpreselection_bkg","bkgPDF",mass,ROOT.RooArgList(a_bkg,b_bkg,c_bkg,d_bkg))
 
-
-#Initialize a exponential pdf
-#Initialize a exponential pdf
+#Initialize an exponential pdf
 e1_bkg = ROOT.RooRealVar("e1_bkg_exponential_"+CHANNEL+"_GFcat","e1_bkg",-0.031,-1.,0.)
 exp1   = ROOT.RooExponential("exponential1_GFcat_bkg","bkgPDF",mass,e1_bkg)
 e2_bkg = ROOT.RooRealVar("e2_bkg_exponential_"+CHANNEL+"_GFcat","e2_bkg",-0.931,-1.,0.)

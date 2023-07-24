@@ -74,6 +74,8 @@ private:
   int _Nevents_candPtFilter;
   int _Nevents_coupleIsolationFilter;
   int _Nevents_VBFVeto;
+  int nKK_found;
+  int nKK_notFound;
   
   //TTree and TTree variables
   TTree *mytree;
