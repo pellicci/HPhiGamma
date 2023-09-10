@@ -10,4 +10,3 @@
 <use name="CondFormats/JetMETObjects"/>
 <use name="JetMETCorrections/Objects"/>
 <use name="JetMETCorrections/JetCorrector"/>
-<flags EDM_PLUGIN="1"/>

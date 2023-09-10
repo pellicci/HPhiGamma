@@ -1,4 +1,4 @@
-  #define _USE_MATH_DEFINES
+#define _USE_MATH_DEFINES
 #include <cmath> 
 #include <iostream>
 
@@ -112,6 +112,7 @@ effectiveAreas_ph_( (iConfig.getParameter<edm::FileInPath>("effAreasConfigFile_p
   triggerBitsToken_                   = consumes<edm::TriggerResults> (edm::InputTag("TriggerResults","","HLT"));
   rhoToken_                           = consumes<double> (iConfig.getParameter <edm::InputTag>("rho"));
   LHEEventProduct_                    = consumes<LHEEventProduct>(edm::InputTag("externalLHEProducer"));
+  triggerObjectsToken_                = consumes<std::vector<pat::TriggerObjectStandAlone> > (edm::InputTag("slimmedPatTrigger","","PAT")); //triggObj
   //packedGenParticlesToken_            = consumes<std::vector<pat::GenParticle>>(edm::InputTag("packedGenParticles", "", "PAT"));
 
   h_Events = fs->make<TH1F>("h_Events", "Event counting in different steps", 8, 0., 8.);
@@ -144,6 +145,25 @@ HPhiGammaAnalysis::~HPhiGammaAnalysis()
 {
 }
 
+//--------- Function to match reco object with trigger object ---------//
+namespace{
+  std::vector<const pat::TriggerObjectStandAlone*> getMatchedObjs(const float photon_eta,const float photon_phi,const float meson_eta,const float meson_phi,const std::vector<pat::TriggerObjectStandAlone>& trigObjs,const float maxDeltaR=0.1)
+  {
+    std::vector<const pat::TriggerObjectStandAlone*> matchedObjs;
+    const float maxDR2 = maxDeltaR*maxDeltaR;
+    int nTrigObj = 0;
+    for(auto& trigObj : trigObjs){
+      nTrigObj++;
+      const float dR2_photon = reco::deltaR2(photon_eta,photon_phi,trigObj.eta(),trigObj.phi());
+      if(dR2_photon<maxDR2) matchedObjs.push_back(&trigObj);
+
+      const float dR2_meson = reco::deltaR2(meson_eta,meson_phi,trigObj.eta(),trigObj.phi());
+      if(dR2_meson<maxDR2) matchedObjs.push_back(&trigObj);
+    }
+    return matchedObjs;
+  }
+}
+//------------------------------------------------------------------------------//
 
 // ------------ method called for each event  ------------
 void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
@@ -180,6 +200,12 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
 
   edm::Handle<edm::TriggerResults> triggerBits;
   iEvent.getByToken(triggerBitsToken_, triggerBits); 
+
+  edm::Handle<std::vector<pat::TriggerObjectStandAlone> > triggerObjects; //triggObj
+  iEvent.getByToken(triggerObjectsToken_, triggerObjects); //triggObj
+  
+  std::vector<pat::TriggerObjectStandAlone> unpackedTrigObjs; //triggObj
+
 
   //edm::Handle<reco::JetCorrector> jetCorr;
   //iEvent.getByToken(jetCorrectorToken_, jetCorr);
@@ -220,6 +246,37 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
   }
   //cout <<endl<<"nKK_found = "<<nKK_found<<", nKK_notFound = "<<nKK_notFound<<endl;
   //cout <<endl<<"-----------------------------------------------------"<<endl;
+
+   //*************************************************************//
+   //                                                             //
+   //--------------------------- Trigger -------------------------//
+   //                                                             //
+   //*************************************************************//
+
+   //Examine the trigger information, return if the trigger doesn't switch on and count the number of events where the trigger has switched on
+   isTwoProngTrigger = false;
+
+   const edm::TriggerNames &names = iEvent.triggerNames(*triggerBits);
+   for(unsigned int i = 0, n = triggerBits->size(); i < n; ++i){
+     if(!triggerBits->accept(i)) continue;
+     std::string tmp_triggername = names.triggerName(i);
+
+     if( tmp_triggername.find("HLT_Photon35_TwoProngs35_v") != std::string::npos ){
+       isTwoProngTrigger = true;
+     }
+   }
+
+   if(!isTwoProngTrigger){
+    if(verbose) cout<<"Event not triggered, RETURN."<<endl;
+    return;
+  }
+  _Nevents_triggered++;
+
+  //Create unpacked filter names
+  for(auto& trigObj : *triggerObjects){
+      unpackedTrigObjs.push_back(trigObj);
+      unpackedTrigObjs.back().unpackFilterLabels(iEvent,*triggerBits);
+  }
 
   //*************************************************************//
   //                                                             //
@@ -303,31 +360,6 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
 
   //*************************************************************//
   //                                                             //
-  //--------------------------- Trigger -------------------------//
-  //                                                             //
-  //*************************************************************//
-
-  //Examine the trigger information, return if the trigger doesn't switch on and count the number of events where the trigger has switched on
-  isTwoProngTrigger = false;
-
-  const edm::TriggerNames &names = iEvent.triggerNames(*triggerBits);
-  for(unsigned int i = 0, n = triggerBits->size(); i < n; ++i){
-    if(!triggerBits->accept(i)) continue;
-    std::string tmp_triggername = names.triggerName(i);
-
-    if( tmp_triggername.find("HLT_Photon35_TwoProngs35_v") != std::string::npos ){
-      isTwoProngTrigger = true;
-    }
-  }
-
-  if(!isTwoProngTrigger){
-   if(verbose) cout<<"Event not triggered, RETURN."<<endl;
-   //return; FIXMEEEEEE
- }
- _Nevents_triggered++;
-
-  //*************************************************************//
-  //                                                             //
   //------------------ Variable initialization ------------------//
   //                                                             //
   //*************************************************************//
@@ -362,9 +394,16 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
  eTphMax = -1000.;
 
  _Jet_Photon_invMass  = -1.;
- _MesonMass           = -1.;
- _Hmass_From2K_Photon = -1.;
- 
+ //_MesonMass           = -1.;
+ //_Hmass_From2K_Photon = -1.;
+
+ _PhiMass         = -1.;
+ _RhoMass         = -1.;
+ _K0starMass      = -1.;
+ _PhiGammaMass    = -1.;
+ _RhoGammaMass    = -1.;
+ _K0starGammaMass = -1.;
+
  met_pT      = 0.;
  metpuppi_pT = 0.;
 
@@ -608,8 +647,10 @@ LorentzVector secondCand_p4_K;
 LorentzVector firstCand_p4_Pi;
 LorentzVector secondCand_p4_Pi;
 LorentzVector couple_p4;
-LorentzVector couple_p4_K;
-LorentzVector couple_p4_Pi;
+LorentzVector couple_p4_Phi;
+LorentzVector couple_p4_Rho;
+LorentzVector couple_p4_K0star_PiK;
+LorentzVector couple_p4_K0star_KPi;
 LorentzVector best_firstCand_p4;
 LorentzVector best_secondCand_p4;
 LorentzVector best_couple_p4;
@@ -648,11 +689,20 @@ float secondCandEta=0.;
 float secondCandPhi=0.;
 float PhiMass = 0.;
 float RhoMass = 0.;
-float kMass = 0.4937;
+float K0starMass = 0.;
+float K0starPiKMass = 0.;
+float K0starKPiMass = 0.;
+float kMass  = 0.4937;
 float PiMass = 0.13957;
+float K0TheoryMass = 0.892;
 bool isBestCoupleOfTheEvent_Found=false;
 bool isPhi = false;
 bool isRho = false;
+bool isK0star = false;
+bool isK0starPiK = false;
+bool isK0starKPi = false;
+_isFirstCandK = false;
+
 std::vector<float> pt_jets_vector;   //for VBF veto
 std::vector<LorentzVector> p4_jets_vector;   //for VBF veto
 //std::vector<float> m_jets_vector;   //for VBF veto
@@ -669,23 +719,72 @@ JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(JetCorPar);
     _Jet_Photon_invMass=(jet->p4()+ph_p4).M(); //calculate inv mass
     nDaughters= jet->numberOfDaughters(); //calculate number of daughters
 
-    if(verbose) cout<<"nDaughters = "<<nDaughters<<endl;
+    float NHF  = jet->neutralHadronEnergyFraction();
+    float NEMF = jet->neutralEmEnergyFraction();
+    float MUF  = jet->muonEnergyFraction();
+    float CHF  = jet->chargedHadronEnergyFraction();
+    int   CHM  = jet->chargedHadronMultiplicity();
+    float CEMF = jet->chargedEmEnergyFraction();
+    int   NumNeutralParticle = jet->neutralMultiplicity();
+    int   pileUPjetID        = jet->userInt("pileupJetId:fullId");
 
+    if(verbose){
+    cout<<"________________________________________";
+    cout<<"jet n."<<jetIndex<<endl;
+    cout<<"jet pT  = "<<jet->pt()<<endl;
+    cout<<"jet eta = "<<jet->eta()<<endl;
+    cout<<"jet neutralHadronEnergyFraction = "<<NHF<<endl;
+    cout<<"jet neutralEmEnergyFraction     = "<<NEMF<<endl;
+    cout<<"jet muonEnergyFraction          = "<<MUF<<endl;
+    cout<<"jet chargedHadronEnergyFraction = "<<CHF<<endl;
+    cout<<"jet chargedHadronMultiplicity   = "<<CHM<<endl;
+    cout<<"jet chargedEmEnergyFraction     = "<<CEMF<<endl;
+    cout<<"jet numNeutralParticle          = "<<NumNeutralParticle<<endl;
+    cout<<"jet pileUP                      = "<<pileUPjetID<<endl;
+    //if(verbose) cout<<"nDaughters = "<<nDaughters<<endl;
+    }
+
+    /*
     //----------------------------- Pre-Filters --------------------------------------------------------
-    if(jet->neutralHadronEnergyFraction() > 0.9) continue; //reject if neutralhadron-energy fraction is > 0.9
+    if(jet->neutralHadronEnergyFraction() > 0.2) continue; //reject if neutralhadron-energy fraction is > 0.2
     if(jet->neutralEmEnergyFraction() > 0.9) continue; //reject if neutralEm-energy fraction is > 0.9, alias NO-PHOTON FILTER                              
     if(nDaughters < 2) continue; //reject if number of constituens is less then 1
     if(jet->muonEnergyFraction() > 0.8) continue; //reject if muon-energy fraction is > 0.8                                             
     if(jet->chargedHadronEnergyFraction() <= 0.) continue; //reject if chargedHadron-energy fraction is 0                              
     if(jet->chargedHadronMultiplicity() == 0) continue; //reject if there are NOT charged hadrons                              
-    if(jet->chargedEmEnergyFraction() > 0.8) continue; //reject if chargedEm-energy fraction is > 0.8   
-    if(jet->pt() < 20. || abs(jet->eta()) > 4.7) continue;
+    if(jet->chargedEmEnergyFraction() > 0.8) continue; //reject if chargedEm-energy fraction is > 0.8
+    */
+
+    //----------------------------- Pre-Filters --------------------------------------------------------
+    bool jetID = false;
+
+    //if(pileUPjetID <= 4) continue; //medium jet PU ID 
+    
+    if(abs(jet->eta())<=2.4)                        jetID = (CEMF<0.8 && CHM>0 && CHF>0 && nDaughters>1 && NEMF<0.9 && MUF <0.8 && NHF < 0.9);
+    if(abs(jet->eta())>2.4 && abs(jet->eta())<=2.7) jetID = (NEMF<0.99 && NHF < 0.9);
+    if(abs(jet->eta())>2.7 && abs(jet->eta())<=3.0) jetID = (NEMF>0.0 && NEMF<0.99 && NHF<0.9 && NumNeutralParticle>1);
+    if(abs(jet->eta())>3.0)                         jetID = (NEMF<0.90 && NHF>0.2 && NumNeutralParticle>10);
+    
+    if(verbose) cout<<"jetID = "<<jetID<<endl;
+    if(jetID == 0) continue;
+
+    //HEM 2018 correction ----------------------------------------------------------------------------------------
+    float jet_pt = jet->pt();
+    
+    if (!runningOnData_){ 
+     
+      if (jet->phi() >= -1.57 && jet->phi() <= -0.87 && jet->eta() >= -2.5 && jet->eta() <= -1.3) jet_pt = 0.8 * jet_pt; 
+      if (jet->phi() >= -1.57 && jet->phi() <= -0.87 && jet->eta() >= -3.0 && jet->eta() <= -2.5) jet_pt = 0.65 * jet_pt; 
+
+    }
+
+    //------------------------------------------------------------------------------------------------------------
+
     //for VBF veto ----------------------
+    if(jet_pt < 20. || abs(jet->eta()) > 4.7) continue;
     nJets20++;
-    //eta_jets_vector.push_back(jet->eta());
     p4_jets_vector.push_back(jet->p4());
     pt_jets_vector.push_back(jet->pt());
-    //m_jets_vector.push_back((jet->p4()).M());
     //-----------------------------------
 
     //JEC and JES uncertainties ----------------------------------------------
@@ -696,7 +795,7 @@ JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(JetCorPar);
     if (debug) cout <<"jet pT = "<<jet->pt()<<", jet pT shifted = "<<jetPt_shifted<<endl;
     //------------------------------------------------------------------------
 
-    if(jet->pt() < 40. || abs(jet->eta()) > 2.1) continue;
+    if(jet_pt < 40. || abs(jet->eta()) > 2.1) continue;
     if(_Jet_Photon_invMass < 100.) continue; //reject jets with inv mass lower then 100 GeV
                            
      //-------------------------------------------------------------------------------------------------      
@@ -729,7 +828,7 @@ JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(JetCorPar);
 
       for(int firstCand_Index=0; firstCand_Index < nDaughters; firstCand_Index++){ //1ST LOOP STARTS
 
-        if (verbose) cout<<"Daughter n."<<firstCand_Index+1<<" pT = "<<slimmedJets->at(jetIndex).daughter(firstCand_Index)->pt()<<endl;
+        //if (verbose) cout<<"Daughter n."<<firstCand_Index+1<<" pT = "<<slimmedJets->at(jetIndex).daughter(firstCand_Index)->pt()<<endl;
 
          //loop only over charged daughters
         if (slimmedJets->at(jetIndex).daughter(firstCand_Index)->charge() == 0) continue;
@@ -758,7 +857,7 @@ JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(JetCorPar);
 
           //minimum apporach distance
           if (slimmedJets->at(jetIndex).daughter(secondCand_Index)->bestTrack() == NULL) continue;
-          if(verbose) cout<<"Track without bestTrack() found!"<<endl;
+          //if(verbose) cout<<"Track without bestTrack() found!"<<endl;
 
           //cout<<"dxy = "<<slimmedJets->at(jetIndex).daughter(secondCand_Index)->bestTrack()->dxy((&slimmedPV->at(0))->position())<<endl;
           //cout<<"dz  = "<<slimmedJets->at(jetIndex).daughter(secondCand_Index)->bestTrack()->dz((&slimmedPV->at(0))->position())<<endl;
@@ -825,50 +924,89 @@ JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(JetCorPar);
           firstCand_p4_Pi  = firstCand_p4.SetE(firstCandEnergy_Pi); //Kaon hypothesis quadrimomentum correction
           secondCand_p4_Pi = secondCand_p4.SetE(secondCandEnergy_Pi); //Kaon hypothesis quadrimomentum correction
 
-          couple_p4_K  = firstCand_p4_K  + secondCand_p4_K; //calculation of the couple-quadrimomentum after the correction
-          couple_p4_Pi = firstCand_p4_Pi + secondCand_p4_Pi; //calculation of the couple-quadrimomentum after the correction
-          
+          couple_p4_Phi        = firstCand_p4_K  + secondCand_p4_K; //calculation of the couple-quadrimomentum after the correction
+          couple_p4_Rho        = firstCand_p4_Pi + secondCand_p4_Pi; //calculation of the couple-quadrimomentum after the correction
+          couple_p4_K0star_PiK = firstCand_p4_Pi + secondCand_p4_K;
+          couple_p4_K0star_KPi = firstCand_p4_K  + secondCand_p4_Pi;
+
           if (verbose) {
-            cout<<"KK pT = "<<couple_p4_K.pt()<<endl;
-            cout<<"PiPi pT = "<<couple_p4_Pi.pt()<<endl;
+            cout<<"KK   pT = "<<couple_p4_Phi.pt()<<endl;
+            cout<<"PiPi pT = "<<couple_p4_Rho.pt()<<endl;
+            cout<<"PiK  pT = "<<couple_p4_K0star_PiK.pt()<<endl;
+            cout<<"KPi  pT = "<<couple_p4_K0star_KPi.pt()<<endl;
           }
 
           //DITRK PT CUT -------------------------------------------------------------------------
-          if(couple_p4_K.pt() < 38.) {
+          if(couple_p4_Phi.pt() < 38.) {
             if(verbose) cout<<"couplePt cut NOT passed"<<endl;
             continue;
           }  
           
           //MESON INV MASS CUT -------------------------------------------------------------------------
-          isPhi = false;
-          isRho = false;
+          isPhi       = false;
+          isRho       = false;
+          isK0star    = false;
+          isK0starKPi = false;
+          isK0starPiK = false;
 
-          PhiMass = (couple_p4_K).M(); //calculate inv mass of the Phi candidate  
-          if (verbose) cout<<"mKK (before the meson mass selection) =  "<<PhiMass<<endl;
-          if(PhiMass > 1. && PhiMass < 1.05) isPhi = true; //filter on Phi invariant mass  
-
-          RhoMass = (couple_p4_Pi).M(); //calculate inv mass of the Rho candidate  
+          //Rho tagging
+          RhoMass = (couple_p4_Rho).M(); //calculate inv mass of the Rho candidate  
           if (verbose) cout<<"mPiPi (before the meson mass selection) =  "<<RhoMass<<endl;
-          if(RhoMass > 0.5 && RhoMass < 1.) isRho = true; //filter on Rho invariant mass   
+          if(RhoMass > 0.5 && RhoMass < 1.) isRho = true;
 
-          if (!isPhi && !isRho) continue; //continue if the pair mass doesn't match any of the two mass hypothesis
+          //K0star tagging
+          K0starPiKMass = (couple_p4_K0star_PiK).M();
+          K0starKPiMass = (couple_p4_K0star_KPi).M();
+          if (verbose) cout<<"mPiK (before the meson mass selection) =  "<<K0starPiKMass<<endl;
+          if (verbose) cout<<"mKPi (before the meson mass selection) =  "<<K0starKPiMass<<endl;
 
-          if (isPhi && isRho){ //if both hypothesis are true, mark it as a Phi candidate (this is done because the Phi mass window is tighter)
-            isPhi = true;
-            isRho = false;
+          if(abs(K0starPiKMass - K0TheoryMass) < abs(K0starKPiMass - K0TheoryMass)){
+            K0starMass  = K0starPiKMass;
+            isK0starPiK = true;
+            }
+          else{
+            K0starMass  = K0starKPiMass;        
+            isK0starKPi = true;
           }
 
+          if(K0starMass > 0.6 && K0starMass < 1.) isK0star = true;
+
+          //Phi tagging
+          PhiMass = (couple_p4_Phi).M(); //calculate inv mass of the Phi candidate  
+          if (verbose) cout<<"mKK (before the meson mass selection) =  "<<PhiMass<<endl;
+          if(PhiMass > 1. && PhiMass < 1.05) isPhi = true;
+
+          //Continue if no candidates
+          if (!isPhi && !isRho && !isK0star) continue; //continue if the pair mass doesn't match any of the two mass hypothesis
+
+          //save the 4-mom for the K hypothesis because they are the same for each hypothesis except for the mass value
+          firstCand_p4  = firstCand_p4_K; 
+          secondCand_p4 = secondCand_p4_K;
+          couple_p4     = couple_p4_Phi;
+
+          /*
           //update values of quadrimomenta
           if(isPhi){
             firstCand_p4  = firstCand_p4_K; 
             secondCand_p4 = secondCand_p4_K;
-            couple_p4     = couple_p4_K;
+            couple_p4     = couple_p4_Phi;
           }  
           if(isRho){
             firstCand_p4  = firstCand_p4_Pi;
             secondCand_p4 = secondCand_p4_Pi;
-            couple_p4     = couple_p4_Pi;
+            couple_p4     = couple_p4_Rho;
           }
+          if(isK0star && isK0starPiK){
+            firstCand_p4  = firstCand_p4_Pi;
+            secondCand_p4 = secondCand_p4_K;
+            couple_p4     = couple_p4_K0star_PiK; 
+          }
+          if(isK0star && isK0starKPi){
+            firstCand_p4  = firstCand_p4_K;
+            secondCand_p4 = secondCand_p4_Pi;
+            couple_p4     = couple_p4_K0star_KPi; 
+          }
+          */
 
           // ISOLATION CUT -------------------------------------------------------------------------  
           for(auto cand_iso = PFCandidates->begin(); cand_iso != PFCandidates->end(); ++cand_iso){ //ISOLATION FORLOOP START
@@ -926,7 +1064,7 @@ JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(JetCorPar);
           float isoCoupleCh = couple_p4.pt()/(couple_sum_pT_05_ch + couple_p4.pt());
           if(isoCoupleCh < 0.9) {
             cout<<"No isolation cut passed."<<endl;
-            continue; 
+            //continue; //FIXMEEEEEEE
           }
 
 
@@ -954,6 +1092,7 @@ JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(JetCorPar);
           _bestJet_Photon_invMass = _Jet_Photon_invMass;
           _isPhi                  = isPhi;
           _isRho                  = isRho;
+          _isK0star               = isK0star;
           _bestJet_JECunc         = unc;
           _firstCandCharge        = firstCandCharge;
           _secondCandCharge       = secondCandCharge;
@@ -972,7 +1111,24 @@ JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(JetCorPar);
           best_firstCand_p4  = firstCand_p4; 
           best_secondCand_p4 = secondCand_p4;
           best_couple_p4     = couple_p4;
-            
+
+          //save just the masses for the different hypothesis
+          if(_isPhi)                      _PhiMass = PhiMass,     _PhiGammaMass    = (couple_p4_Phi + ph_p4).M();
+          if(_isRho)                      _RhoMass = RhoMass,     _RhoGammaMass    = (couple_p4_Rho + ph_p4).M();
+          if(_isK0star && isK0starPiK) _K0starMass = K0starMass,  _K0starGammaMass = (couple_p4_K0star_PiK + ph_p4).M(), _isFirstCandK = false;
+          if(_isK0star && isK0starKPi) _K0starMass = K0starMass,  _K0starGammaMass = (couple_p4_K0star_KPi + ph_p4).M(), _isFirstCandK = true;
+
+          if (verbose) {
+          cout<<"_PhiMass         = "<<_PhiMass<<endl;
+          cout<<"_RhoMass         = "<<_RhoMass<<endl;
+          cout<<"_K0starMass      = "<<_K0starMass<<endl;
+          cout<<"_PhiGammaMass    = "<<_PhiGammaMass<<endl;
+          cout<<"_RhoGammaMass    = "<<_RhoGammaMass<<endl;
+          cout<<"_K0starGammaMass = "<<_K0starGammaMass<<endl;
+          cout<<"firstCandPt      = "<<firstCand_p4.pt()<<endl;
+          cout<<"secondCandPt     = "<<secondCand_p4.pt()<<endl;
+          cout<<"isFirstCandK     = "<<_isFirstCandK<<endl;
+          }
 
       } //2ND LOOP ENDS
 	} //1ST LOOP ENDS
@@ -1020,12 +1176,13 @@ _bestJet_neutralEmEnergyFraction  = slimmedJets->at(bestJet_Index).neutralEmEner
 _bestJet_chargedHadEnergyFraction = slimmedJets->at(bestJet_Index).chargedHadronEnergyFraction();
 _bestJet_neutralHadEnergyFraction = slimmedJets->at(bestJet_Index).neutralHadronEnergyFraction();
 _bestJet_chargedHadMultiplicity   = slimmedJets->at(bestJet_Index).chargedHadronMultiplicity();
+_bestJet_PUid                     = slimmedJets->at(bestJet_Index).userInt("pileupJetId:fullId");
 
 //MESON MASS CALCULATION
-_MesonMass = (best_firstCand_p4 + best_secondCand_p4).M();
+//_MesonMass = (best_firstCand_p4 + best_secondCand_p4).M();
 
 //H INV MASS CALCULATION
-_Hmass_From2K_Photon = (best_firstCand_p4 + best_secondCand_p4 + ph_p4).M(); //calculate inv mass of the Higgs candidate
+//_PhiGammaMass = (best_firstCand_p4 + best_secondCand_p4 + ph_p4).M(); //calculate inv mass of the Higgs candidate
   
 
 //CANDIDATES SORTING
@@ -1037,6 +1194,7 @@ if(_firstCandPt < _secondCandPt)  //swap-values loop, in order to fill the tree 
     c = _firstCandPhi;
     d = firstCandEnergy;
     e = _firstCandCharge;
+    _isFirstCandK   = !_isFirstCandK; 
     _firstCandPt    = _secondCandPt;
     _firstCandEta   = _secondCandEta;
     _firstCandPhi   = _secondCandPhi;
@@ -1068,12 +1226,14 @@ _iso_couple_ch = _bestCouplePt/(couple_sum_pT_05_ch + _bestCouplePt);
 if(verbose){
   cout<<endl;
   cout<<"###### ISO           = "<<_iso_couple_ch<<endl;
-  cout<<"###### isRho         = "<<isRho<<endl;
+  cout<<"###### isPhi         = "<<_isPhi<<endl;
+  cout<<"###### isRho         = "<<_isRho<<endl;
+  cout<<"###### isK0star      = "<<_isK0star<<endl;
   cout<<"###### SUM pT        = "<<couple_sum_pT_05_ch<<endl;
   cout<<"###### pT leading    = "<<_firstCandPt<<endl;
   cout<<"###### pT subleading = "<<_secondCandPt<<endl;
-  cout<<"###### MesonMass     = "<<_MesonMass<<endl;
-  cout<<"###### HMass         = "<<_Hmass_From2K_Photon<<endl;
+  //cout<<"###### MesonMass     = "<<_MesonMass<<endl;
+  //cout<<"###### HMass         = "<<_Hmass_From2K_Photon<<endl;
 }
 
 
@@ -1124,17 +1284,19 @@ if(debug) cout <<"---------------------------------------------"<<endl<<endl;
 //**************** VBF VETO *********************
 //***********************************************
 
-//remove bestJet from vectors
+//remove bestJet from vectors and those jets with a deltaR too close to the photon
 bool bestJetRemoved = false;
 
 for (int i = 0; i < static_cast<int>(p4_jets_vector.size()); i++) {
+    if(verbose) cout<<"pT jets (> 20 and eta < 4.7) = "<<pt_jets_vector[i]<<" (eta jet = "<<p4_jets_vector[i].Eta()<<endl;
     if (pt_jets_vector[i] == _bestJet_pT) {
         p4_jets_vector.erase(p4_jets_vector.begin() + i);
         pt_jets_vector.erase(pt_jets_vector.begin() + i);
         i--; // to handle the reduction in vector size
         bestJetRemoved = true;
-    }
-}    
+  }
+}
+
 if(!bestJetRemoved)cout<<"SOMETHING WRONG!!! No best jet removed from vectors."<<endl;
 
 // sort the pt_jets_vector in descending order
@@ -1153,6 +1315,19 @@ for (int i = 0; i < static_cast<int>(pt_sorted_indices.size()); i++) {
     p4_jets_sorted[i] = p4_jets_vector[pt_sorted_indices[i]];
 }
 
+for (int i = 0; i < static_cast<int>(p4_jets_vector.size()); i++) {
+  float deltaEtaPhotonJet = fabs(ph_eta - p4_jets_vector[i].Eta());
+  float deltaPhiPhotonJet = fabs(ph_phi - p4_jets_vector[i].Phi());
+  if (deltaPhiPhotonJet > M_PI) deltaPhiPhotonJet = 2*M_PI - deltaPhiPhotonJet;
+  float deltaR_photonJet = sqrt(deltaEtaPhotonJet * deltaEtaPhotonJet + deltaPhiPhotonJet + deltaPhiPhotonJet);
+  if(verbose) cout<<"deltaR_photonJet = "<<deltaR_photonJet<<endl;
+  if(verbose) cout<<"VBF jet pT       = "<<p4_jets_vector[i].Pt()<<endl;
+  if (deltaR_photonJet < 0.3){
+    p4_jets_vector.erase(p4_jets_vector.begin() + i);
+    pt_jets_vector.erase(pt_jets_vector.begin() + i);
+  }
+}
+
 bool isVBF = false;
 
 int nExtraJet = static_cast<int>(p4_jets_vector.size());
@@ -1164,7 +1339,11 @@ float leadingJetPt = p4_jets_vector[0].Pt();
 float mJJ          = (p4_jets_vector[0] + p4_jets_vector[1]).M();
 
 if (debug){
-cout<<"--------- VBFveto ---------------"<<endl;
+cout<<"--------- VBF veto ---------------"<<endl;
+cout<<"isVBF              = "<<isVBF<<endl;
+cout<<"photon_eT          = "<<ph_eT<<endl;
+cout<<"mesonPt            = "<<_bestCouplePt<<endl;
+cout<<"bestJetPt          = "<<_bestJet_pT<<endl;
 cout<<"nExtraJet          = "<<nExtraJet<<endl;
 cout<<"eta leadingJet     = "<<p4_jets_vector[0].Eta()<<endl;
 cout<<"eta subLeadingJet  = "<<p4_jets_vector[1].Eta()<<endl;
@@ -1187,6 +1366,19 @@ else if (p4_jets_vector[0].Eta() * p4_jets_vector[1].Eta() < 0. && deltaEtaJets 
  } 
 }
 */
+/*
+float deltaEtaPhotonJet1 = fabs(ph_eta - p4_jets_vector[0].Eta());
+float deltaPhiPhotonJet1 = fabs(ph_phi - p4_jets_vector[0].Phi());
+if (deltaPhiPhotonJet1 > M_PI) deltaPhiPhotonJet1 = 2*M_PI - deltaPhiPhotonJet1;
+float deltaR_photonJet1 = sqrt(deltaEtaPhotonJet1 * deltaEtaPhotonJet1 + deltaPhiPhotonJet1 + deltaPhiPhotonJet1);
+
+float deltaEtaPhotonJet2 = fabs(ph_eta - p4_jets_vector[1].Eta());
+float deltaPhiPhotonJet2 = fabs(ph_phi - p4_jets_vector[1].Phi());
+if (deltaPhiPhotonJet2 > M_PI) deltaPhiPhotonJet2 = 2*M_PI - deltaPhiPhotonJet2;
+float deltaR_photonJet2 = sqrt(deltaEtaPhotonJet2 * deltaEtaPhotonJet2 + deltaPhiPhotonJet2 + deltaPhiPhotonJet2);
+
+if(deltaEtaPhotonJet1 < 0.3 || deltaEtaPhotonJet2 < 0.3) 
+*/
 
 if((leadingJetPt < 30.) || (p4_jets_vector[0].Eta() * p4_jets_vector[1].Eta() > 0) || (p4_jets_vector[0].Eta() * p4_jets_vector[1].Eta() < 0 && deltaEtaJets < 3) || (mJJ < 300.)){
   isVBF = false;
@@ -1196,8 +1388,19 @@ else {
   }
 
 if(verbose){
+cout<<"--------- Event n. "<<event_number<<" ---------------"<<endl;
+cout<<"mesonMass       = "<<_PhiMass<<endl;
+cout<<"Hmass           = "<<_PhiGammaMass<<endl;
+cout<<"jet puID        = "<<_bestJet_PUid<<endl;
+cout<<"photon_eT       = "<<ph_eT<<endl;
+cout<<"photon_eta      = "<<ph_eta<<endl;
+cout<<"mesonPt         = "<<_bestCouplePt<<endl;
+cout<<"mesonEta        = "<<_bestCoupleEta<<endl;
+cout<<"bestJetPt       = "<<_bestJet_pT<<endl;
 cout<<"leadingJetPt    = "<<leadingJetPt<<endl;
-cout<<"eta_j1 * eta_j2 = "<<p4_jets_vector[0].Eta() * p4_jets_vector[1].Eta()<<endl;
+cout<<"subLeadingJetPt = "<<p4_jets_vector[1].Pt()<<endl;
+cout<<"eta_j1          = "<<p4_jets_vector[0].Eta()<<endl;
+cout<<"eta_j2          = "<<p4_jets_vector[1].Eta()<<endl;
 cout<<"deltaEta        = "<<deltaEtaJets<<endl;
 cout<<"mJJ             = "<<mJJ<<endl;
 cout<<"isVBF           = "<<isVBF<<endl;
@@ -1315,8 +1518,8 @@ _Nevents_VBFVeto++;
   KminusPt     = -999.;
   Kplus_dxy    = -999.;
   Kplus_dz     = -999.;
-  Kminus_dxy    = -999.;
-  Kminus_dz     = -999.;
+  Kminus_dxy   = -999.;
+  Kminus_dz    = -999.;
 
   if(!runningOnData_){
     for(auto gen = prunedGenParticles->begin(); gen != prunedGenParticles->end(); ++gen){
@@ -1327,6 +1530,7 @@ _Nevents_VBFVeto++;
       if( gen->pdgId() == -211 && gen->mother()->pdgId() == 113 && gen->mother()->mother()->pdgId() == 25)  Piminus_phi = gen->phi(), Piminus_eta = gen->eta();
       if( gen->pdgId() == 333  && gen->mother()->pdgId() == 25) genMeson_pT  = gen->pt(), genMeson_phi  = gen->phi(),  genMeson_eta = gen->eta(), genMeson_m = gen->mass();
       if( gen->pdgId() == 113  && gen->mother()->pdgId() == 25) genMeson_pT  = gen->pt(), genMeson_phi  = gen->phi(),  genMeson_eta = gen->eta(), genMeson_m = gen->mass();
+      if( gen->pdgId() == 313  && gen->mother()->pdgId() == 25) genMeson_pT  = gen->pt(), genMeson_phi  = gen->phi(),  genMeson_eta = gen->eta(), genMeson_m = gen->mass();
       if( gen->pdgId() == 22   && gen->mother()->pdgId() == 25) genPhoton_eT = gen->pt(), genPhoton_phi = gen->phi(), genPhoton_eta = gen->eta();
     }
   } 
@@ -1496,7 +1700,6 @@ if(!runningOnData_) //ONLY FOR MC START
     }
 
 
-
     //some prints
     
     if(verbose){
@@ -1529,9 +1732,10 @@ if(!runningOnData_) //ONLY FOR MC START
       cout<<"Kminus dxy     = "<<Kminus_dxy<<endl;
       cout<<"Kminus dz      = "<<Kminus_dz<<endl;
       cout<<"Best couple DeltaR = "<<deltaR_KChosen<<endl;
-      cout<<"Meson candidate inv. mass  = "<<_MesonMass<<endl;
+      //cout<<"Meson candidate inv. mass  = "<<_MesonMass<<endl;
       cout<<"isPhi = "<<isPhi<<" and isRho = "<<isRho<<endl;
-      cout<<"H inv. mass = "<<_Hmass_From2K_Photon<<endl;
+      cout<<"isFirstCandK = "<<_isFirstCandK<<endl;
+      //cout<<"H inv. mass = "<<_Hmass_From2K_Photon<<endl;
       cout<<"--------------------------------------------------"<<endl;
       cout<<"MC Higgs found = "<<_Nevents_HiggsMatched<<",   Higgs NOT matched = "<<_Nevents_HiggsNotMatched<<",   mesonPt not matched = "<<_Nevents_MesonPtNotMatched<<endl;
       cout<<"--------------------------------------------------"<<endl<<endl;
@@ -1551,6 +1755,90 @@ cout<<"ph_en_scaleDW = "<<ph_en_scaleDW<<endl;
   }
  }
 
+   is_hltTriggerType = false;
+   is_hltEG35R9Id90HE10IsoMEcalIsoFilter  = false;
+   is_hltEG35R9Id90HE10IsoMHcalIsoFilter  = false;
+   is_hltEG35R9Id90HE10IsoMTrackIsoFilter = false;
+   is_hltOverlapFilterPhoton35MediumChargedIsoPFTau35 = false;
+   is_hltEG35R9Id90HE10IsoMR9Filter = false;
+   is_hltEG35R9Id90HE10IsoMHEFilter = false;
+   is_hltEG35R9Id90HE10IsoMEtFilter = false;
+   is_hltEGL1EGAndTauFilter = false;
+   is_hltL1sBigORLooseIsoEGXXerIsoTauYYerdRMin0p3 = false;
+
+ //Trigger matching
+ for (pat::TriggerObjectStandAlone obj : *triggerObjects){ // note: not "const &" since we want to call unpackPathNames
+   
+   bool isAcceptedPath = false;
+   obj.unpackPathNames(names);
+   
+   std::vector pathNamesAll = obj.pathNames(false);
+   
+   for (unsigned h = 0, n = pathNamesAll.size(); h < n; ++h) {
+     // Record also if the object is associated to a 'l3' filter (always true for the definition used
+     // in the PAT trigger producer) and if it's associated to the last filter of a successfull path (which means
+     // that this object did cause this trigger to succeed; however, it doesn't work on some multi-object triggers)
+     bool isSuccessfulTrigger = obj.hasPathName( pathNamesAll[h], true, true );
+     //std::cout << "   " << pathNamesAll[h];
+     if(!isSuccessfulTrigger) continue;
+     //std::cout << pathNamesAll[h] << "(L,3)" << std::endl; 
+      
+     if(pathNamesAll[h].find("HLT_Photon35_TwoProngs35_v") != std::string::npos) {
+
+     //now match ALL objects in a cone of DR<0.1
+     //it is important to match all objects as there are different ways to reconstruct the same electron
+     //eg, L1 seeded, unseeded, as a jet etc
+     //and so you want to be sure you get all possible objects
+      int nMatchedObjs = 0;
+     std::vector<const pat::TriggerObjectStandAlone*> matchedTrigObjs = getMatchedObjs(ph_eta,ph_phi,_bestCoupleEta,_bestCouplePhi,unpackedTrigObjs,0.1);
+     for(const auto trigObj : matchedTrigObjs){
+      nMatchedObjs++;
+      if(verbose) cout<<"nMatchedObjs = "<<nMatchedObjs<<" (is a photon = "<<trigObj->type(81)<<" or a tau jet = "<<trigObj->type(84)<<")" <<endl;
+       //now just check if it passes the filters
+      if(trigObj->hasFilterLabel("hltTriggerType")) {
+        is_hltTriggerType = true;
+        if(verbose) cout<<"0) hltTriggerType passed!"<<endl;
+      }
+      if(trigObj->hasFilterLabel("hltL1sBigORLooseIsoEGXXerIsoTauYYerdRMin0p3")) {
+        is_hltL1sBigORLooseIsoEGXXerIsoTauYYerdRMin0p3 = true;
+        if(verbose) cout<<"1) hltL1sBigORLooseIsoEGXXerIsoTauYYerdRMin0p3 passed!"<<endl;
+      }
+      if(trigObj->hasFilterLabel("hltEGL1EGAndTauFilter")) {
+        is_hltEGL1EGAndTauFilter = true;
+        if(verbose) cout<<"2) hltEGL1EGAndTauFilter passed!"<<endl;
+      }
+      if(trigObj->hasFilterLabel("hltEG35R9Id90HE10IsoMEtFilter")) {
+        is_hltEG35R9Id90HE10IsoMEtFilter = true;
+        if(verbose) cout<<"3) hltEG35R9Id90HE10IsoMEtFilter passed!"<<endl;
+      }
+      if(trigObj->hasFilterLabel("hltEG35R9Id90HE10IsoMHEFilter")) {
+        is_hltEG35R9Id90HE10IsoMHEFilter = true;
+        if(verbose) cout<<"4) hltEG35R9Id90HE10IsoMHEFilter passed!"<<endl;
+      }
+      if(trigObj->hasFilterLabel("hltEG35R9Id90HE10IsoMR9Filter")) {
+        is_hltEG35R9Id90HE10IsoMR9Filter = true;
+        if(verbose) cout<<"5) hltEG35R9Id90HE10IsoMR9Filter passed!"<<endl;
+      }
+       if(trigObj->hasFilterLabel("hltEG35R9Id90HE10IsoMEcalIsoFilter")) {
+         is_hltEG35R9Id90HE10IsoMEcalIsoFilter = true;
+         if(verbose) cout<<"6) hltEG35R9Id90HE10IsoMEcalIsoFilter passed!"<<endl;
+       }
+       if(trigObj->hasFilterLabel("hltEG35R9Id90HE10IsoMHcalIsoFilter")){
+         is_hltEG35R9Id90HE10IsoMHcalIsoFilter = true;
+         if(verbose) cout<<"7) hltEG35R9Id90HE10IsoMHcalIsoFilter passed!"<<endl;
+       }
+       if(trigObj->hasFilterLabel("hltEG35R9Id90HE10IsoMTrackIsoFilter")){
+         is_hltEG35R9Id90HE10IsoMTrackIsoFilter = true;
+         if(verbose) cout<<"8) hltEG35R9Id90HE10IsoMTrackIsoFilter passed!"<<endl;
+       }
+       if(trigObj->hasFilterLabel("hltOverlapFilterPhoton35MediumChargedIsoPFTau35")){
+         is_hltOverlapFilterPhoton35MediumChargedIsoPFTau35 = true;
+         if(verbose) cout<<"9) hltOverlapFilterPhoton35MediumChargedIsoPFTau35 passed!"<<endl;
+       }
+     }
+   }
+ }
+}
   //cout<<endl<<"Event n = "<<event_number<<endl;
   mytree->Fill();
 
@@ -1624,6 +1912,7 @@ void HPhiGammaAnalysis::create_trees()
   mytree->Branch("bestJet_invMass",&_bestJet_invMass);
   mytree->Branch("bestJet_Photon_invMass",&_bestJet_Photon_invMass);
   mytree->Branch("bestJet_JECunc",&_bestJet_JECunc);
+  mytree->Branch("bestJet_PUid",&_bestJet_PUid);
   mytree->Branch("isJetTriggerMatched",&isJetTriggerMatched);
 
   mytree->Branch("firstCandCharge",&_firstCandCharge);
@@ -1647,12 +1936,20 @@ void HPhiGammaAnalysis::create_trees()
   mytree->Branch("bestCouplePhi",&_bestCouplePhi);
   mytree->Branch("isPhi",&_isPhi);
   mytree->Branch("isRho",&_isRho);
+  mytree->Branch("isK0star",&_isK0star); 
+  mytree->Branch("isFirstCandK",&_isFirstCandK);   
 
   mytree->Branch("firstCandEnergy",&firstCandEnergy);
   mytree->Branch("secondCandEnergy",&secondCandEnergy);
 
-  mytree->Branch("MesonMass",&_MesonMass);
-  mytree->Branch("Hmass_From2K_Photon",&_Hmass_From2K_Photon);
+  //mytree->Branch("MesonMass",&_MesonMass);
+  //mytree->Branch("Hmass_From2K_Photon",&_Hmass_From2K_Photon);
+  mytree->Branch("_PhiMass",&_PhiMass);
+  mytree->Branch("_RhoMass",&_RhoMass);
+  mytree->Branch("_K0starMass",&_K0starMass);
+  mytree->Branch("_PhiGammaMass",&_PhiGammaMass);
+  mytree->Branch("_RhoGammaMass",&_RhoGammaMass);
+  mytree->Branch("_K0starGammaMass",&_K0starGammaMass);
 
   //mytree->Branch("K1_sum_pT_05",&K1_sum_pT_05);
   //mytree->Branch("K1_sum_pT_05_ch",&K1_sum_pT_05_ch);
@@ -1668,6 +1965,16 @@ void HPhiGammaAnalysis::create_trees()
   mytree->Branch("iso_couple",&_iso_couple);
   mytree->Branch("iso_couple_ch",&_iso_couple_ch);
 
+  mytree->Branch("is_hltTriggerType",&is_hltTriggerType);
+  mytree->Branch("is_hltL1sBigORLooseIsoEGXXerIsoTauYYerdRMin0p3",&is_hltL1sBigORLooseIsoEGXXerIsoTauYYerdRMin0p3);
+  mytree->Branch("is_hltEGL1EGAndTauFilter",&is_hltEGL1EGAndTauFilter);
+  mytree->Branch("is_hltEG35R9Id90HE10IsoMEtFilter",&is_hltEG35R9Id90HE10IsoMEtFilter);
+  mytree->Branch("is_hltEG35R9Id90HE10IsoMHEFilter",&is_hltEG35R9Id90HE10IsoMHEFilter);
+  mytree->Branch("is_hltEG35R9Id90HE10IsoMR9Filter",&is_hltEG35R9Id90HE10IsoMR9Filter);
+  mytree->Branch("is_hltEG35R9Id90HE10IsoMEcalIsoFilter",&is_hltEG35R9Id90HE10IsoMEcalIsoFilter);
+  mytree->Branch("is_hltEG35R9Id90HE10IsoMHcalIsoFilter",&is_hltEG35R9Id90HE10IsoMHcalIsoFilter);
+  mytree->Branch("is_hltEG35R9Id90HE10IsoMTrackIsoFilter",&is_hltEG35R9Id90HE10IsoMTrackIsoFilter);
+  mytree->Branch("is_hltOverlapFilterPhoton35MediumChargedIsoPFTau35",&is_hltOverlapFilterPhoton35MediumChargedIsoPFTau35);
 
   //Save MC info
   if(!runningOnData_){ //NO INFO FOR DATA

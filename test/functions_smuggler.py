@@ -8,6 +8,8 @@ import ROOT
 import math
 import os
 from array import array
+import time
+
 
 #------- Arrays and reader for the BDT -------#
 
@@ -110,5 +112,6 @@ class Simplified_Workflow_Handler:
         tot_err      = math.sqrt( scale_factor_pixVeto * scale_factor_pixVeto * ph_ID_err * ph_ID_err + scale_factor_ID * scale_factor_ID * ph_pixVeto_err * ph_pixVeto_err )
 
         return scale_factor, tot_err
-        
+
+
 

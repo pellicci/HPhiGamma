@@ -115,7 +115,7 @@ def BDT_output():
     canvas1.SaveAs("/afs/cern.ch/user/g/gumoret/cernbox/www/latest_production/MVA_latest_production/h_BDT_output.png")
     
 
-    raw_input()
+    #raw_input()
 
 def rejB_vs_S():
 
@@ -157,7 +157,7 @@ def rejB_vs_S():
     canvas2.SaveAs("/afs/cern.ch/user/g/gumoret/cernbox/www/latest_production/MVA_latest_production/h_rejBvsS.pdf")
     canvas2.SaveAs("/afs/cern.ch/user/g/gumoret/cernbox/www/latest_production/MVA_latest_production/h_rejBvsS.png")
 
-    raw_input()
+    #raw_input()
 
 if __name__ == "__main__":
 

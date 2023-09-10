@@ -14,10 +14,21 @@ CR_magnify = 1. #2079./1179.
 plotOnlyData = False
 isTightSelection = int(sys.argv[2])
 
-isPhi = int(sys.argv[3]) #note that in python true = 1 and false = 0
-print "#############################"
-print "is Phi = ",isPhi
-print "#############################"
+isPhi = False
+isRho = False
+isK0s = False
+
+
+#note that in python true = 1 and false = 0
+if int(sys.argv[3]) == 1:
+    isPhi = True
+    print "H -> PhiGamma analysis"
+if int(sys.argv[3]) == 0:
+    isRho = True
+    print "H -> RhoGamma analysis"
+if int(sys.argv[3]) == 2:
+    isK0s = True
+    print "H -> K0sGamma analysis"
 
 inputnames = ["Signal"]
 
@@ -42,6 +53,7 @@ histo_container = [] #just for memory management
 list_histos = []
 #signalfile = ROOT.TFile("histos/latest_production/histos_SR_preselection_SignalggH.root")
 signalfile = ROOT.TFile(sys.argv[4])
+
 keylist = signalfile.GetListOfKeys()
 key = ROOT.TKey()
 for key in keylist :
@@ -49,12 +61,10 @@ for key in keylist :
     if not obj_class.InheritsFrom("TH1") :
         continue
     if not (key.ReadObj().GetName() == "h_efficiency" or key.ReadObj().GetName() == "h_cutOverflow"): #h_efficiency and h_cutOverflow is a plot plotted in other way   
-        list_histos.append( key.ReadObj().GetName() )
+        list_histos.append(key.ReadObj().GetName())
 
 for hname in list_histos:
     hstack[hname] = ROOT.THStack("hstack_" + hname,"")
-
-
 
 for filename in list_inputfiles:
     fileIn = ROOT.TFile(filename)
@@ -83,9 +93,11 @@ for filename in list_inputfiles:
 
         histo_container[-1].SetLineStyle(1)   #continue line (2 for dashed)
         if isPhi:
-            histo_container[-1].SetLineColor(9)   #blue, 2 for red
-        else:
-            histo_container[-1].SetLineColor(46)   #blue, 2 for red
+            histo_container[-1].SetLineColor(9)   
+        elif isRho:
+            histo_container[-1].SetLineColor(46) 
+        elif isK0s:
+            histo_container[-1].SetLineColor(ROOT.kViolet) 
 
         histo_container[-1].SetLineWidth(4)   #kind of thick
         if not histo_container[-1].GetEntries() == 0: histo_container[-1].Scale(1./histo_container[-1].GetEntries()) #normalize to 1
@@ -166,7 +178,7 @@ for histo_name in list_histos:
                 leftLine.Draw()
                 rightLine.Draw()
 
-            else:
+            if isRho:
                 hstack[histo_name].GetXaxis().SetLimits(0.5,1.)
                 leftLine  = ROOT.TLine(0.62,0.,0.62,hsignal[histo_name].GetMaximum()*1.1)
                 rightLine = ROOT.TLine(0.92,0.,0.92,hsignal[histo_name].GetMaximum()*1.1)
@@ -174,6 +186,19 @@ for histo_name in list_histos:
                 leftLine.SetLineStyle(2)
                 leftLine.SetLineWidth(3)
                 rightLine.SetLineColor(2)
+                rightLine.SetLineStyle(2)
+                rightLine.SetLineWidth(3)
+                leftLine.Draw()
+                rightLine.Draw()
+
+            if isK0s:
+                hstack[histo_name].GetXaxis().SetLimits(0.8,1.)
+                leftLine  = ROOT.TLine(0.842,0.,0.842,hsignal[histo_name].GetMaximum()*1.1)
+                rightLine = ROOT.TLine(0.942,0.,0.942,hsignal[histo_name].GetMaximum()*1.1)
+                leftLine.SetLineColor(6)
+                leftLine.SetLineStyle(2)
+                leftLine.SetLineWidth(3)
+                rightLine.SetLineColor(6)
                 rightLine.SetLineStyle(2)
                 rightLine.SetLineWidth(3)
                 leftLine.Draw()
@@ -291,8 +316,10 @@ for histo_name in list_histos:
 
     if isPhi: 
         output_dir = "~/cernbox/www/latest_production/signalPhi_latest_production/"
-    else:
+    elif isRho:
         output_dir = "~/cernbox/www/latest_production/signalRho_latest_production/"
+    elif isK0s:
+        output_dir = "~/cernbox/www/latest_production/signalK0s_latest_production/"
 
     canvas[histo_name].SaveAs(output_dir + histo_name + ".pdf")
     canvas[histo_name].SaveAs(output_dir + histo_name + ".png")

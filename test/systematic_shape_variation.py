@@ -4,12 +4,12 @@ import tdrstyle, CMS_lumi
 #Supress the opening of many Canvas's
 ROOT.gROOT.SetBatch(True)  
 
-fileNominal     = ROOT.TFile.Open("histos/systematics/histos_SR_BDTcat0_SignalggH_PhotonSigma0.root")
-fileVariationUP = ROOT.TFile.Open("histos/systematics/histos_SR_BDTcat0_SignalggH_PhotonSigmaUP.root")
-fileVariationDW = ROOT.TFile.Open("histos/systematics/histos_SR_BDTcat0_SignalggH_PhotonSigmaDW.root")
+fileNominal     = ROOT.TFile.Open("histos/systematics/histos_SR_BDTcat0_SignalggH_wPU.root")
+fileVariationUP = ROOT.TFile.Open("histos/systematics/histos_SR_BDTcat0_SignalggH_woPU.root")
+fileVariationDW = ROOT.TFile.Open("histos/systematics/histos_SR_BDTcat0_SignalggH_woPU.root")
 
-syst_name = "Photon energy smearing variation"
-pdf_name  = "photonEnSmear"
+syst_name = "PU variation"
+pdf_name  = "PUvariation"
 
 list_histos = []
 keylist = fileNominal.GetListOfKeys()

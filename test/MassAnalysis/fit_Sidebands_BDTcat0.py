@@ -14,6 +14,7 @@ ROOT.gROOT.SetBatch(True)
 #bool initialization
 isRhoGammaAnalysis = False
 isPhiGammaAnalysis = False
+isK0sGammaAnalysis = False
 
 #INPUT and OUTPUT #############################################################################################
 #Input
@@ -22,13 +23,17 @@ p.add_argument('Decay_channel_option', help='Type <<Phi>> for Phi, <<Rho>> for R
 args = p.parse_args()
 
 if args.Decay_channel_option == "Phi":
-	isPhiGammaAnalysis = True
-	CHANNEL = "Phi"
-	print "H -> PhiGamma analysis"
-else: 
+    isPhiGammaAnalysis = True
+    CHANNEL = "Phi"
+    print "H -> PhiGamma analysis"
+if args.Decay_channel_option == "Rho":
     isRhoGammaAnalysis = True
     CHANNEL = "Rho"
     print "H -> RhoGamma analysis"
+if args.Decay_channel_option == "K0s":
+    isK0sGammaAnalysis = True
+    CHANNEL = "K0s"
+    print "H -> K0sGamma analysis"
 
 #CMS-style plotting ---------------------------------------------------------------
 tdrstyle.setTDRStyle()
@@ -50,10 +55,10 @@ mass.setRange("full",110.,160.)
 a_bkg = ROOT.RooRealVar("a_bkg_chebychev_"+CHANNEL+"_GFcat_bdt0","a_bkg",-1.,-2.,0.)
 b_bkg = ROOT.RooRealVar("b_bkg_chebychev_"+CHANNEL+"_GFcat_bdt0","b_bkg",0.3,-1.,1.)
 c_bkg = ROOT.RooRealVar("c_bkg_chebychev_"+CHANNEL+"_GFcat_bdt0","c_bkg",-0.01,-1.,1.)
-d_bkg = ROOT.RooRealVar("d_bkg_chebychev_"+CHANNEL+"_GFcat_bdt0","d_bkg",-0.05,-0.1,0.)
+d_bkg = ROOT.RooRealVar("d_bkg_chebychev_"+CHANNEL+"_GFcat_bdt0","d_bkg",-0.05,-0.2,0.1)
 f_bkg = ROOT.RooRealVar("e_bkg_chebychev_"+CHANNEL+"_GFcat_bdt0","e_bkg",-0.05,-0.1,0.)
-bkgPDF_chebychev  = ROOT.RooChebychev("chebychev_GFcat_bdt0_bkg","bkgPDF",mass,ROOT.RooArgList(a_bkg,b_bkg,c_bkg))
-bkgPDF_chebychev4 = ROOT.RooChebychev("chebychev4_GFcat_bdt0_bkg","bkgPDF",mass,ROOT.RooArgList(a_bkg,b_bkg,c_bkg,d_bkg))
+bkgPDF_chebychev  = ROOT.RooChebychev("chebychev_GFcat_bdt0_bkg","bkgPDF",mass,ROOT.RooArgList(a_bkg, b_bkg, c_bkg))
+bkgPDF_chebychev_Nplus1 = ROOT.RooChebychev("chebychev_Nplus1_GFcat_bdt0_bkg","bkgPDF",mass,ROOT.RooArgList(a_bkg,b_bkg,c_bkg, d_bkg))
 
 
 #Initialize a exponential pdf
@@ -68,11 +73,11 @@ bkgPDF_exponential = ROOT.RooExponential("exponential_GFcat_bdt0_bkg","bkgPDF",m
 #if CHANNEL == "Phi": bkgPDF_exponential = ROOT.RooExponential("exponential_GFcat_bdt0_bkg","bkgPDF",mass,e1_bkg)
 
 #Initialize a Bernstein pdf
-bern_c0 = ROOT.RooRealVar('bern_c0', 'bern_c0', 0.1,0.,1.5)
-bern_c1 = ROOT.RooRealVar('bern_c1', 'bern_c1', 0.1,0.,1.)
-bern_c2 = ROOT.RooRealVar('bern_c2', 'bern_c2', 0.1, 0.,1.)
-bern_c3 = ROOT.RooRealVar('bern_c3', 'bern_c3', 0.,0., 10.)
-bern_c4 = ROOT.RooRealVar('bern_c4', 'bern_c4', 0.5, 0., 5.)
+bern_c0 = ROOT.RooRealVar('bern_c0', 'bern_c0', 0.,0.1)
+bern_c1 = ROOT.RooRealVar('bern_c1', 'bern_c1', 0.,0.1)
+bern_c2 = ROOT.RooRealVar('bern_c2', 'bern_c2', 0.,0.1)
+bern_c3 = ROOT.RooRealVar('bern_c3', 'bern_c3', 0.,0.1)
+bern_c4 = ROOT.RooRealVar('bern_c4', 'bern_c4', 0., 5.)
 bern_c5 = ROOT.RooRealVar('bern_c5', 'bern_c5', 1e-2, 0., 0.1)
 bkgPDF_bernstein = ROOT.RooBernstein("bernstein_GFcat_bdt0_bkg", "bkgPDF", mass, ROOT.RooArgList(bern_c0,bern_c1,bern_c2,bern_c3,bern_c4))
 
@@ -100,16 +105,14 @@ data_blinded = observed_data.reduce("mesonGammaMass < 120. || mesonGammaMass > 1
 fitResult_chebychev   = bkgPDF_chebychev.fitTo(observed_data,ROOT.RooFit.Save())
 fitResult_bernstein   = bkgPDF_bernstein.fitTo(observed_data,ROOT.RooFit.Save())
 fitResult_exponential = bkgPDF_exponential.fitTo(observed_data,ROOT.RooFit.Save())
-fitResult_chebychev4  = bkgPDF_chebychev4.fitTo(observed_data,ROOT.RooFit.Save())
+fitResult_chebychev_Nplus1  = bkgPDF_chebychev_Nplus1.fitTo(observed_data,ROOT.RooFit.Save())
 
 #ROOT.RooFit.Range("LowSideband,HighSideband")
 #Do the F-test ------------------------------------------------------------------------------------------------------------------------------
 print "################## F-TEST"
 print "minNll = ", fitResult_chebychev.minNll()
-print "2Delta_minNll = ", 2*(2908.24697968-fitResult_chebychev.minNll()) # If 2*(NLL(N)-NLL(N+1)) > 3.85 -> N+1 is significant improvement
+print "2Delta_minNll = ", 2*(19265.2886079-fitResult_chebychev.minNll()) # If 2*(NLL(N)-NLL(N+1)) > 3.85 -> N+1 is significant improvement
 print "##################"
-
-
 
 #Plot ------------------------------------------------------------------------------------------------------------------------
 canvas_chebychev = ROOT.TCanvas()
@@ -243,27 +246,27 @@ canvas_exponential.SaveAs("/eos/user/g/gumoret/www/latest_production/massanalysi
 
 
 #Plot ------------------------------------------------------------------------------------------------------------------------
-canvas_chebychev4 = ROOT.TCanvas()
-canvas_chebychev4.cd()
+canvas_chebychev_Nplus1 = ROOT.TCanvas()
+canvas_chebychev_Nplus1.cd()
 
-#chebychev4 frame
+#chebychev_Nplus1 frame
 if isPhiGammaAnalysis:
-	xframe_chebychev4 = mass.frame(30)
+	xframe_chebychev_Nplus1 = mass.frame(30)
 else:
-	xframe_chebychev4 = mass.frame(60)
+	xframe_chebychev_Nplus1 = mass.frame(60)
 
-data_blinded.plotOn(xframe_chebychev4)
-bkgPDF_chebychev4.plotOn(xframe_chebychev4,ROOT.RooFit.NormRange("LowSideband,HighSideband"),ROOT.RooFit.Range("LowSideband,HighSideband"),ROOT.RooFit.Name("bkgPDF_chebychev4"),ROOT.RooFit.LineColor(ROOT.kBlue))
-xframe_chebychev4.SetTitle("#sqrt{s} = 13 TeV       lumi = 39.54/fb")
-xframe_chebychev4.GetXaxis().SetTitle("m_{ditrk,#gamma} [GeV]")
-xframe_chebychev4.SetMaximum(1.3*xframe_chebychev4.GetMaximum())
-bkgPDF_chebychev4.paramOn(xframe_chebychev4,ROOT.RooFit.Layout(0.45,0.94,0.91),ROOT.RooFit.Format("NEU",ROOT.RooFit.AutoPrecision(1))) #,ROOT.RooFit.Layout(0.65,0.90,0.90)
-xframe_chebychev4.getAttText().SetTextSize(0.02)
-xframe_chebychev4.Draw() #remember to draw the frame before the legend initialization to fill the latter correctly
+data_blinded.plotOn(xframe_chebychev_Nplus1)
+bkgPDF_chebychev_Nplus1.plotOn(xframe_chebychev_Nplus1,ROOT.RooFit.NormRange("LowSideband,HighSideband"),ROOT.RooFit.Range("LowSideband,HighSideband"),ROOT.RooFit.Name("bkgPDF_chebychev_Nplus1"),ROOT.RooFit.LineColor(ROOT.kBlue))
+xframe_chebychev_Nplus1.SetTitle("#sqrt{s} = 13 TeV       lumi = 39.54/fb")
+xframe_chebychev_Nplus1.GetXaxis().SetTitle("m_{ditrk,#gamma} [GeV]")
+xframe_chebychev_Nplus1.SetMaximum(1.3*xframe_chebychev_Nplus1.GetMaximum())
+bkgPDF_chebychev_Nplus1.paramOn(xframe_chebychev_Nplus1,ROOT.RooFit.Layout(0.45,0.94,0.91),ROOT.RooFit.Format("NEU",ROOT.RooFit.AutoPrecision(1))) #,ROOT.RooFit.Layout(0.65,0.90,0.90)
+xframe_chebychev_Nplus1.getAttText().SetTextSize(0.02)
+xframe_chebychev_Nplus1.Draw() #remember to draw the frame before the legend initialization to fill the latter correctly
 
 #Calculate Chi square and parameters 
-nParam_cheby = fitResult_chebychev4.floatParsFinal().getSize()
-chi2_cheby = xframe_chebychev4.chiSquare()#Returns chi2. Remember to remove the option XErrorSize(0) from data.PlotOn
+nParam_cheby = fitResult_chebychev_Nplus1.floatParsFinal().getSize()
+chi2_cheby = xframe_chebychev_Nplus1.chiSquare()#Returns chi2. Remember to remove the option XErrorSize(0) from data.PlotOn
 cut_chi2_cheby = "{:.2f}".format(chi2_cheby) #Crop the chi2 to 2 decimal digits
 print "Chi square cheby = ",chi2_cheby
 print "n param cheby = ",nParam_cheby
@@ -282,10 +285,10 @@ leg1.AddEntry(cut_chi2_cheby,"#chi^{2}/ndof = " + cut_chi2_cheby + " / " + str(n
 
 leg1.Draw()
 
-CMS_lumi.CMS_lumi(canvas_chebychev4, iPeriod, iPos) #Print integrated lumi and energy information
+CMS_lumi.CMS_lumi(canvas_chebychev_Nplus1, iPeriod, iPos) #Print integrated lumi and energy information
 
-canvas_chebychev4.SaveAs("/eos/user/g/gumoret/www/latest_production/massanalysis_latest_production/fit_sidebands_GFcat_bdt0_chebychev4.pdf")
-canvas_chebychev4.SaveAs("/eos/user/g/gumoret/www/latest_production/massanalysis_latest_production/fit_sidebands_GFcat_bdt0_chebychev4.png")
+canvas_chebychev_Nplus1.SaveAs("/eos/user/g/gumoret/www/latest_production/massanalysis_latest_production/fit_sidebands_GFcat_bdt0_chebychev_Nplus1.pdf")
+canvas_chebychev_Nplus1.SaveAs("/eos/user/g/gumoret/www/latest_production/massanalysis_latest_production/fit_sidebands_GFcat_bdt0_chebychev_Nplus1.png")
 
 
 # Multipdf ------------------------------------------------------------------------------------------------------------------------------
@@ -293,8 +296,8 @@ cat = ROOT.RooCategory("pdf_index_GFcat_bdt0","Index of Pdf which is active")
 mypdfs = ROOT.RooArgList()
 mypdfs.add(bkgPDF_chebychev)
 mypdfs.add(bkgPDF_bernstein)
-#mypdfs.add(bkgPDF_exponential)
-#mypdfs.add(bkgPDF_chebychev4)
+mypdfs.add(bkgPDF_exponential)
+mypdfs.add(bkgPDF_chebychev_Nplus1)
 
 multipdf = ROOT.RooMultiPdf("multipdf_"+CHANNEL+"_GFcat_bdt0_bkg","All Pdfs",cat,mypdfs)
 

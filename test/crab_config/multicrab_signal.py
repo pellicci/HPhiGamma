@@ -59,16 +59,28 @@ if __name__ == '__main__':
     p = Process(target=submit, args=(config,))
     p.start()
     p.join()
-
+    
     config.General.requestName = 'HPhiGammaAnalysis_Signal_Phi_VBF'
     config.Data.inputDataset = '/VBF_HToPhiGamma_M125_TuneCP5_PSWeights_13TeV_powheg_pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v1/MINIAODSIM'
     p = Process(target=submit, args=(config,))
     p.start()
     p.join()
-
+    
     config.General.requestName = 'HPhiGammaAnalysis_Signal_Rho_VBF'
     config.Data.inputDataset = '/VBF_HToRhoGamma_M125_TuneCP5_PSWeights_13TeV_powheg_pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v3/MINIAODSIM'
     p = Process(target=submit, args=(config,))
     p.start()
     p.join()
 
+    config.General.requestName = 'HPhiGammaAnalysis_Signal_K0s_ggH'
+    config.Data.inputDataset = '/GluGluHtoK0starG_M-125_TuneCP5_PSWeights_13TeV_powheg-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v2/MINIAODSIM'
+    p = Process(target=submit, args=(config,))
+    p.start()
+    p.join()
+
+    config.General.requestName = 'HPhiGammaAnalysis_Signal_K0s_VBF'
+    config.Data.inputDataset = '/VBF_HtoK0starG_M-125_TuneCP5_PSWeights_13TeV_powheg-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v2/MINIAODSIM'
+    p = Process(target=submit, args=(config,))
+    p.start()
+    p.join()
+    

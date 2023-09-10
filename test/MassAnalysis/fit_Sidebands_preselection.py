@@ -14,6 +14,7 @@ ROOT.gROOT.SetBatch(True)
 #bool initialization
 isRhoGammaAnalysis = False
 isPhiGammaAnalysis = False
+isK0sGammaAnalysis = False
 
 #INPUT and OUTPUT #############################################################################################
 #Input
@@ -22,13 +23,17 @@ p.add_argument('Decay_channel_option', help='Type <<Phi>> for Phi, <<Rho>> for R
 args = p.parse_args()
 
 if args.Decay_channel_option == "Phi":
-	isPhiGammaAnalysis = True
-	CHANNEL = "Phi"
-	print "H -> PhiGamma analysis"
-else: 
+    isPhiGammaAnalysis = True
+    CHANNEL = "Phi"
+    print "H -> PhiGamma analysis"
+if args.Decay_channel_option == "Rho":
     isRhoGammaAnalysis = True
     CHANNEL = "Rho"
     print "H -> RhoGamma analysis"
+if args.Decay_channel_option == "K0s":
+    isK0sGammaAnalysis = True
+    CHANNEL = "K0s"
+    print "H -> K0sGamma analysis"
 
 #CMS-style plotting ---------------------------------------------------------------
 tdrstyle.setTDRStyle()
@@ -52,6 +57,7 @@ b_bkg = ROOT.RooRealVar("b_bkg_chebychev_"+CHANNEL+"_GFpreselection","b_bkg",0.3
 c_bkg = ROOT.RooRealVar("c_bkg_chebychev_"+CHANNEL+"_GFpreselection","c_bkg",-0.01,-1.,1.)
 d_bkg = ROOT.RooRealVar("d_bkg_chebychev_"+CHANNEL+"_GFpreselection","d_bkg",-0.05,-0.1,0.)
 f_bkg = ROOT.RooRealVar("e_bkg_chebychev_"+CHANNEL+"_GFpreselection","e_bkg",-0.05,-0.1,0.)
+
 if CHANNEL == "Phi": 
 	bkgPDF_chebychev = ROOT.RooChebychev("chebychev_GFpreselection_bkg","bkgPDF",mass,ROOT.RooArgList(a_bkg,b_bkg,c_bkg,d_bkg))
 else:

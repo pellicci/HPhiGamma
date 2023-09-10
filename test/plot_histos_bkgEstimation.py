@@ -14,8 +14,20 @@ CR_magnify = 1. #2079./1179.
 plotOnlyData = False
 isTightSelection = int(sys.argv[2])
 
-isPhi = int(sys.argv[3]) #note that in python true = 1 and false = 0
+isPhi = False
+isRho = False
+isK0s = False
 
+#note that in python true = 1 and false = 0
+if int(sys.argv[3]) == 1:
+    isPhi = True
+    print "H -> PhiGamma analysis"
+if int(sys.argv[3]) == 0:
+    isRho = True
+    print "H -> RhoGamma analysis"
+if int(sys.argv[3]) == 2:
+    isK0s = True
+    print "H -> K0sGamma analysis"
 
 if not isTightSelection:
     inputnames = ["Data","SignalggH","SignalVBF","SidebandsNorm"]
@@ -70,11 +82,14 @@ colors_mask = dict()
 #colors_mask["bkgEstimationCR"]   = ROOT.kRed-7
 #colors_mask["Sidebands"]          = ROOT.kRed-7
 if isPhi:
-    colors_mask["SidebandsNorm"]      = ROOT.kCyan-7
+    colors_mask["SidebandsNorm"] = ROOT.kCyan-7
     decayChannel = "#phi#gamma "
-else:
-    colors_mask["SidebandsNorm"]      = ROOT.kRed-4
+elif isRho:
+    colors_mask["SidebandsNorm"] = ROOT.kRed-4
     decayChannel = "#rho#gamma "
+elif isK0s:
+    colors_mask["SidebandsNorm"] = ROOT.kViolet+1
+    decayChannel = "K_{0}^{*}#gamma "
 
 colors_mask["GammaJets"]           = ROOT.kOrange
 colors_mask["QCD"]                 = ROOT.kRed

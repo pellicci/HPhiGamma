@@ -5,6 +5,7 @@ import argparse
 #bool initialization
 isRhoGammaAnalysis = False
 isPhiGammaAnalysis = False
+isK0sGammaAnalysis = False
 includeResiduals   = False  # Flag to include the residuals subplot
 
 #INPUT and OUTPUT #############################################################################################
@@ -14,13 +15,17 @@ p.add_argument('Decay_channel_option', help='Type <<Phi>> for Phi, <<Rho>> for R
 args = p.parse_args()
 
 if args.Decay_channel_option == "Phi":
-	isPhiGammaAnalysis = True
-	CHANNEL = "Phi"
-	print "H -> PhiGamma analysis"
-else: 
+    isPhiGammaAnalysis = True
+    CHANNEL = "Phi"
+    print "H -> PhiGamma analysis"
+if args.Decay_channel_option == "Rho":
     isRhoGammaAnalysis = True
     CHANNEL = "Rho"
     print "H -> RhoGamma analysis"
+if args.Decay_channel_option == "K0s":
+    isK0sGammaAnalysis = True
+    CHANNEL = "K0s"
+    print "H -> K0sGamma analysis"
 
 #Signal input rootfiles ---------------------------------------------------------------
 fileInput_ggH = ROOT.TFile("histos/latest_production/histos_SR_BDTcat1_SignalggH.root")
@@ -82,17 +87,17 @@ mass = ROOT.RooRealVar("mesonGammaMass", "mesonGammaMass", 125., xLowRange, xHig
 #Double Crystal Ball definition ---------------------------------------------------------------
 dCB_pole_ggH  = ROOT.RooRealVar("dCB_pole_"+CHANNEL+"_GFcat_bdt1_ggH", "Double CB pole", 125.,120.,130.)
 dCB_width_ggH = ROOT.RooRealVar("dCB_width_"+CHANNEL+"_GFcat_bdt1_ggH", "Double CB width",1.,0.,2.)
-dCB_aL_ggH    = ROOT.RooRealVar("dCB_aL_"+CHANNEL+"_GFcat_bdt1_ggH", "Double CB alpha left", 3., 0.1, 50.)
-dCB_aR_ggH    = ROOT.RooRealVar("dCB_aR_"+CHANNEL+"_GFcat_bdt1_ggH", "Double CB alpha right", 1., 0.1, 50.)
-dCB_nL_ggH    = ROOT.RooRealVar("dCB_nL_"+CHANNEL+"_GFcat_bdt1_ggH", "Double CB n left", 3., 0.1, 50.)
-dCB_nR_ggH    = ROOT.RooRealVar("dCB_nR_"+CHANNEL+"_GFcat_bdt1_ggH", "Double CB n right", 1., 0.1, 50.)
+dCB_aL_ggH    = ROOT.RooRealVar("dCB_aL_"+CHANNEL+"_GFcat_bdt1_ggH", "Double CB alpha left", 1.1, 0.8, 1.7)
+dCB_aR_ggH    = ROOT.RooRealVar("dCB_aR_"+CHANNEL+"_GFcat_bdt1_ggH", "Double CB alpha right", 1.5, 0.8, 1.7)
+dCB_nL_ggH    = ROOT.RooRealVar("dCB_nL_"+CHANNEL+"_GFcat_bdt1_ggH", "Double CB n left", 4., 1., 5.)
+dCB_nR_ggH    = ROOT.RooRealVar("dCB_nR_"+CHANNEL+"_GFcat_bdt1_ggH", "Double CB n right", 3.7, 1., 5.)
 
 dCB_pole_VBF  = ROOT.RooRealVar("dCB_pole_"+CHANNEL+"_GFcat_bdt1_VBF", "Double CB pole", 125.,120.,130.)
-dCB_width_VBF = ROOT.RooRealVar("dCB_width_"+CHANNEL+"_GFcat_bdt1_VBF", "Double CB width",1.,0.,20.)
-dCB_aL_VBF    = ROOT.RooRealVar("dCB_aL_"+CHANNEL+"_GFcat_bdt1_VBF", "Double CB alpha left", 1., 0.1, 50.)
-dCB_aR_VBF    = ROOT.RooRealVar("dCB_aR_"+CHANNEL+"_GFcat_bdt1_VBF", "Double CB alpha right", 1., 0.1, 50.)
-dCB_nL_VBF    = ROOT.RooRealVar("dCB_nL_"+CHANNEL+"_GFcat_bdt1_VBF", "Double CB n left", 3., 0.1, 50.)
-dCB_nR_VBF    = ROOT.RooRealVar("dCB_nR_"+CHANNEL+"_GFcat_bdt1_VBF", "Double CB n right", 1., 0.1, 50.)
+dCB_width_VBF = ROOT.RooRealVar("dCB_width_"+CHANNEL+"_GFcat_bdt1_VBF", "Double CB width",1.,0.,2.)
+dCB_aL_VBF    = ROOT.RooRealVar("dCB_aL_"+CHANNEL+"_GFcat_bdt1_VBF", "Double CB alpha left", 1.2, 0.5, 2.)
+dCB_aR_VBF    = ROOT.RooRealVar("dCB_aR_"+CHANNEL+"_GFcat_bdt1_VBF", "Double CB alpha right", 1.6, 0.5, 2.)
+dCB_nL_VBF    = ROOT.RooRealVar("dCB_nL_"+CHANNEL+"_GFcat_bdt1_VBF", "Double CB n left", 3., 1., 4.)
+dCB_nR_VBF    = ROOT.RooRealVar("dCB_nR_"+CHANNEL+"_GFcat_bdt1_VBF", "Double CB n right", 3.1, 1., 4.)
 
 signalPDF_ggH = ROOT.RooDoubleCBFast("crystal_ball_"+CHANNEL+"_GFcat_bdt1_ggH", "Double Crystal Ball", mass, dCB_pole_ggH, dCB_width_ggH, dCB_aL_ggH, dCB_nL_ggH, dCB_aR_ggH, dCB_nR_ggH)
 signalPDF_VBF = ROOT.RooDoubleCBFast("crystal_ball_"+CHANNEL+"_GFcat_bdt1_VBF", "Double Crystal Ball", mass, dCB_pole_VBF, dCB_width_VBF, dCB_aL_VBF, dCB_nL_VBF, dCB_aR_VBF, dCB_nR_VBF)

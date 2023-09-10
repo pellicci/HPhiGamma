@@ -137,9 +137,15 @@ private:
   float maxQCDWeight;
 
   float _Jet_Photon_invMass;
-  float _MesonMass;
-  float _Hmass_From2K_Photon;
-    
+  //float _MesonMass;
+  //float _Hmass_From2K_Photon;
+  float _PhiMass      ;
+  float _RhoMass      ;
+  float _K0starMass   ;
+  float _PhiGammaMass ;
+  float _RhoGammaMass;
+  float _K0starGammaMass;
+
   float K1_sum_pT_05;
   float K1_sum_pT_05_ch;
   float K2_sum_pT_05;
@@ -158,6 +164,16 @@ private:
   float metpuppi_pT;
   
   bool isTwoProngTrigger;
+  bool is_hltTriggerType;
+  bool is_hltEG35R9Id90HE10IsoMEcalIsoFilter;
+  bool is_hltEG35R9Id90HE10IsoMHcalIsoFilter;
+  bool is_hltEG35R9Id90HE10IsoMTrackIsoFilter;
+  bool is_hltOverlapFilterPhoton35MediumChargedIsoPFTau35;
+  bool is_hltEG35R9Id90HE10IsoMR9Filter;
+  bool is_hltEG35R9Id90HE10IsoMHEFilter;
+  bool is_hltEG35R9Id90HE10IsoMEtFilter;
+  bool is_hltEGL1EGAndTauFilter;
+  bool is_hltL1sBigORLooseIsoEGXXerIsoTauYYerdRMin0p3;
 
   //Jet datamember
   
@@ -180,6 +196,7 @@ private:
   float _bestJet_Photon_invMass;
   float _bestJet_JECunc;
   bool isJetTriggerMatched;
+  int _bestJet_PUid;
 
   //MC truth
   float PU_Weight;
@@ -221,6 +238,8 @@ private:
   bool is_Higgs_matched;
   bool _isPhi;
   bool _isRho;
+  bool _isK0star;
+  bool _isFirstCandK;
   //rho for isolation
   float rho_;
 
@@ -241,7 +260,8 @@ private:
   edm::EDGetTokenT<LHEEventProduct> LHEEventProduct_; //LHE reader
   //edm::EDGetTokenT<std::vector<pat::PackedGenParticle> > packedGenParticlesToken_; //GENPART
   edm::EDGetTokenT<std::vector<reco::GenParticle>> prunedGenParticlesToken_;
-  
+  edm::EDGetTokenT<std::vector<pat::TriggerObjectStandAlone> > triggerObjectsToken_;
+
   //edm::EDGetTokenT<reco::JetCorrector> jetCorrectorToken_;
   //edm::EDGetTokenT<JetCorrectionUncertainty> mJetCorrectorUnc;
 

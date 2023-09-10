@@ -17,7 +17,7 @@ process	ggH		VBFH	bkg
 process	0	 	-1	     1     
 rate	0.01    0.01	 1     
 -------------------------------------
-lumi_13TeV        lnN     1.025	   1.025 -  
+lumi_13TeV_2018    lnN     1.025   1.025   -   
 #xsec              lnN     1.025   1.025   -  
 #PU_rew            lnN     1.046   1.046   -  
 #alfaS             lnN     1.032   1.021   -  

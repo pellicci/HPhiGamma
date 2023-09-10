@@ -6,6 +6,7 @@ import argparse
 # bool initialization
 isRhoGammaAnalysis = False
 isPhiGammaAnalysis = False
+isK0sGammaAnalysis = False
 includeResiduals   = False  # Flag to include the residuals subplot
 
 # INPUT and OUTPUT #############################################################################################
@@ -18,10 +19,14 @@ if args.Decay_channel_option == "Phi":
     isPhiGammaAnalysis = True
     CHANNEL = "Phi"
     print "H -> PhiGamma analysis"
-else:
+if args.Decay_channel_option == "Rho":
     isRhoGammaAnalysis = True
     CHANNEL = "Rho"
     print "H -> RhoGamma analysis"
+if args.Decay_channel_option == "K0s":
+    isK0sGammaAnalysis = True
+    CHANNEL = "K0s"
+    print "H -> K0sGamma analysis"
 
 # Signal input rootfiles ---------------------------------------------------------------
 fileInput_ggH = ROOT.TFile("histos/latest_production/histos_SR_preselection_SignalggH.root")
@@ -95,7 +100,7 @@ dCB_aR_VBF = ROOT.RooRealVar("dCB_aR_" + CHANNEL + "_GFpreselection_VBF", "Doubl
 dCB_nL_VBF = ROOT.RooRealVar("dCB_nL_" + CHANNEL + "_GFpreselection_VBF", "Double CB n left", 3., 0.1, 50.)
 dCB_nR_VBF = ROOT.RooRealVar("dCB_nR_" + CHANNEL + "_GFpreselection_VBF", "Double CB n right", 1., 0.1, 50.)
 
-if isRhoGammaAnalysis:
+if isRhoGammaAnalysis or isK0sGammaAnalysis:
     dCB_pole_ggH = ROOT.RooRealVar("dCB_pole_" + CHANNEL + "_GFpreselection_ggH", "Double CB pole", 125., 120., 130.)
     dCB_width_ggH = ROOT.RooRealVar("dCB_width_" + CHANNEL + "_GFpreselection_ggH", "Double CB width", 1., 0., 2.)
     dCB_aL_ggH = ROOT.RooRealVar("dCB_aL_" + CHANNEL + "_GFpreselection_ggH", "Double CB alpha left", 1., 0.1, 50.)

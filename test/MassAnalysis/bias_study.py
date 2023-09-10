@@ -18,10 +18,14 @@ if args.Decay_channel_option == "Phi":
 	isPhiGammaAnalysis = True
 	CHANNEL = "Phi"
 	print "H -> PhiGamma analysis"
-else: 
+if args.Decay_channel_option == "Rho":
     isRhoGammaAnalysis = True
     CHANNEL = "Rho"
     print "H -> RhoGamma analysis"
+if args.Decay_channel_option == "K0s":
+    isK0sGammaAnalysis = True
+    CHANNEL = "K0s"
+    print "H -> K0sGamma analysis"
 
 CATEGORY = args.CAT_option
 
@@ -45,7 +49,7 @@ CMS_lumi.cmsTextSize = 0.8
 CMS_lumi.lumi_13TeV = "39.54 fb^{-1}" 
 
 #Define the observable --------------------------
-mass = ROOT.RooRealVar("mesonGammaMass","mesonGammaMass",100.,170.,"GeV")
+mass = ROOT.RooRealVar("mesonGammaMass","mesonGammaMass",110.,160.,"GeV")
 
 #Data input -------------------------------------------------------------
 if CATEGORY == "bdt0": fileInputData = ROOT.TFile("histos/latest_production/histos_SR_BDTcat0_Data.root")
@@ -94,7 +98,7 @@ print "#########################################################################
 print ""
 
 #Define the POI -------------------------------------------------------------------------------------
-B_R_ = ROOT.RooRealVar("B_R_","branching_ratio",0.001,-0.1,0.1) #parameter of interest
+B_R_ = ROOT.RooRealVar("B_R_","branching_ratio",0.05,-0.1,0.1) #parameter of interest
 #B_R_ = ROOT.RooRealVar("B_R_","branching_ratio",0.) #parameter of interest
 
 #Number of events in m_KKg
@@ -116,6 +120,7 @@ lumi = ROOT.RooRealVar("lumi","The luminosity",39540)#pb^-1
 eff_ggH  = ROOT.RooRealVar("eff_ggH","efficiency ggH",sigEfficiency_ggH) # = (n sig over tightselection)/49750
 if CHANNEL == "Phi": B_R_meson = ROOT.RooRealVar("B_R_meson","b_r_meson",0.489) # = BR(phi -> K+K-)
 if CHANNEL == "Rho": B_R_meson = ROOT.RooRealVar("B_R_meson","b_r_meson",1.) # = BR(rho -> PiPi)
+if CHANNEL == "K0s": B_R_meson = ROOT.RooRealVar("B_R_meson","b_r_meson",1.) # = BR(rho -> KPi)
 Nsig_ggH = ROOT.RooFormulaVar("Nsig_ggH","@0*@1*@2*@3*@4",ROOT.RooArgList(lumi,cross_sig_ggH,eff_ggH,B_R_meson,B_R_))
 
 #ADD PDFs --------------------------------------------------------------------------------------------------
@@ -154,8 +159,8 @@ print ""
 multicanvas = ROOT.TCanvas()
 multicanvas.cd()
 
-genPDF = totPDF_chebychev4
-fitPDF = totPDF_chebychev
+genPDF = totPDF_chebychev
+fitPDF = totPDF_exponential
 
 mcstudy = ROOT.RooMCStudy(genPDF, ROOT.RooArgSet(mass), ROOT.RooFit.Silence(),ROOT.RooFit.FitModel(fitPDF), ROOT.RooFit.Extended(), ROOT.RooFit.FitOptions(ROOT.RooFit.Save(1), ROOT.RooFit.PrintEvalErrors(0)))
 mcstudy.generateAndFit(5000)
