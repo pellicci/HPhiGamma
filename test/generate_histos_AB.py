@@ -251,6 +251,7 @@ _eventWeight         = np.zeros(1, dtype=float)
 _BDTweight           = np.zeros(1, dtype=float)
 _metPt               = np.zeros(1, dtype=float)
 _nJets               = np.zeros(1, dtype=float)
+_nPV                 = np.zeros(1, dtype=int)
 _dPhiGammaTrk        = np.zeros(1, dtype=float)
 _runNumber           = np.zeros(1, dtype=float)
 _eventNumber         = np.zeros(1, dtype=float)
@@ -292,6 +293,7 @@ tree_output.Branch('_JetNeutralEmEnergy',_JetNeutralEmEnergy,'_JetNeutralEmEnerg
 tree_output.Branch('_JetChargedHadEnergy',_JetChargedHadEnergy,'_JetChargedHadEnergy/D')
 tree_output.Branch('_JetNeutralHadEnergy',_JetNeutralHadEnergy,'_JetNeutralHadEnergy/D')
 tree_output.Branch('_HpT',_HpT,'_HpT/D')
+tree_output.Branch('_nPV',_nPV,'_nPV/I')
 
 if not isBDT:
     tree_output_forMVA = ROOT.TTree('tree_output_forMVA','tree_output_forMVA')
@@ -327,6 +329,8 @@ if not isBDT:
     tree_output_forMVA.Branch('_JetChargedHadEnergy',_JetChargedHadEnergy,'_JetChargedHadEnergy/D')
     tree_output_forMVA.Branch('_JetNeutralHadEnergy',_JetNeutralHadEnergy,'_JetNeutralHadEnergy/D')
     tree_output_forMVA.Branch('_HpT',_HpT,'_HpT/D')
+    tree_output_forMVA.Branch('_nPV',_nPV,'_nPV/I')
+
 
 print "This sample has ", mytree.GetEntriesFast(), " events"
 nentries = mytree.GetEntriesFast()
@@ -414,6 +418,7 @@ for jentry in xrange(nentries):
     MesonIso0      = MesonPt/(MesonPt + (mytree.Couple_sum_pT_05 - mytree.Couple_sum_pT_05_ch))
     metPt          = mytree.met_pT
     isoSumPtNeu    = mytree.Couple_sum_pT_05 - mytree.Couple_sum_pT_05_ch 
+    nPV            = mytree.nPV
     nPhotons38WP80              = mytree.nPhotons38WP80
     nPhotonsWP90_pT15_barrel    = mytree.nPhotonsWP90_pT15_barrel
     nPhotonsWP90_pT25_endcap    = mytree.nPhotonsWP90_pT25_endcap
@@ -588,7 +593,7 @@ for jentry in xrange(nentries):
         #weight_pol = 1.
         
         #FIXMEEEEEEE
-        eventWeight =  luminosity * normalization_weight * weight_sign * PUWeight * weight_pol * photonSF * PhotonTriggerSF * IsoNeuSF #* IsoChSF * TwoProngsTriggerSF
+        eventWeight =  luminosity * normalization_weight * weight_sign * PUWeight * weight_pol * photonSF * PhotonTriggerSF * IsoNeuSF * IsoChSF * TwoProngsTriggerSF
 
         if debug:
             print "EVENT WEIGHT"
@@ -646,7 +651,7 @@ for jentry in xrange(nentries):
 
     #TIGHT SELECTION from BDT output -------------------------------------------------  
     if isBDT: 
-        BDT_out = myWF.get_BDT_output(firstTrkisoCh,MesonIso0,MesonPt,photonEt,Hmass)#,JetNeutralEmEn,JetChargedHadEn,JetNeutralHadEn) 
+        BDT_out = myWF.get_BDT_output(firstTrkisoCh,MesonIso0,MesonPt,photonEt,Hmass,photonEta,nJets)#,JetNeutralEmEn,JetChargedHadEn,JetNeutralHadEn) 
         #histo_map["h_BDT_out"].Fill(BDT_out)
 
         if debug: print "BDT value before selection = ", BDT_out
@@ -772,6 +777,7 @@ for jentry in xrange(nentries):
     _metPt[0]             = metPt
     _nJets[0]             = nJets
     _dPhiGammaTrk[0]      = dPhiGammaTrk
+    _nPV[0]               = nPV
     _JetChargedEmEnergy[0]  = JetChargedEmEn
     _JetNeutralEmEnergy[0]  = JetNeutralEmEn
     _JetChargedHadEnergy[0] = JetChargedHadEn

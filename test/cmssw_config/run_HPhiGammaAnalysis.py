@@ -60,6 +60,8 @@ def getListOfFiles(dirName):
 if options.runningOnData:
     process.GlobalTag = GlobalTag(process.GlobalTag, '106X_dataRun2_v33') # OLD ONE : 102X_dataRun2_Sep2018ABC_v2
     inputFiles = { '/store/data/Run2018B/Tau/MINIAOD/UL2018_MiniAODv2-v2/70000/09FD3540-D36B-6249-9817-D3BAC2F02E74.root'}
+    # just for trigger studies
+    #inputFiles = {"/store/data/Run2018B/SingleMuon/MINIAOD/UL2018_MiniAODv2-v2/100000/B29BDCC8-5429-7244-96D9-A5BF6C04BB73.root","/store/data/Run2018B/SingleMuon/MINIAOD/UL2018_MiniAODv2-v2/110000/103229D2-AD22-D54F-8757-D82FD6EAEC00.root","/store/data/Run2018B/SingleMuon/MINIAOD/UL2018_MiniAODv2-v2/110000/145B7BFF-8EEE-5448-B614-EC836C415857.root","/store/data/Run2018B/SingleMuon/MINIAOD/UL2018_MiniAODv2-v2/110000/1560B4D4-F674-B84B-B833-01019FD2AA00.root"}
     #inputFiles = listOfFiles
 
 else:
@@ -67,15 +69,17 @@ else:
    #inputFiles = {"/store/mc/RunIIAutumn18MiniAOD/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/MINIAODSIM/102X_upgrade2018_realistic_v15-v1/80000/F9947F2D-F185-4E43-9A4B-EA7FAF2CE4C2.root"}
    #inputFiles = listOfFiles
    #Choose this for Phi ggH signal
-   inputFiles = {'/store/mc/RunIISummer20UL18MiniAODv2/GluGlu_HToPhiGamma_M125_TuneCP5_PSWeights_13TeV_powheg_pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v3/40000/2EBC4FBF-89AB-5946-A9A5-45A005D5EB0C.root','/store/mc/RunIISummer20UL18MiniAODv2/GluGlu_HToPhiGamma_M125_TuneCP5_PSWeights_13TeV_powheg_pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v3/40000/466C2A54-EAA8-D441-AECE-92FBA662611A.root','/store/mc/RunIISummer20UL18MiniAODv2/GluGlu_HToPhiGamma_M125_TuneCP5_PSWeights_13TeV_powheg_pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v3/40000/10358A5B-CBF1-554A-983D-37E0015C2DCC.root'} #'/store/mc/RunIISummer20UL18MiniAODv2/GluGlu_HToPhiGamma_M125_TuneCP5_PSWeights_13TeV_powheg_pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v3/40000/436E2054-BAEE-AA45-B654-5262771C26C7.root'
+   #inputFiles = {'/store/mc/RunIISummer20UL18MiniAODv2/GluGlu_HToPhiGamma_M125_TuneCP5_PSWeights_13TeV_powheg_pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v3/40000/2EBC4FBF-89AB-5946-A9A5-45A005D5EB0C.root','/store/mc/RunIISummer20UL18MiniAODv2/GluGlu_HToPhiGamma_M125_TuneCP5_PSWeights_13TeV_powheg_pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v3/40000/466C2A54-EAA8-D441-AECE-92FBA662611A.root','/store/mc/RunIISummer20UL18MiniAODv2/GluGlu_HToPhiGamma_M125_TuneCP5_PSWeights_13TeV_powheg_pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v3/40000/10358A5B-CBF1-554A-983D-37E0015C2DCC.root'} #'/store/mc/RunIISummer20UL18MiniAODv2/GluGlu_HToPhiGamma_M125_TuneCP5_PSWeights_13TeV_powheg_pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v3/40000/436E2054-BAEE-AA45-B654-5262771C26C7.root'
    #Choose this for Phi VBF signal   
    #inputFiles = {'/store/mc/RunIISummer20UL18MiniAODv2/VBF_HToPhiGamma_M125_TuneCP5_PSWeights_13TeV_powheg_pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v1/2560000/00B7EB0B-2697-F241-BE5F-1735C9656C30.root'}
    #Choose this for Rho VBF signal
    #inputFiles = {'/store/mc/RunIISummer20UL18MiniAODv2/GluGlu_HToRhoGamma_M125_TuneCP5_PSWeights_13TeV_powheg_pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v3/40000/0A1840F8-EB89-CC46-B448-A4DF868F13CF.root','/store/mc/RunIISummer20UL18MiniAODv2/VBF_HToRhoGamma_M125_TuneCP5_PSWeights_13TeV_powheg_pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v3/40000/43213ED1-8A32-9A41-B818-382412E0B6AD.root','/store/mc/RunIISummer20UL18MiniAODv2/VBF_HToRhoGamma_M125_TuneCP5_PSWeights_13TeV_powheg_pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v3/40000/1E9AFC8F-9D47-3F49-808D-33F4FF9086DE.root'}
    #Choose fot Rho ggH signal
-   #inputFiles = {'/store/mc/RunIISummer20UL18MiniAODv2/GluGlu_HToRhoGamma_M125_TuneCP5_PSWeights_13TeV_powheg_pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v3/40000/1D0FF4E1-E390-2E40-B24A-3B196B7E8DA0.root'}
+   inputFiles = {'/store/mc/RunIISummer20UL18MiniAODv2/GluGlu_HToRhoGamma_M125_TuneCP5_PSWeights_13TeV_powheg_pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v3/40000/1D0FF4E1-E390-2E40-B24A-3B196B7E8DA0.root'}
    #Choose for K0star ggH signal
    #inputFiles = {'/store/mc/RunIISummer20UL18MiniAODv2/GluGluHtoK0starG_M-125_TuneCP5_PSWeights_13TeV_powheg-pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v2/2820000/019F13F4-1C5C-4649-B4BF-0124156D43A1.root'}
+   #Choose for DY trigger study
+   #inputFiles = {"/store/mc/RunIISummer20UL18MiniAOD/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/MINIAODSIM/106X_upgrade2018_realistic_v11_L1v1-v1/260000/0071F930-6376-7A48-89F1-74E189BD3BFC.root"}
 
 process.source = cms.Source ("PoolSource",
                              fileNames = cms.untracked.vstring (inputFiles),

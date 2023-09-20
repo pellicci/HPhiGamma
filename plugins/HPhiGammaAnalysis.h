@@ -39,6 +39,7 @@ private:
 
   // ----------member data ---------------------------
   TH1F* h_Events;
+  TH1F* h_TriggerFilters;
 
   TH1F* h_pileup;
 
@@ -46,6 +47,8 @@ private:
 
   bool debug;
   bool verbose;
+  bool trig_verbose;
+  bool isTriggerStudies;
 
   //Counters
   int nPV;
@@ -74,6 +77,17 @@ private:
   int _Nevents_candPtFilter;
   int _Nevents_coupleIsolationFilter;
   int _Nevents_VBFVeto;
+
+  int _NeventsFilter1;
+  int _NeventsFilter2;
+  int _NeventsFilter3;
+  int _NeventsFilter4;
+  int _NeventsFilter5;
+  int _NeventsFilter6;
+  int _NeventsFilter7;
+  int _NeventsFilter8;
+  int _NeventsFilter9;
+
   int nKK_found;
   int nKK_notFound;
   
@@ -164,7 +178,8 @@ private:
   float metpuppi_pT;
   
   bool isTwoProngTrigger;
-  bool is_hltTriggerType;
+
+  //trigger studies
   bool is_hltEG35R9Id90HE10IsoMEcalIsoFilter;
   bool is_hltEG35R9Id90HE10IsoMHcalIsoFilter;
   bool is_hltEG35R9Id90HE10IsoMTrackIsoFilter;
@@ -174,6 +189,12 @@ private:
   bool is_hltEG35R9Id90HE10IsoMEtFilter;
   bool is_hltEGL1EGAndTauFilter;
   bool is_hltL1sBigORLooseIsoEGXXerIsoTauYYerdRMin0p3;
+  bool is_hltL1sSingleMu22;
+  bool is_hltL1sMu5EG23IorMu5IsoEG20IorMu7EG23IorMu7IsoEG20IorMuIso7EG23;
+  bool isIsoMuTrigger;
+  bool isBestMuMu_Found;
+  float bestMuMuPt;
+  float bestMuMuMass;
 
   //Jet datamember
   

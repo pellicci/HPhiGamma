@@ -74,6 +74,7 @@ private:
   bool isBestMuMu_Found;
   bool cand_photon_found;
 
+  bool is_hltL1sBigORLooseIsoEGXXerIsoTauYYerdRMin0p3;
   bool is_hltEG35R9Id90HE10IsoMEcalIsoFilter;
   bool is_hltEG35R9Id90HE10IsoMHcalIsoFilter;
   bool is_hltEG35R9Id90HE10IsoMTrackIsoFilter;

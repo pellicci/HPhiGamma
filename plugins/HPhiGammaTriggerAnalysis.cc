@@ -374,6 +374,7 @@ void HPhiGammaTriggerAnalysis::analyze(const edm::Event& iEvent, const edm::Even
 
   bool cand_photon_found = false;
   float corr_et = -1.;
+  is_hltL1sBigORLooseIsoEGXXerIsoTauYYerdRMin0p3 = false;
   is_hltEG35R9Id90HE10IsoMEcalIsoFilter  = false;
   is_hltEG35R9Id90HE10IsoMHcalIsoFilter  = false;
   is_hltEG35R9Id90HE10IsoMTrackIsoFilter = false;
@@ -471,17 +472,21 @@ void HPhiGammaTriggerAnalysis::analyze(const edm::Event& iEvent, const edm::Even
       std::vector<const pat::TriggerObjectStandAlone*> matchedTrigObjs = getMatchedObjs(ph_eta,ph_phi,unpackedTrigObjs,0.1);
       for(const auto trigObj : matchedTrigObjs){
         //now just check if it passes the filters
+        if(trigObj->hasFilterLabel("hltL1sBigORLooseIsoEGXXerIsoTauYYerdRMin0p3")) {
+          is_hltL1sBigORLooseIsoEGXXerIsoTauYYerdRMin0p3 = true;
+          cout<<"is_hltL1sBigORLooseIsoEGXXerIsoTauYYerdRMin0p3 passed!"<<endl;
+        }
         if(trigObj->hasFilterLabel("hltEG35R9Id90HE10IsoMEcalIsoFilter")) {
           is_hltEG35R9Id90HE10IsoMEcalIsoFilter = true;
-          //cout<<"is_hltEG35R9Id90HE10IsoMEcalIsoFilter passed!"<<endl;
+          cout<<"is_hltEG35R9Id90HE10IsoMEcalIsoFilter passed!"<<endl;
         }
         if(trigObj->hasFilterLabel("hltEG35R9Id90HE10IsoMHcalIsoFilter")){
           is_hltEG35R9Id90HE10IsoMHcalIsoFilter = true;
-          //cout<<"hltEG35R9Id90HE10IsoMHcalIsoFilter passed!"<<endl;
+          cout<<"hltEG35R9Id90HE10IsoMHcalIsoFilter passed!"<<endl;
         }
         if(trigObj->hasFilterLabel("hltEG35R9Id90HE10IsoMTrackIsoFilter")){
           is_hltEG35R9Id90HE10IsoMTrackIsoFilter = true;
-          //cout<<"hltEG35R9Id90HE10IsoMTrackIsoFilter passed!"<<endl;
+          cout<<"hltEG35R9Id90HE10IsoMTrackIsoFilter passed!"<<endl;
         }
       }
     }
@@ -548,6 +553,7 @@ void HPhiGammaTriggerAnalysis::create_trees()
   mytree->Branch("photon_iso_Photon",&ph_iso_Photon);
   mytree->Branch("photon_iso_eArho",&ph_iso_eArho);
 
+  mytree->Branch("is_hltL1sBigORLooseIsoEGXXerIsoTauYYerdRMin0p3",&is_hltL1sBigORLooseIsoEGXXerIsoTauYYerdRMin0p3);
   mytree->Branch("is_hltEG35R9Id90HE10IsoMEcalIsoFilter",&is_hltEG35R9Id90HE10IsoMEcalIsoFilter);
   mytree->Branch("is_hltEG35R9Id90HE10IsoMHcalIsoFilter",&is_hltEG35R9Id90HE10IsoMHcalIsoFilter);
   mytree->Branch("is_hltEG35R9Id90HE10IsoMTrackIsoFilter",&is_hltEG35R9Id90HE10IsoMTrackIsoFilter);

@@ -17,8 +17,9 @@ config.JobType.pyCfgParams = ['runningOnData=True']
 
 config.section_('Data')
 config.Data.inputDBS = 'global'
-config.Data.splitting = 'FileBased'
-config.Data.unitsPerJob = 5
+#config.Data.splitting = 'FileBased'
+config.Data.splitting = 'Automatic'
+#config.Data.unitsPerJob = 5
 #config.JobType.maxMemoryMB = 3300
 config.Data.publication = False
 config.Data.lumiMask = 'json/Cert_314472-325175_13TeV_Legacy2018_Collisions18_JSON.txt'
@@ -48,6 +49,7 @@ if __name__ == '__main__':
     #p.start()
     #p.join()
     
+    '''
     config.General.requestName = '2018_HPhiGammaAnalysis_Tau_B'
     config.Data.inputDataset = '/Tau/Run2018B-UL2018_MiniAODv2-v2/MINIAOD'
     p = Process(target=submit, args=(config,))
@@ -64,6 +66,26 @@ if __name__ == '__main__':
    # config.Data.unitsPerJob = 15
     config.General.requestName = '2018_HPhiGammaAnalysis_Tau_D'
     config.Data.inputDataset = '/Tau/Run2018D-UL2018_MiniAODv2-v1/MINIAOD'
+    p = Process(target=submit, args=(config,))
+    p.start()
+    p.join()
+    
+
+    config.General.requestName = '2018_HPhiGammaL1TriggerAnalysis_SingleMuonB'
+    config.Data.inputDataset = '/SingleMuon/Run2018B-UL2018_MiniAODv2-v2/MINIAOD'
+    config.Data.runRange = '317527-319310'
+    p = Process(target=submit, args=(config,))
+    p.start()
+    p.join()
+    '''
+    config.General.requestName = '2018_HPhiGammaL1TriggerAnalysis_SingleMuonC'
+    config.Data.inputDataset = '/SingleMuon/Run2018C-UL2018_MiniAODv2-v2/MINIAOD'
+    p = Process(target=submit, args=(config,))
+    p.start()
+    p.join()
+
+    config.General.requestName = '2018_HPhiGammaL1TriggerAnalysis_SingleMuonD'
+    config.Data.inputDataset = '/SingleMuon/Run2018D-UL2018_MiniAODv2-v3/MINIAOD'
     p = Process(target=submit, args=(config,))
     p.start()
     p.join()

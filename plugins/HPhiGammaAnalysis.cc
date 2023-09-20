@@ -115,7 +115,8 @@ effectiveAreas_ph_( (iConfig.getParameter<edm::FileInPath>("effAreasConfigFile_p
   triggerObjectsToken_                = consumes<std::vector<pat::TriggerObjectStandAlone> > (edm::InputTag("slimmedPatTrigger","","PAT")); //triggObj
   //packedGenParticlesToken_            = consumes<std::vector<pat::GenParticle>>(edm::InputTag("packedGenParticles", "", "PAT"));
 
-  h_Events = fs->make<TH1F>("h_Events", "Event counting in different steps", 8, 0., 8.);
+  h_Events         = fs->make<TH1F>("h_Events", "Event counting in different steps", 8, 0., 8.);
+  h_TriggerFilters = fs->make<TH1F>("h_TriggerFilters", "Trigger filters counting in different steps", 11, 0., 11.);
 
   _Nevents_processed             = 0;
   _Nevents_triggered             = 0;
@@ -128,12 +129,25 @@ effectiveAreas_ph_( (iConfig.getParameter<edm::FileInPath>("effAreasConfigFile_p
   _Nevents_candPtFilter          = 0;
   _Nevents_coupleIsolationFilter = 0;
   _Nevents_VBFVeto               = 0;
+
+  _NeventsFilter1                = 0;
+  _NeventsFilter2                = 0;
+  _NeventsFilter3                = 0;
+  _NeventsFilter4                = 0;
+  _NeventsFilter5                = 0;
+  _NeventsFilter6                = 0;
+  _NeventsFilter7                = 0;
+  _NeventsFilter8                = 0;
+  _NeventsFilter9                = 0;
+
   nKK_found                      = 0;
   nKK_notFound                   = 0;
 
 
   debug=false;  //DEBUG datamember 
-  verbose=false; 
+  verbose=false;
+  trig_verbose=true; 
+  isTriggerStudies=true;
 
   h_pileup   = fs->make<TH1F>("pileup", "pileup", 75,0,75);
 
@@ -255,6 +269,7 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
 
    //Examine the trigger information, return if the trigger doesn't switch on and count the number of events where the trigger has switched on
    isTwoProngTrigger = false;
+   isIsoMuTrigger    = false;
 
    const edm::TriggerNames &names = iEvent.triggerNames(*triggerBits);
    for(unsigned int i = 0, n = triggerBits->size(); i < n; ++i){
@@ -264,11 +279,19 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
      if( tmp_triggername.find("HLT_Photon35_TwoProngs35_v") != std::string::npos ){
        isTwoProngTrigger = true;
      }
+
+     if(isTriggerStudies){ //start trigger studies
+       if(tmp_triggername.find("HLT_IsoMu24") != std::string::npos ){ //Muon trigger
+         isIsoMuTrigger = true;
+         if (verbose) cout<<"IsoMu24 triggered"<<endl;
+         }
+       //else return;
+     } //end trigger studies
    }
 
    if(!isTwoProngTrigger){
     if(verbose) cout<<"Event not triggered, RETURN."<<endl;
-    return;
+    //return; //FIXMEEEEEE
   }
   _Nevents_triggered++;
 
@@ -479,6 +502,53 @@ for(auto mu = slimmedMuons->begin(); mu != slimmedMuons->end(); ++mu){
   if(mu->pt() < 20.) continue;
   nMuons20++;
 }
+
+if(isTriggerStudies){ //start trigger studies
+  
+  isBestMuMu_Found = false;
+  float currentMuMuPt = -1.;
+  bestMuMuPt = -1.;
+  float currentMuMuMass = -1.;
+  bestMuMuMass = -1.;
+
+  if (verbose) cout<<"Muons forloop start"<<endl;
+
+  //for(auto firstMu= slimmedMuons->begin(); firstMu!= slimmedMuons->end(); ++firstMu){ //Muon first forloop start
+  for(std::vector<pat::Muon>::size_type firstMuIndex = 0; firstMuIndex < slimmedMuons->size();firstMuIndex ++){ //Muon first forloop start
+      
+      if(slimmedMuons->at(firstMuIndex).pt() < 5. || !slimmedMuons->at(firstMuIndex).CutBasedIdMedium || fabs(slimmedMuons->at(firstMuIndex).eta()) > 2.4 || fabs(slimmedMuons->at(firstMuIndex).muonBestTrack()->dxy((&slimmedPV->at(0))->position())) >= 0.2 || fabs(slimmedMuons->at(firstMuIndex).muonBestTrack()->dz((&slimmedPV->at(0))->position())) >= 0.5) continue;
+      if(!slimmedMuons->at(firstMuIndex).PFIsoLoose) continue;
+    
+      //for(auto secondMu= slimmedMuons->begin(); secondMu!= slimmedMuons->end(); ++secondMu){//Muon second forloop start
+      for(std::vector<pat::Muon> ::size_type secondMuIndex = firstMuIndex + 1; secondMuIndex < slimmedMuons->size();secondMuIndex ++){ //Muon second forloop start
+          
+          if(slimmedMuons->at(secondMuIndex).pt() < 5. || !slimmedMuons->at(secondMuIndex).CutBasedIdMedium || fabs(slimmedMuons->at(secondMuIndex).eta()) > 2.4 || fabs(slimmedMuons->at(secondMuIndex).muonBestTrack()->dxy((&slimmedPV->at(0))->position())) >= 0.2 || fabs(slimmedMuons->at(secondMuIndex).muonBestTrack()->dz((&slimmedPV->at(0))->position())) >= 0.5) continue;
+
+          //at least one of the two muons must have pT > 25 GeV
+          if(slimmedMuons->at(firstMuIndex).pt() < 25. && slimmedMuons->at(secondMuIndex).pt() < 25.) continue; 
+
+          if(slimmedMuons->at(firstMuIndex).charge()*slimmedMuons->at(secondMuIndex).charge() >= 0.) continue; //take only muons with opposite charges
+          currentMuMuMass = (slimmedMuons->at(firstMuIndex).p4() + slimmedMuons->at(secondMuIndex).p4()).M();
+          if(currentMuMuMass < 20. || currentMuMuMass > 120.) continue; //MuMu inv mass for Z
+
+          currentMuMuPt = (slimmedMuons->at(firstMuIndex).p4() + slimmedMuons->at(secondMuIndex).p4()).pt(); 
+          if(currentMuMuPt <= bestMuMuPt) continue; //choose the pair with largest pT
+          bestMuMuPt   = currentMuMuPt;
+          bestMuMuMass = currentMuMuMass;
+          isBestMuMu_Found = true;
+
+      } //Muon second forloop end
+    }//Muon first forloop end
+
+  if(!isBestMuMu_Found) { 
+    if (verbose) cout<<"RETURN: No Z->mumu found."<<endl<<endl;
+    //return;
+  }
+  
+  if(isBestMuMu_Found && verbose){
+    cout<<"Muon pair found, with pT = "<<bestMuMuPt<<" and inv mass = "<<bestMuMuMass<<endl;
+  } 
+} //end trigger studies
 
   //*************************************************************//
   //                                                             //
@@ -1755,7 +1825,6 @@ cout<<"ph_en_scaleDW = "<<ph_en_scaleDW<<endl;
   }
  }
 
-   is_hltTriggerType = false;
    is_hltEG35R9Id90HE10IsoMEcalIsoFilter  = false;
    is_hltEG35R9Id90HE10IsoMHcalIsoFilter  = false;
    is_hltEG35R9Id90HE10IsoMTrackIsoFilter = false;
@@ -1765,11 +1834,16 @@ cout<<"ph_en_scaleDW = "<<ph_en_scaleDW<<endl;
    is_hltEG35R9Id90HE10IsoMEtFilter = false;
    is_hltEGL1EGAndTauFilter = false;
    is_hltL1sBigORLooseIsoEGXXerIsoTauYYerdRMin0p3 = false;
+   is_hltL1sSingleMu22 = false; //TwoProngs leg
+   is_hltL1sMu5EG23IorMu5IsoEG20IorMu7EG23IorMu7IsoEG20IorMuIso7EG23 = false; //Photon leg
+
+    int nMatchedObjs = 0;
+    std::vector<const pat::TriggerObjectStandAlone*> matchedTrigObjs;
 
  //Trigger matching
  for (pat::TriggerObjectStandAlone obj : *triggerObjects){ // note: not "const &" since we want to call unpackPathNames
    
-   bool isAcceptedPath = false;
+   //bool isAcceptedPath = false;
    obj.unpackPathNames(names);
    
    std::vector pathNamesAll = obj.pathNames(false);
@@ -1783,62 +1857,103 @@ cout<<"ph_en_scaleDW = "<<ph_en_scaleDW<<endl;
      if(!isSuccessfulTrigger) continue;
      //std::cout << pathNamesAll[h] << "(L,3)" << std::endl; 
       
-     if(pathNamesAll[h].find("HLT_Photon35_TwoProngs35_v") != std::string::npos) {
-
+     //if(pathNamesAll[h].find("HLT_Photon35_TwoProngs35_v") != std::string::npos) {
+     //if(!isTwoProngTrigger){
      //now match ALL objects in a cone of DR<0.1
      //it is important to match all objects as there are different ways to reconstruct the same electron
      //eg, L1 seeded, unseeded, as a jet etc
      //and so you want to be sure you get all possible objects
-      int nMatchedObjs = 0;
-     std::vector<const pat::TriggerObjectStandAlone*> matchedTrigObjs = getMatchedObjs(ph_eta,ph_phi,_bestCoupleEta,_bestCouplePhi,unpackedTrigObjs,0.1);
+     matchedTrigObjs = getMatchedObjs(ph_eta,ph_phi,_bestCoupleEta,_bestCouplePhi,unpackedTrigObjs,0.1);
+      }
+    }
+  //}   
+
+  //if(!isTwoProngTrigger){
+
      for(const auto trigObj : matchedTrigObjs){
       nMatchedObjs++;
-      if(verbose) cout<<"nMatchedObjs = "<<nMatchedObjs<<" (is a photon = "<<trigObj->type(81)<<" or a tau jet = "<<trigObj->type(84)<<")" <<endl;
-       //now just check if it passes the filters
-      if(trigObj->hasFilterLabel("hltTriggerType")) {
-        is_hltTriggerType = true;
-        if(verbose) cout<<"0) hltTriggerType passed!"<<endl;
-      }
+      
+      auto filterIds = trigObj->filterIds();
+      for (int id : filterIds) {
+        if(trig_verbose) cout<<"Matched obj n."<<nMatchedObjs<<" with ID "<<id<<endl;
+      }      
+      //now just check if it passes the filters
+
+      //HLT_Photon35_TwoProngs35 filters -----------------------------------------------------      
       if(trigObj->hasFilterLabel("hltL1sBigORLooseIsoEGXXerIsoTauYYerdRMin0p3")) {
         is_hltL1sBigORLooseIsoEGXXerIsoTauYYerdRMin0p3 = true;
-        if(verbose) cout<<"1) hltL1sBigORLooseIsoEGXXerIsoTauYYerdRMin0p3 passed!"<<endl;
+        if(trig_verbose) cout<<"1) hltL1sBigORLooseIsoEGXXerIsoTauYYerdRMin0p3 passed!"<<endl;
       }
       if(trigObj->hasFilterLabel("hltEGL1EGAndTauFilter")) {
         is_hltEGL1EGAndTauFilter = true;
-        if(verbose) cout<<"2) hltEGL1EGAndTauFilter passed!"<<endl;
+        if(trig_verbose) cout<<"2) hltEGL1EGAndTauFilter passed!"<<endl;
       }
       if(trigObj->hasFilterLabel("hltEG35R9Id90HE10IsoMEtFilter")) {
         is_hltEG35R9Id90HE10IsoMEtFilter = true;
-        if(verbose) cout<<"3) hltEG35R9Id90HE10IsoMEtFilter passed!"<<endl;
+        if(trig_verbose) cout<<"3) hltEG35R9Id90HE10IsoMEtFilter passed!"<<endl;
       }
       if(trigObj->hasFilterLabel("hltEG35R9Id90HE10IsoMHEFilter")) {
         is_hltEG35R9Id90HE10IsoMHEFilter = true;
-        if(verbose) cout<<"4) hltEG35R9Id90HE10IsoMHEFilter passed!"<<endl;
+        if(trig_verbose) cout<<"4) hltEG35R9Id90HE10IsoMHEFilter passed!"<<endl;
       }
       if(trigObj->hasFilterLabel("hltEG35R9Id90HE10IsoMR9Filter")) {
         is_hltEG35R9Id90HE10IsoMR9Filter = true;
-        if(verbose) cout<<"5) hltEG35R9Id90HE10IsoMR9Filter passed!"<<endl;
+        if(trig_verbose) cout<<"5) hltEG35R9Id90HE10IsoMR9Filter passed!"<<endl;
       }
        if(trigObj->hasFilterLabel("hltEG35R9Id90HE10IsoMEcalIsoFilter")) {
          is_hltEG35R9Id90HE10IsoMEcalIsoFilter = true;
-         if(verbose) cout<<"6) hltEG35R9Id90HE10IsoMEcalIsoFilter passed!"<<endl;
+         if(trig_verbose) cout<<"6) hltEG35R9Id90HE10IsoMEcalIsoFilter passed!"<<endl;
        }
        if(trigObj->hasFilterLabel("hltEG35R9Id90HE10IsoMHcalIsoFilter")){
          is_hltEG35R9Id90HE10IsoMHcalIsoFilter = true;
-         if(verbose) cout<<"7) hltEG35R9Id90HE10IsoMHcalIsoFilter passed!"<<endl;
+         if(trig_verbose) cout<<"7) hltEG35R9Id90HE10IsoMHcalIsoFilter passed!"<<endl;
        }
        if(trigObj->hasFilterLabel("hltEG35R9Id90HE10IsoMTrackIsoFilter")){
          is_hltEG35R9Id90HE10IsoMTrackIsoFilter = true;
-         if(verbose) cout<<"8) hltEG35R9Id90HE10IsoMTrackIsoFilter passed!"<<endl;
+         if(trig_verbose) cout<<"8) hltEG35R9Id90HE10IsoMTrackIsoFilter passed!"<<endl;
        }
        if(trigObj->hasFilterLabel("hltOverlapFilterPhoton35MediumChargedIsoPFTau35")){
          is_hltOverlapFilterPhoton35MediumChargedIsoPFTau35 = true;
-         if(verbose) cout<<"9) hltOverlapFilterPhoton35MediumChargedIsoPFTau35 passed!"<<endl;
+         if(trig_verbose) cout<<"9) hltOverlapFilterPhoton35MediumChargedIsoPFTau35 passed!"<<endl;
        }
+      
+      //HLT_Mu24_TwoProngs35 filters -----------------------------------------------------      
+      if(trigObj->hasFilterLabel("hltL1sSingleMu22")) {
+        is_hltL1sSingleMu22 = true;
+        if(trig_verbose) cout<<"1) hltL1sSingleMu22 passed!"<<endl;
+      }
+
+      //HLT_Mu17_Photon30_IsoCaloId filters -----------------------------------------------------      
+      if(trigObj->hasFilterLabel("hltL1sMu5EG23IorMu5IsoEG20IorMu7EG23IorMu7IsoEG20IorMuIso7EG23")) {
+        is_hltL1sMu5EG23IorMu5IsoEG20IorMu7EG23IorMu7IsoEG20IorMuIso7EG23 = true;
+        if(trig_verbose) cout<<"1) hltL1sMu5EG23IorMu5IsoEG20IorMu7EG23IorMu7IsoEG20IorMuIso7EG23 passed!"<<endl;
+      }
+
+      cout<<endl;
+
      }
-   }
- }
-}
+   //}
+  
+    if(is_hltL1sBigORLooseIsoEGXXerIsoTauYYerdRMin0p3) _NeventsFilter1++;
+    if(is_hltEGL1EGAndTauFilter) _NeventsFilter2++;
+    if(is_hltEG35R9Id90HE10IsoMEtFilter) _NeventsFilter3++;
+    if(is_hltEG35R9Id90HE10IsoMHEFilter) _NeventsFilter4++;
+    if(is_hltEG35R9Id90HE10IsoMR9Filter) _NeventsFilter5++;
+    if(is_hltEG35R9Id90HE10IsoMEcalIsoFilter ) _NeventsFilter6++;
+    if(is_hltEG35R9Id90HE10IsoMHcalIsoFilter ) _NeventsFilter7++;
+    if(is_hltEG35R9Id90HE10IsoMTrackIsoFilter) _NeventsFilter8++;
+    if(is_hltOverlapFilterPhoton35MediumChargedIsoPFTau35) _NeventsFilter9++;
+
+    cout<<"n event filter 1 : "<<_NeventsFilter1<<endl;
+    cout<<"n event filter 2 : "<<_NeventsFilter2<<endl;
+    cout<<"n event filter 3 : "<<_NeventsFilter3<<endl;
+    cout<<"n event filter 4 : "<<_NeventsFilter4<<endl;
+    cout<<"n event filter 5 : "<<_NeventsFilter5<<endl;
+    cout<<"n event filter 6 : "<<_NeventsFilter6<<endl;
+    cout<<"n event filter 7 : "<<_NeventsFilter7<<endl;
+    cout<<"n event filter 8 : "<<_NeventsFilter8<<endl;
+    cout<<"n event filter 9 : "<<_NeventsFilter9<<endl;
+
   //cout<<endl<<"Event n = "<<event_number<<endl;
   mytree->Fill();
 
@@ -1965,7 +2080,6 @@ void HPhiGammaAnalysis::create_trees()
   mytree->Branch("iso_couple",&_iso_couple);
   mytree->Branch("iso_couple_ch",&_iso_couple_ch);
 
-  mytree->Branch("is_hltTriggerType",&is_hltTriggerType);
   mytree->Branch("is_hltL1sBigORLooseIsoEGXXerIsoTauYYerdRMin0p3",&is_hltL1sBigORLooseIsoEGXXerIsoTauYYerdRMin0p3);
   mytree->Branch("is_hltEGL1EGAndTauFilter",&is_hltEGL1EGAndTauFilter);
   mytree->Branch("is_hltEG35R9Id90HE10IsoMEtFilter",&is_hltEG35R9Id90HE10IsoMEtFilter);
@@ -1975,6 +2089,15 @@ void HPhiGammaAnalysis::create_trees()
   mytree->Branch("is_hltEG35R9Id90HE10IsoMHcalIsoFilter",&is_hltEG35R9Id90HE10IsoMHcalIsoFilter);
   mytree->Branch("is_hltEG35R9Id90HE10IsoMTrackIsoFilter",&is_hltEG35R9Id90HE10IsoMTrackIsoFilter);
   mytree->Branch("is_hltOverlapFilterPhoton35MediumChargedIsoPFTau35",&is_hltOverlapFilterPhoton35MediumChargedIsoPFTau35);
+  mytree->Branch("is_hltL1sSingleMu22",&is_hltL1sSingleMu22); //TwoProngs leg
+  mytree->Branch("is_hltL1sMu5EG23IorMu5IsoEG20IorMu7EG23IorMu7IsoEG20IorMuIso7EG23",&is_hltL1sMu5EG23IorMu5IsoEG20IorMu7EG23IorMu7IsoEG20IorMuIso7EG23); //Photon leg
+ 
+  if(isTriggerStudies){ //start trigger studies
+    mytree->Branch("isIsoMuTrigger",&isIsoMuTrigger);
+    mytree->Branch("isBestMuMu_Found",&isBestMuMu_Found);
+    mytree->Branch("MuMuPt",&bestMuMuPt);
+    mytree->Branch("MuMuMass",&bestMuMuMass);
+  } //end trigger studies
 
   //Save MC info
   if(!runningOnData_){ //NO INFO FOR DATA
@@ -2047,6 +2170,29 @@ h_Events->GetXaxis()->SetBinLabel(4,"best pair");
 h_Events->GetXaxis()->SetBinLabel(5,"trks pT");
 h_Events->GetXaxis()->SetBinLabel(6,"trks iso");
 h_Events->GetXaxis()->SetBinLabel(7,"VBF veto");
+
+float scale_factor = 1./_Nevents_VBFVeto;
+cout<<"scale_factor = "<<scale_factor<<endl;
+h_TriggerFilters->Fill(0.5,_Nevents_VBFVeto * scale_factor);
+h_TriggerFilters->Fill(1.5,_NeventsFilter1 * scale_factor);
+h_TriggerFilters->Fill(2.5,_NeventsFilter2 * scale_factor);
+h_TriggerFilters->Fill(3.5,_NeventsFilter3 * scale_factor);
+h_TriggerFilters->Fill(4.5,_NeventsFilter4 * scale_factor);
+h_TriggerFilters->Fill(5.5,_NeventsFilter5 * scale_factor);
+h_TriggerFilters->Fill(6.5,_NeventsFilter6 * scale_factor);
+h_TriggerFilters->Fill(7.5,_NeventsFilter7 * scale_factor);
+h_TriggerFilters->Fill(8.5,_NeventsFilter8 * scale_factor);
+h_TriggerFilters->Fill(9.5,_NeventsFilter9 * scale_factor);
+h_TriggerFilters->GetXaxis()->SetBinLabel(1,"offline selection");
+h_TriggerFilters->GetXaxis()->SetBinLabel(2,"hltL1sBigORLooseIsoEGXXerIsoTauYYerdRMin0p3");
+h_TriggerFilters->GetXaxis()->SetBinLabel(3,"hltEGL1EGAndTauFilter");
+h_TriggerFilters->GetXaxis()->SetBinLabel(4,"hltEG35R9Id90HE10IsoMEtFilter");
+h_TriggerFilters->GetXaxis()->SetBinLabel(5,"hltEG35R9Id90HE10IsoMHEFilter");
+h_TriggerFilters->GetXaxis()->SetBinLabel(6,"hltEG35R9Id90HE10IsoMR9Filter");
+h_TriggerFilters->GetXaxis()->SetBinLabel(7,"hltEG35R9Id90HE10IsoMEcalIsoFilter");
+h_TriggerFilters->GetXaxis()->SetBinLabel(8,"hltEG35R9Id90HE10IsoMHcalIsoFilter");
+h_TriggerFilters->GetXaxis()->SetBinLabel(9,"hltEG35R9Id90HE10IsoMTrackIsoFilter");
+h_TriggerFilters->GetXaxis()->SetBinLabel(10,"hltOverlapFilterPhoton35MediumChargedIsoPFTau35");
 }
 
 //define this as a plug-in
