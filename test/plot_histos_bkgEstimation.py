@@ -389,13 +389,16 @@ for histo_name in list_histos:
                 hstack[histo_name].GetXaxis().SetRangeUser(0.5,1.)
                 hstack[histo_name].GetXaxis().SetTitle("m_{#pi#pi} [GeV]")
 
-    if signal_magnify != 1:
-        #hsignal[histo_name].Scale(signal_magnify)   
-        hsignalggH[histo_name].Scale(signal_magnify)   
-        hsignalVBF[histo_name].Scale(signal_magnify)   
+    if signal_magnify != 1:   
         if histo_name == "h_InvMass_TwoTrk_Photon":
             hsignalVBF[histo_name].Rebin(1/5) #do this to have more granularity in the signal curve
             hsignalggH[histo_name].Rebin(1/5)
+            hsignalggH[histo_name].Scale(signal_magnify * 0.5)   
+            hsignalVBF[histo_name].Scale(signal_magnify * 0.5)
+        else:
+            hsignalggH[histo_name].Scale(signal_magnify)   
+            hsignalVBF[histo_name].Scale(signal_magnify)       
+
 
     hdata[histo_name].Draw("SAME,E1,X0")
     #hsignal[histo_name].Draw("SAME,hist")

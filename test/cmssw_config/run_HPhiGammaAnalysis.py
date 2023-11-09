@@ -7,6 +7,7 @@ process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 process.load('Configuration.StandardSequences.Services_cff') 
 process.load('Geometry.CaloEventSetup.CaloTowerConstituents_cfi')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff') #Could be not the coprrect one, but should contain the one without "condDBv2"
+
 from Configuration.AlCa.GlobalTag import GlobalTag
 
 process.maxEvents = cms.untracked.PSet(
@@ -80,6 +81,8 @@ else:
    #inputFiles = {'/store/mc/RunIISummer20UL18MiniAODv2/GluGluHtoK0starG_M-125_TuneCP5_PSWeights_13TeV_powheg-pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v2/2820000/019F13F4-1C5C-4649-B4BF-0124156D43A1.root'}
    #Choose for DY trigger study
    #inputFiles = {"/store/mc/RunIISummer20UL18MiniAOD/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/MINIAODSIM/106X_upgrade2018_realistic_v11_L1v1-v1/260000/0071F930-6376-7A48-89F1-74E189BD3BFC.root"}
+   #Choose for Phi WH signal
+   #inputFiles = {'/store/mc/RunIISummer20UL18MiniAODv2/WplusH_WToLNu_HToPhiGamma_M125_TuneCP5_PSWeights_13TeV_powheg_pythia8/MINIAODSIM/106X_upgrade2018_realistic_v16_L1v1-v1/2560000/008829AA-40ED-D144-A840-B4984587DE7F.root'}
 
 process.source = cms.Source ("PoolSource",
                              fileNames = cms.untracked.vstring (inputFiles),

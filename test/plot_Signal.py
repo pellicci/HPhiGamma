@@ -296,7 +296,10 @@ for histo_name in list_histos:
             hstack[histo_name].GetXaxis().SetTitle("cos(#theta_{pol})")
             hstack[histo_name].GetYaxis().SetTitle("a.u.")
 
-        hstack[histo_name].Draw("SAME,histo")
+        if histo_name == "h_IsoSumPtVsJetPt":
+            hstack[histo_name].Draw("SAME,histo,COLZ")
+        else:
+            hstack[histo_name].Draw("SAME,histo")
 
 
     if signal_magnify != 1:

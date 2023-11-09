@@ -280,10 +280,16 @@ else:
 	c2.SaveAs("/eos/user/g/gumoret/www/latest_production/massanalysis_latest_production/fitsignal_" + CHANNEL + "_preselection_VBF.png")
 
 #create Workspace
-norm_ggH = fileInput_ggH.Get("h_InvMass_TwoTrk_Photon").Integral()  # get the normalization of ggH signal (area under ggH signal)
-sig_norm_ggH = ROOT.RooRealVar(signalPDF_ggH.GetName() + "_norm", signalPDF_ggH.GetName() + "_norm", norm_ggH)
-norm_VBF = fileInput_VBF.Get("h_InvMass_TwoTrk_Photon").Integral()  # get the normalization of VBF signal (area under VBF signal)
-sig_norm_VBF = ROOT.RooRealVar(signalPDF_VBF.GetName() + "_norm", signalPDF_VBF.GetName() + "_norm", norm_VBF)
+if CHANNEL == "K0s": #norm factor x2 to include the Kbar channel
+    norm_ggH = fileInput_ggH.Get("h_InvMass_TwoTrk_Photon").Integral()  # get the normalization of ggH signal (area under ggH signal)
+    sig_norm_ggH = ROOT.RooRealVar(signalPDF_ggH.GetName() + "_norm", signalPDF_ggH.GetName() + "_norm", 2*norm_ggH)
+    norm_VBF = fileInput_VBF.Get("h_InvMass_TwoTrk_Photon").Integral()  # get the normalization of VBF signal (area under VBF signal)
+    sig_norm_VBF = ROOT.RooRealVar(signalPDF_VBF.GetName() + "_norm", signalPDF_VBF.GetName() + "_norm", 2*norm_VBF)
+else:
+    norm_ggH = fileInput_ggH.Get("h_InvMass_TwoTrk_Photon").Integral()  # get the normalization of ggH signal (area under ggH signal)
+    sig_norm_ggH = ROOT.RooRealVar(signalPDF_ggH.GetName() + "_norm", signalPDF_ggH.GetName() + "_norm", norm_ggH)
+    norm_VBF = fileInput_VBF.Get("h_InvMass_TwoTrk_Photon").Integral()  # get the normalization of VBF signal (area under VBF signal)
+    sig_norm_VBF = ROOT.RooRealVar(signalPDF_VBF.GetName() + "_norm", signalPDF_VBF.GetName() + "_norm", norm_VBF)
 
 dCB_pole_ggH.setConstant(1)
 dCB_width_ggH.setConstant(1)

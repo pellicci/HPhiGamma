@@ -48,7 +48,6 @@ if __name__ == '__main__':
 
     config.JobType.pyCfgParams = ['runningOnData=False'] # Configure 2018 MC signal jobs 
 
-    '''
     config.General.requestName = 'HPhiGammaAnalysis_Signal_Phi_ggH'
     config.Data.inputDataset = '/GluGlu_HToPhiGamma_M125_TuneCP5_PSWeights_13TeV_powheg_pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v3/MINIAODSIM'
     p = Process(target=submit, args=(config,))
@@ -60,7 +59,7 @@ if __name__ == '__main__':
     p = Process(target=submit, args=(config,))
     p.start()
     p.join()
-    
+    '''
     config.General.requestName = 'HPhiGammaAnalysis_Signal_Phi_VBF'
     config.Data.inputDataset = '/VBF_HToPhiGamma_M125_TuneCP5_PSWeights_13TeV_powheg_pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v1/MINIAODSIM'
     p = Process(target=submit, args=(config,))
@@ -72,20 +71,20 @@ if __name__ == '__main__':
     p = Process(target=submit, args=(config,))
     p.start()
     p.join()
-
+    '''
     config.General.requestName = 'HPhiGammaAnalysis_Signal_K0s_ggH'
     config.Data.inputDataset = '/GluGluHtoK0starG_M-125_TuneCP5_PSWeights_13TeV_powheg-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v2/MINIAODSIM'
     p = Process(target=submit, args=(config,))
     p.start()
     p.join()
 
+    '''
     config.General.requestName = 'HPhiGammaAnalysis_Signal_K0s_VBF'
     config.Data.inputDataset = '/VBF_HtoK0starG_M-125_TuneCP5_PSWeights_13TeV_powheg-pythia8/RunIISummer20UL18MiniAODv2-106X_upgrade2018_realistic_v16_L1v1-v2/MINIAODSIM'
     p = Process(target=submit, args=(config,))
     p.start()
     p.join()
-    '''
-
+    
     #Just for trigger studies
     config.General.requestName = 'HPhiGammaL1TriggerAnalysis_DY10to50'
     config.Data.inputDataset = '/DYJetsToLL_M-10to50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18MiniAOD-106X_upgrade2018_realistic_v11_L1v1-v2/MINIAODSIM'
@@ -98,4 +97,4 @@ if __name__ == '__main__':
     p = Process(target=submit, args=(config,))
     p.start()
     p.join()
-    
+    '''

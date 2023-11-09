@@ -57,13 +57,13 @@ b_bkg = ROOT.RooRealVar("b_bkg_chebychev_"+CHANNEL+"_GFcat_bdt1","b_bkg",0.3,-1.
 c_bkg = ROOT.RooRealVar("c_bkg_chebychev_"+CHANNEL+"_GFcat_bdt1","c_bkg",-0.01,-1.,1.)
 d_bkg = ROOT.RooRealVar("d_bkg_chebychev_"+CHANNEL+"_GFcat_bdt1","d_bkg",-0.05,-0.1,0.)
 f_bkg = ROOT.RooRealVar("f_bkg_chebychev_"+CHANNEL+"_GFcat_bdt1","f_bkg",-0.05,-0.1,0.)
-if CHANNEL == "Phi": 
+
+if isPhiGammaAnalysis:
 	bkgPDF_chebychev = ROOT.RooChebychev("chebychev_GFcat_bdt1_bkg","bkgPDF",mass,ROOT.RooArgList(a_bkg,b_bkg,c_bkg))
+	bkgPDF_chebychev_Nplus1 = ROOT.RooChebychev("chebychev_Nplus1_GFcat_bdt1_bkg","bkgPDF",mass,ROOT.RooArgList(a_bkg,b_bkg,c_bkg,d_bkg))
 else:
-	bkgPDF_chebychev = ROOT.RooChebychev("chebychev_GFcat_bdt1_bkg","bkgPDF",mass,ROOT.RooArgList(a_bkg,b_bkg,c_bkg, d_bkg))
-
-bkgPDF_chebychev_Nplus1 = ROOT.RooChebychev("chebychev_Nplus1_GFcat_bdt1_bkg","bkgPDF",mass,ROOT.RooArgList(a_bkg,b_bkg,c_bkg,d_bkg,f_bkg))
-
+	bkgPDF_chebychev = ROOT.RooChebychev("chebychev_GFcat_bdt1_bkg","bkgPDF",mass,ROOT.RooArgList(a_bkg,b_bkg,c_bkg))
+	bkgPDF_chebychev_Nplus1 = ROOT.RooChebychev("chebychev_Nplus1_GFcat_bdt1_bkg","bkgPDF",mass,ROOT.RooArgList(a_bkg,b_bkg,c_bkg,d_bkg))
 
 #Initialize a exponential pdf
 #Initialize a exponential pdf
@@ -89,7 +89,10 @@ bern_c3 = ROOT.RooRealVar('bern_c3', 'bern_c3', 0.01, 0.,1.)
 bern_c4 = ROOT.RooRealVar('bern_c4', 'bern_c4', 0.01, 0., 1.)
 bern_c5 = ROOT.RooRealVar('bern_c5', 'bern_c5', 1e-2, 0., 0.1)
 
-bkgPDF_bernstein = ROOT.RooBernstein("bernstein_GFcat_bdt1_bkg", "bkgPDF", mass, ROOT.RooArgList(bern_c0,bern_c1,bern_c2,bern_c3,bern_c4,bern_c5))
+if isPhiGammaAnalysis:
+	bkgPDF_bernstein = ROOT.RooBernstein("bernstein_GFcat_bdt1_bkg", "bkgPDF", mass, ROOT.RooArgList(bern_c0,bern_c1,bern_c2,bern_c3,bern_c4))
+else:
+	bkgPDF_bernstein = ROOT.RooBernstein("bernstein_GFcat_bdt1_bkg", "bkgPDF", mass, ROOT.RooArgList(bern_c0,bern_c1,bern_c2,bern_c3,bern_c4))
 
 #bkgPDF_bernstein  = ROOT.RooProdPdf("bkgPDF_bernstein_GFcat_bdt1_bkg","bkg PDF",ROOT.RooArgList(exp1,bkgPDF_bernstein))
 
@@ -134,7 +137,7 @@ canvas_chebychev.cd()
 
 #Chebychev frame
 if isPhiGammaAnalysis:
-	xframe_chebychev = mass.frame(60)
+	xframe_chebychev = mass.frame(40)
 else:
 	xframe_chebychev = mass.frame(60)
 
@@ -179,7 +182,7 @@ canvas_bernstein = ROOT.TCanvas()
 canvas_bernstein.cd()
 
 if isPhiGammaAnalysis:
-	xframe_bernstein = mass.frame(60)
+	xframe_bernstein = mass.frame(40)
 else:
 	xframe_bernstein = mass.frame(60)
 
@@ -222,7 +225,7 @@ canvas_exponential = ROOT.TCanvas()
 canvas_exponential.cd()
 
 if isPhiGammaAnalysis:
-	xframe_exponential = mass.frame(60)
+	xframe_exponential = mass.frame(40)
 else:
 	xframe_exponential = mass.frame(60)
 
@@ -265,7 +268,7 @@ canvas_chebychev_Nplus1.cd()
 
 #chebychev_Nplus1 frame
 if isPhiGammaAnalysis:
-	xframe_chebychev_Nplus1 = mass.frame(60)
+	xframe_chebychev_Nplus1 = mass.frame(40)
 else:
 	xframe_chebychev_Nplus1 = mass.frame(60)
 
@@ -310,7 +313,7 @@ mypdfs = ROOT.RooArgList()
 mypdfs.add(bkgPDF_chebychev)
 mypdfs.add(bkgPDF_bernstein)
 mypdfs.add(bkgPDF_exponential)
-mypdfs.add(bkgPDF_chebychev_Nplus1)
+#mypdfs.add(bkgPDF_chebychev_Nplus1)
 
 multipdf = ROOT.RooMultiPdf("multipdf_"+CHANNEL+"_GFcat_bdt1_bkg","All Pdfs",cat,mypdfs)
 

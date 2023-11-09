@@ -74,6 +74,8 @@ private:
 
   bool isIsoMuTrigger;
   bool isBestMuMuFound;
+  bool _hasProbeMuFiredTrigger;
+  bool _hasTagMuFiredTrigger;
 
   float _iso;
   float _iso_ch;

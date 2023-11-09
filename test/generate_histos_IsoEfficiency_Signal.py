@@ -19,7 +19,7 @@ ROOT.gROOT.SetBatch(True)
 #INPUT and OUTPUT #############################################################################################
 #Input
 p = argparse.ArgumentParser(description='Select rootfile to plot')
-p.add_argument('is_Data', help='Type which kind of sample it is')
+p.add_argument('channel', help='Type which kind of sample it is')
 p.add_argument('variable', help='Type the variable')
 p.add_argument('eta', help='Type the eta range')
 p.add_argument('rootfile_name', help='Type rootfile name')
@@ -27,13 +27,10 @@ p.add_argument('outputfile_option', help='Provide output file name')
 
 args = p.parse_args()
 fInput = ROOT.TFile(args.rootfile_name)
-mytree = fInput.Get("HPhiGammaIsoEfficiencyAnalysis/mytree")
+mytree = fInput.Get("HPhiGammaAnalysis/mytree")
 
-if args.is_Data == "Data":
-    SAMPLE_NAME = "Data"
-else:
-    SAMPLE_NAME = "MC"
-
+CHANNEL = str(args.channel)
+SAMPLE_NAME = "Signal"
 VARIABLE = args.variable
 ETA = args.eta
 
@@ -65,9 +62,9 @@ for i in range(nVariables): # Use adfor loop to create the sequential variables
     tree_pass_name = "tree_output_bin{}_pass".format(i)
     
     treeDict[tree_fail_name] = ROOT.TTree(tree_fail_name,tree_fail_name)
-    treeDict[tree_fail_name].Branch('mumuMass',variablesDict[bin_fail_name],'mumuMass/D')
+    treeDict[tree_fail_name].Branch('mesonMass',variablesDict[bin_fail_name],'mesonMass/D')
     treeDict[tree_pass_name] = ROOT.TTree(tree_pass_name,tree_pass_name)
-    treeDict[tree_pass_name].Branch('mumuMass',variablesDict[bin_pass_name],'mumuMass/D')
+    treeDict[tree_pass_name].Branch('mesonMass',variablesDict[bin_pass_name],'mesonMass/D')
 
 print(variablesDict)
 print(treeDict)
@@ -87,18 +84,17 @@ CMS_lumi.lumi_13TeV = "39.54 fb^{-1}"
 #H I S T O S 
 #-------------------------------
 histo_map = dict()
-list_histos = ["h_mumuMassPass","h_mumuMassFail","h_tagMuPt","h_probeMuPt","h_isoCh","h_isoNeu","h_tagMuPhi","h_probeMuPhi","h_tagMuEta","h_probeMuEta"]
+list_histos = ["h_mesonMassPass","h_mesonMassFail"]
 
-histo_map[list_histos[0]]  = ROOT.TH1F(list_histos[0],"M_{#mu#mu} in "+SAMPLE_NAME+" if probe mu passes iso cut",100,60.,120.)
-histo_map[list_histos[1]]  = ROOT.TH1F(list_histos[1],"M_{#mu#mu} in "+SAMPLE_NAME+" if probe mu fails iso cut",100,60.,120.)
-histo_map[list_histos[2]]  = ROOT.TH1F(list_histos[2],"p_{T}^{tag#mu} in "+SAMPLE_NAME, 100, 10.,160.)
-histo_map[list_histos[3]]  = ROOT.TH1F(list_histos[3],"p_{T}^{probe#mu} in "+SAMPLE_NAME, 100, 10.,160.)
-histo_map[list_histos[4]]  = ROOT.TH1F(list_histos[4],"iso^{probe#mu}_{ch} in "+SAMPLE_NAME, 100, 0.9,1.)
-histo_map[list_histos[5]]  = ROOT.TH1F(list_histos[5],"iso^{probe#mu}_{neu} in "+SAMPLE_NAME, 100, 0.5,1.)
-histo_map[list_histos[6]]  = ROOT.TH1F(list_histos[6],"#phi^{tag#mu} in "+SAMPLE_NAME, 100, -3.14,3.14)
-histo_map[list_histos[7]]  = ROOT.TH1F(list_histos[7],"#phi^{probe#mu} in "+SAMPLE_NAME, 100, -3.14,3.14)
-histo_map[list_histos[8]]  = ROOT.TH1F(list_histos[8],"#eta^{tag#mu} in "+SAMPLE_NAME, 100, -2.5,2.5)
-histo_map[list_histos[9]]  = ROOT.TH1F(list_histos[9],"#eta^{probe#mu} in "+SAMPLE_NAME, 100, -2.5,2.5)
+if CHANNEL == "Phi":
+    histo_map[list_histos[0]]  = ROOT.TH1F(list_histos[0],"M_{#phi} in "+SAMPLE_NAME+" if meson passes iso cut",100,1.,1.05)
+    histo_map[list_histos[1]]  = ROOT.TH1F(list_histos[1],"M_{#phi} in "+SAMPLE_NAME+" if meson fails iso cut",100,1.,1.05)
+if CHANNEL == "Rho":
+    histo_map[list_histos[0]]  = ROOT.TH1F(list_histos[0],"M_{#rho} in "+SAMPLE_NAME+" if meson passes iso cut",100,0.5,1.)
+    histo_map[list_histos[1]]  = ROOT.TH1F(list_histos[1],"M_{#rho} in "+SAMPLE_NAME+" if meson fails iso cut",100,0.5,1.)
+if CHANNEL == "K0s":
+    histo_map[list_histos[0]]  = ROOT.TH1F(list_histos[0],"M_{K_{0}^{*}} in "+SAMPLE_NAME+" if meson passes iso cut",100,0.8,1.)
+    histo_map[list_histos[1]]  = ROOT.TH1F(list_histos[1],"M_{K_{0}^{*}} in "+SAMPLE_NAME+" if meson fails iso cut",100,0.8,1.)
 
 #histo_map[list_histos[11]] = ROOT.TH1F(list_histos[11],"Trigger efficiency bin by bin in "+SAMPLE_NAME+" (TwoProngs leg)", 3, 0.,3.)
 
@@ -109,10 +105,10 @@ histo_map[list_histos[9]]  = ROOT.TH1F(list_histos[9],"#eta^{probe#mu} in "+SAMP
 print "This sample has ", mytree.GetEntriesFast(), " events"
 nentries = mytree.GetEntriesFast()
 
-nentries = 500000 #FIXMEEEEEEEE
+#nentries = 2000000 #FIXMEEEEEEEE
 
 #Counters
-nIsolatedProbes = 0
+nIsolatedMesons = 0
 
 for jentry in xrange(nentries):
     ientry = mytree.LoadTree( jentry )
@@ -128,32 +124,35 @@ for jentry in xrange(nentries):
         print "--------------------------"
 
     #Retrieve variables from the tree and fill the histos
-    tagMuPhi   = mytree.tagMuPhi
-    tagMuEta   = mytree.tagMuEta
-    tagMuPt    = mytree.tagMuPt
-    probeMuPhi = mytree.probeMuPhi
-    probeMuEta = mytree.probeMuEta
-    probeMuPt  = mytree.probeMuPt
-    iso        = mytree.iso
-    isoCh      = mytree.iso_ch
-    isoNeu     = probeMuPt/(probeMuPt + (mytree.sum_pT_05 - mytree.sum_pT_05_ch))
-    mumuMass   = mytree.MuMuMass
-    
+    mesonPt   = mytree.bestCouplePt
+    mesonEta  = mytree.bestCoupleEta
+    iso       = mytree.iso_couple
+    isoCh     = mytree.iso_couple_ch
+    isoNeu    = mesonPt/(mesonPt + (mytree.Couple_sum_pT_05 - mytree.Couple_sum_pT_05_ch))
+    if CHANNEL == "Phi": mesonMass = mytree._PhiMass
+    if CHANNEL == "Rho": mesonMass = mytree._RhoMass
+    if CHANNEL == "K0s": mesonMass = mytree._K0starMass
+        
     #weight
-    if SAMPLE_NAME == "MC":
+    if SAMPLE_NAME == "Signal":
         weight = mytree.PU_Weight
     else:
         weight  = 1.
 
+    #trigger
+    if not mytree.isTwoProngTrigger: continue
+
     #pT cut
-    if probeMuPt < 38.: continue
+    if mesonPt < 38.: continue
+
+    if abs(mesonEta) > 2.1: continue
 
     if ETA == "barrel":
-        if abs(probeMuEta) > 1.444: continue
+        if abs(mesonEta) > 1.444: continue
 
     if ETA == "endcap":
-        if abs(probeMuEta) < 1.444: continue
-        
+        if abs(mesonEta) < 1.444: continue
+
     if not VARIABLE == "IsoCh": 
         if (isoCh < 0.9): continue
 
@@ -161,11 +160,11 @@ for jentry in xrange(nentries):
     pT_bin = None
 
     for i in range(len(pT_list) - 1):
-        if pT_list[i] <= probeMuPt < pT_list[i + 1]:
+        if pT_list[i] <= mesonPt < pT_list[i + 1]:
             pT_bin = i
 
             if debug:
-                print "probeMuPt = ",probeMuPt
+                print "mesonPt = ",mesonPt
                 print "pT_bin n  = ",pT_bin
                 print ""
 
@@ -177,58 +176,43 @@ for jentry in xrange(nentries):
     if VARIABLE == "IsoCh": 
         if(isoCh > 0.9):
 
-            nIsolatedProbes = nIsolatedProbes + 1
+            nIsolatedMesons = nIsolatedMesons + 1
 
-            variablesDict["bin{}passEvents".format(pT_bin)][0] = mumuMass
+            variablesDict["bin{}passEvents".format(pT_bin)][0] = mesonMass
             treeDict["tree_output_bin{}_pass".format(pT_bin)].Fill()
            
-            histo_map["h_mumuMassPass"].Fill(mumuMass, weight)
-            histo_map["h_tagMuPt"].Fill(tagMuPt, weight)
-            histo_map["h_probeMuPt"].Fill(probeMuPt, weight)
-            histo_map["h_tagMuPhi"].Fill(tagMuPhi, weight)
-            histo_map["h_probeMuPhi"].Fill(probeMuPhi, weight)
-            histo_map["h_tagMuEta"].Fill(tagMuEta, weight)
-            histo_map["h_probeMuEta"].Fill(probeMuEta, weight)
-            histo_map["h_isoCh"].Fill(isoCh, weight)
-            histo_map["h_isoNeu"].Fill(isoNeu, weight)
+            histo_map["h_mesonMassPass"].Fill(mesonMass, weight)
 
         else:
-            variablesDict["bin{}failEvents".format(pT_bin)][0] = mumuMass
+            variablesDict["bin{}failEvents".format(pT_bin)][0] = mesonMass
             treeDict["tree_output_bin{}_fail".format(pT_bin)].Fill()  
 
-            histo_map["h_mumuMassFail"].Fill(mumuMass, weight)
+            histo_map["h_mesonMassFail"].Fill(mesonMass, weight)
 
     if VARIABLE == "IsoNeu": 
         if(isoNeu > 0.8):
 
-            nIsolatedProbes = nIsolatedProbes + 1
+            nIsolatedMesons = nIsolatedMesons + 1
 
-            variablesDict["bin{}passEvents".format(pT_bin)][0] = mumuMass
+            variablesDict["bin{}passEvents".format(pT_bin)][0] = mesonMass
             treeDict["tree_output_bin{}_pass".format(pT_bin)].Fill()
            
-            histo_map["h_mumuMassPass"].Fill(mumuMass, weight)
-            histo_map["h_tagMuPt"].Fill(tagMuPt, weight)
-            histo_map["h_probeMuPt"].Fill(probeMuPt, weight)
-            histo_map["h_tagMuPhi"].Fill(tagMuPhi, weight)
-            histo_map["h_probeMuPhi"].Fill(probeMuPhi, weight)
-            histo_map["h_tagMuEta"].Fill(tagMuEta, weight)
-            histo_map["h_probeMuEta"].Fill(probeMuEta, weight)
-            histo_map["h_isoCh"].Fill(isoCh, weight)
-            histo_map["h_isoNeu"].Fill(isoNeu, weight)
+            histo_map["h_mesonMassPass"].Fill(mesonMass, weight)
 
         else:
-            variablesDict["bin{}failEvents".format(pT_bin)][0] = mumuMass
+            variablesDict["bin{}failEvents".format(pT_bin)][0] = mesonMass
             treeDict["tree_output_bin{}_fail".format(pT_bin)].Fill()  
 
-            histo_map["h_mumuMassFail"].Fill(mumuMass, weight)
+            histo_map["h_mesonMassFail"].Fill(mesonMass, weight)
+
 
 # F i n a l   P r i n t s
 #---------------------------------- 
 print ""
 print "Summary"
 print "----------------"
-print "n probes passed the isolation cut = ", nIsolatedProbes
-print "n probes failed the isolation cut = ", nentries - nIsolatedProbes
+print "n mesons passed the isolation cut = ", nIsolatedMesons
+print "n mesons failed the isolation cut = ", nentries - nIsolatedMesons
 
 
 
@@ -243,3 +227,4 @@ for hist_name in list_histos:
     histo_map[hist_name].Write()
 
 fOut.Close()
+

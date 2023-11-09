@@ -87,6 +87,7 @@ private:
   int _NeventsFilter7;
   int _NeventsFilter8;
   int _NeventsFilter9;
+  int _NeventsFilter10;
 
   int nKK_found;
   int nKK_notFound;
@@ -109,6 +110,8 @@ private:
   float ph_iso_NeutralHadron;
   float ph_iso_Photon;
   float ph_iso_eArho;
+  float ph_HoverE;
+  float ph_hadTowOverEm;
   bool is_photon_wp90;
   float eTphMax;
   float photonRegressionError;
@@ -180,6 +183,7 @@ private:
   bool isTwoProngTrigger;
 
   //trigger studies
+  bool is_hltL1sBigORMu18erTauXXer2p1;
   bool is_hltEG35R9Id90HE10IsoMEcalIsoFilter;
   bool is_hltEG35R9Id90HE10IsoMHcalIsoFilter;
   bool is_hltEG35R9Id90HE10IsoMTrackIsoFilter;

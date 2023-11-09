@@ -17,14 +17,19 @@ process	ggH		VBFH	bkg
 process	0	 	-1	     1     
 rate	0.01    0.01	 1     
 -------------------------------------
-lumi_13TeV_2018    lnN     1.025	  1.025	  -  
-#xsec              lnN     1.025	  1.025	  -  
-#PU_rew            lnN     1.046   1.046   -  
-#alfaS             lnN     1.032   1.021   -  
-#trigEffTwoProngs  lnN     1.054   1.054   -  
-#trigEffPhotonLeg  lnN     1.027   1.027   -  
-#photonID          lnN     1.016   1.016   -  
-#IsoNeuEff          lnN     1.017   1.017   - 
-#IsoChEff           lnN     1.028   1.028   -
+lumi_13TeV_2018     lnN     1.025         1.025     -  
+CMS_trackingEff     lnN     1.044         1.044     - 
+QCDscale_ggH 	    lnN	  0.961/1.039	    -	    -
+pdf_Higgs_ggH 	    lnN	  0.968/1.032	    -    	-
+QCDscale_VBFH 	    lnN	       -	   0.997/1.004	-
+pdf_Higgs_VBFH 	    lnN	       -	   0.979/1.021	-
+CMS_pileup          lnN      1.011        1.011     -
+CMS_trig_TwoProngs  lnN      1.051        1.051     -  
+CMS_trig_PhotonLeg  lnN      1.013        1.015     -  
+CMS_photonID        lnN      1.015        1.016     - 
+CMS_IsoEff          lnN      1.015        1.015     - 
+CMS_jes  	        lnN 	0.99/1.01	0.98/1.02	-
+CMS_isr 	        lnN 	0.97/1.03	0.995/1.005	-
+CMS_fsr 	        lnN 	0.99/1.01	0.985/1.015	-
 -------------------------------------
 pdf_index_GFpreselection discrete

@@ -67,7 +67,7 @@ signif  = []
 _effS   = 0
 
 for jbin in range(1,h_BDT_effB_effS.GetNbinsX()+1):
-    if h_BDT_effB_effS.GetBinCenter(jbin) > 0.2: #insert the number before whom the function fluctuates too much to estimate the maximum
+    if h_BDT_effB_effS.GetBinCenter(jbin) > 0.2: # (0.5 for Phi channel) insert the number before whom the function fluctuates too much to estimate the maximum
         sig_eff.append(h_BDT_effB_effS.GetBinCenter(jbin))
         if h_BDT_effB_effS.GetBinContent(jbin) <= 0.:
             bkg_eff.append(0.)
@@ -86,10 +86,12 @@ sign.SetTitle("")
 sign.GetXaxis().SetTitle("#varepsilon_{S}^{BDT}")
 sign.GetYaxis().SetTitle("Significance")
 sign.SetMinimum(0.)
-sign.SetMaximum(2.*ROOT.TMath.MaxElement(sign.GetN(),sign.GetY()))
+#sign.SetMinimum(0.8*ROOT.TMath.MinElement(sign.GetN(),sign.GetY()))
+#sign.SetMaximum(1.2*ROOT.TMath.MaxElement(sign.GetN(),sign.GetY()))
 sign.SetMarkerStyle(8)
 sign.SetMarkerColor(4)
 sign.GetXaxis().SetRangeUser(0.1,1.)
+sign.GetYaxis().SetRangeUser(0.8*ROOT.TMath.MinElement(sign.GetN(),sign.GetY()),1.2*ROOT.TMath.MaxElement(sign.GetN(),sign.GetY()))
 
 sign.Draw("AP")
 
@@ -99,8 +101,8 @@ sign_vs_bkg.SetTitle("")
 sign_vs_bkg.GetXaxis().SetTitle("#varepsilon_{B}^{BDT}")
 sign_vs_bkg.GetYaxis().SetTitle("Significance")
 sign_vs_bkg.GetXaxis().SetRangeUser(0.,0.8)
-sign_vs_bkg.SetMinimum(0.)
-sign_vs_bkg.SetMaximum(2.*ROOT.TMath.MaxElement(sign_vs_bkg.GetN(),sign_vs_bkg.GetY()))
+sign_vs_bkg.SetMinimum(0.8*ROOT.TMath.MinElement(sign_vs_bkg.GetN(),sign_vs_bkg.GetY()))
+sign_vs_bkg.SetMaximum(1.2*ROOT.TMath.MaxElement(sign_vs_bkg.GetN(),sign_vs_bkg.GetY()))
 sign_vs_bkg.SetMarkerStyle(8)
 sign_vs_bkg.SetMarkerColor(4)
 sign_vs_bkg.Draw("AP")

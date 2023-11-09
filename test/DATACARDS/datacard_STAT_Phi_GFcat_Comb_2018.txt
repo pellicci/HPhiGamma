@@ -1,7 +1,7 @@
 Combination of GFcat_bdt0=datacard_STAT_Phi_GFcat_bdt0_2018.txt  GFcat_bdt1=datacard_STAT_Phi_GFcat_bdt1_2018.txt
 imax 2 number of bins
 jmax 2 number of processes minus 1
-kmax 15 number of nuisance parameters
+kmax 14 number of nuisance parameters
 ----------------------------------------------------------------------------------------------------------------------------------
 shapes VBFH        GFcat_bdt0  workspaces/workspace_STAT_Phi_GFcat_bdt0_2018.root workspace_STAT_Phi_GFcat_bdt0_2018:crystal_ball_Phi_GFcat_bdt0_VBF
 shapes bkg         GFcat_bdt0  workspaces/workspace_STAT_Phi_GFcat_bdt0_2018.root workspace_STAT_Phi_GFcat_bdt0_2018:multipdf_Phi_GFcat_bdt0_bkg
@@ -20,16 +20,15 @@ process                               ggH          VBFH         bkg          ggH
 process                               -1           0            1            -1           0            1          
 rate                                  0.01         0.01         1            0.01         0.01         1          
 ----------------------------------------------------------------------------------------------------------------------------------
-CMS_IsoChEff            lnN           1.018        1.018        -            1.02         1.018        -          
-CMS_IsoNeuEff           lnN           1.025        1.025        -            1.024        1.028        -          
-CMS_fsr                 lnN           -            -            -            0.99/1.01    0.985/1.015  -          
-CMS_isr                 lnN           -            -            -            0.97/1.03    0.995/1.005  -          
+CMS_IsoEff              lnN           1.012        1.012        -            1.012        1.012        -          
+CMS_fsr                 lnN           0.99/1.01    0.985/1.015  -            0.99/1.01    0.985/1.015  -          
+CMS_isr                 lnN           0.97/1.03    0.995/1.005  -            0.97/1.03    0.995/1.005  -          
 CMS_jes                 lnN           0.99/1.01    0.985/1.015  -            0.99/1.01    0.98/1.02    -          
-CMS_photonID            lnN           1.015        1.015        -            1.03         1.016        -          
+CMS_photonID            lnN           1.015        1.014        -            1.015        1.015        -          
 CMS_pileup              lnN           1.011        1.011        -            1.012        1.011        -          
 CMS_trackingEff         lnN           1.044        1.044        -            1.044        1.044        -          
-CMS_trig_PhotonLeg      lnN           1.028        1.028        -            1.027        1.029        -          
-CMS_trig_TwoProngs      lnN           1.053        1.053        -            1.051        1.052        -          
+CMS_trig_PhotonLeg      lnN           1.012        1.014        -            1.014        1.016        -          
+CMS_trig_TwoProngs      lnN           1.05         1.051        -            1.051        1.051        -          
 QCDscale_VBFH           lnN           -            0.997/1.004  -            -            0.997/1.004  -          
 QCDscale_ggH            lnN           0.961/1.039  -            -            0.961/1.039  -            -          
 lumi_13TeV_2018         lnN           1.025        1.025        -            1.025        1.025        -          

@@ -8,7 +8,7 @@ import tdrstyle, CMS_lumi
 
 
 #bools
-debug = True #Bool for verbose
+debug = False #Bool for verbose
 
 #Supress the opening of many Canvas's
 ROOT.gROOT.SetBatch(True)   
@@ -46,14 +46,15 @@ print "normalization_weight = ",normalization_weight
 luminosity = 57.22 #activity of Photon30 trigger in 2018
 
 #HISTOS ###########################################################################################################
+nBins = 10
 histo_map = dict()
 list_histos = ["h_mass_mumu","h_gamma_eT","h_nPhotonTriggered_eT","h_nPhotonOffline_eT","h_triggerEff_eT"]
 
 histo_map[list_histos[0]]  = ROOT.TH1F(list_histos[0],"M_{#mu#mu} in "+CONST_NAME+" (Photon leg)",100,20.,120.)
-histo_map[list_histos[1]]  = ROOT.TH1F(list_histos[1],"E_{T}^{#gamma} in "+CONST_NAME+" (Photon leg)", 100, 30.,160.)
-histo_map[list_histos[2]]  = ROOT.TH1F(list_histos[2],"n. events #gamma triggered as function of E_{#gamma} in "+CONST_NAME+" (Photon leg)", 10, 35.,90.)
-histo_map[list_histos[3]]  = ROOT.TH1F(list_histos[3],"n. events #gamma over offline selection as function of E_{#gamma} in "+CONST_NAME+" (Photon leg)", 10, 35.,90.)
-histo_map[list_histos[4]]  = ROOT.TH1F(list_histos[4],"Trigger efficiency as function of E_{#gamma} in "+CONST_NAME+" (Photon leg)", 10, 35.,90.)
+histo_map[list_histos[1]]  = ROOT.TH1F(list_histos[1],"E_{T}^{#gamma} in "+CONST_NAME+" (Photon leg)", 100, 38.,160.)
+histo_map[list_histos[2]]  = ROOT.TH1F(list_histos[2],"n. events #gamma triggered as function of E_{#gamma} in "+CONST_NAME+" (Photon leg)", nBins, 38.,90.)
+histo_map[list_histos[3]]  = ROOT.TH1F(list_histos[3],"n. events #gamma over offline selection as function of E_{#gamma} in "+CONST_NAME+" (Photon leg)", nBins, 38.,90.)
+histo_map[list_histos[4]]  = ROOT.TH1F(list_histos[4],"Trigger efficiency as function of E_{#gamma} in "+CONST_NAME+" (Photon leg)", nBins, 38.,90.)
 
 #VARIABLES INITIALIZATION ##################################################################################################
 nEventsIsoMuTrigger    = 0
@@ -88,14 +89,22 @@ for jentry in xrange(nentries):
     isPhoton30Mu17Trigger = mytree.isPhotonTrigger      
     isPhoton35Trigger     = mytree.isPhoton35Trigger      
     isbestPhotonFound     = mytree.cand_photon_found
-    genID                 = mytree.genID
+    gammaEta              = mytree.photon_eta
+    #genID                 = mytree.genID
 
-    if not CONST_NAME == "Data" :
-        eventWeight = luminosity * normalization_weight
-    else:
-        eventWeight = 1.
+    #if not CONST_NAME == "Data" :
+     #   eventWeight = luminosity * normalization_weight
+    #else:
+    eventWeight = 1.
     
     if isbestPhotonFound == 0: continue
+
+    if gammaEt < 38.: continue
+
+    if abs(gammaEta) > 2.1: continue
+    #if abs(gammaEta) < 1.444: continue #Barrel
+    #if abs(gammaEta) < 1.566: continue #Endcap
+
 
     if debug:
         print ""
@@ -112,9 +121,9 @@ for jentry in xrange(nentries):
         nEventsPhoton35Trigger = nEventsPhoton35Trigger + 1
     if isbestPhotonFound:
         nEventsOfflinePhoton   = nEventsOfflinePhoton + 1
-        if genID == 22: nEventsGenMatched      = nEventsGenMatched + 1
+        #if genID == 22: nEventsGenMatched      = nEventsGenMatched + 1
 
-    print "genID = ",genID
+    #print "genID = ",genID
 
     histo_map["h_mass_mumu"].Fill(MuMuMass,eventWeight)
     histo_map["h_gamma_eT"].Fill(gammaEt)
@@ -122,12 +131,12 @@ for jentry in xrange(nentries):
     if isPhoton35Trigger:
         histo_map["h_nPhotonTriggered_eT"].Fill(gammaEt)
         histo_map["h_triggerEff_eT"].Fill(gammaEt) #create the histo starting from the numerator
-        if genID == 22: nEventsGenMatchedTriggered  = nEventsGenMatchedTriggered + 1
-        if abs(genID) == 13: nEventsGenIsMuon     = nEventsGenIsMuon + 1
-        if abs(genID) == 11: nEventsGenIsElectron = nEventsGenIsElectron + 1
-        if genID == 111: nEventsGenIsPi0          = nEventsGenIsPi0 + 1
-        if abs(genID) == 15: nEventsGenIsTau      = nEventsGenIsTau + 1
-        if genID == 310: nEventsGenIsK0S          = nEventsGenIsK0S + 1
+        #if genID == 22: nEventsGenMatchedTriggered  = nEventsGenMatchedTriggered + 1
+        #if abs(genID) == 13: nEventsGenIsMuon     = nEventsGenIsMuon + 1
+        #if abs(genID) == 11: nEventsGenIsElectron = nEventsGenIsElectron + 1
+        #if genID == 111: nEventsGenIsPi0          = nEventsGenIsPi0 + 1
+        #if abs(genID) == 15: nEventsGenIsTau      = nEventsGenIsTau + 1
+        #if genID == 310: nEventsGenIsK0S          = nEventsGenIsK0S + 1
 
     if isbestPhotonFound: histo_map["h_nPhotonOffline_eT"].Fill(gammaEt)
 
@@ -140,7 +149,7 @@ histo_map["h_triggerEff_eT"].Divide(histo_map["h_nPhotonOffline_eT"]) #divide it
 
 #CALCULATE EFFICIENCY ERRORS ########################################################
 print "##########################################"
-for bin_index in range(1,10):
+for bin_index in range(1,nBins):
     
     N = histo_map["h_nPhotonOffline_eT"].GetBinContent(bin_index)
     epsilon = histo_map["h_triggerEff_eT"].GetBinContent(bin_index)
@@ -166,8 +175,9 @@ if debug:
     print "nEventsGenIsPi0        = ",nEventsGenIsPi0
     print "nEventsGenIsTau        = ",nEventsGenIsTau
     print "nEventsGenIsK0S        = ",nEventsGenIsK0S
-    print "Trigger fraction       = ",triggerFraction
     print "########################################"
+
+print "Total trigger fraction = ",triggerFraction
 
 #HISTO LABELS #####################################################################################################################
 histo_map["h_mass_mumu"].GetXaxis().SetTitle("m_{#mu^{+}#mu^{-}} [GeV]")

@@ -242,7 +242,9 @@ LorentzVector tagMuP4;
 LorentzVector probeMuP4;
 isBestMuMuFound = false;
 bool hasProbeMuFiredTrigger = false;
-
+_hasProbeMuFiredTrigger = false;
+bool hasTagMuFiredTrigger = false;
+_hasTagMuFiredTrigger = false;
 
 // First loop over muons: first muon
 for (std::vector<reco::Muon>::size_type firstMuIndex = 0; firstMuIndex < slimmedMuons->size(); firstMuIndex++) {
@@ -315,6 +317,7 @@ for (std::vector<reco::Muon>::size_type firstMuIndex = 0; firstMuIndex < slimmed
     // Randomly assign one muon as tag and the other as probe
     bool isFirstTag = (gRandom->Rndm() < 0.5);
     const reco::Muon* tagMu;
+    const reco::Muon* probeMu;
     int tagIndex;
     int probeIndex;
 
@@ -322,6 +325,7 @@ for (std::vector<reco::Muon>::size_type firstMuIndex = 0; firstMuIndex < slimmed
       tagMuP4    = firstMuon.p4();
       probeMuP4  = secondMuon.p4();
       tagMu      = &firstMuon;
+      probeMu    = &secondMuon;
       tagIndex   = firstMuIndex;
       probeIndex = secondMuIndex;
 
@@ -329,12 +333,13 @@ for (std::vector<reco::Muon>::size_type firstMuIndex = 0; firstMuIndex < slimmed
       tagMuP4    = secondMuon.p4();
       probeMuP4  = firstMuon.p4();
       tagMu      = &secondMuon;
+      probeMu    = &firstMuon;
       tagIndex   = secondMuIndex;
       probeIndex = firstMuIndex;
     }
 
     // Check the requirements on the tag muon
-    if (!slimmedMuons->at(tagIndex).CutBasedIdMedium|| fabs(tagMu->eta()) > 2.4 || fabs(tagMu->muonBestTrack()->dxy((&slimmedPV->at(0))->position())) >= 0.2 || fabs(tagMu->muonBestTrack()->dz((&slimmedPV->at(0))->position())) >= 0.5 || !slimmedMuons->at(tagIndex).PFIsoLoose) {
+    if (!slimmedMuons->at(tagIndex).CutBasedIdMedium || fabs(tagMu->eta()) > 2.4 || fabs(tagMu->muonBestTrack()->dxy((&slimmedPV->at(0))->position())) >= 0.2 || fabs(tagMu->muonBestTrack()->dz((&slimmedPV->at(0))->position())) >= 0.5 || !slimmedMuons->at(tagIndex).PFIsoLoose) {
       if (verbose) {
         cout << "Tag muon failed the requirements." << endl;
       }
@@ -342,7 +347,7 @@ for (std::vector<reco::Muon>::size_type firstMuIndex = 0; firstMuIndex < slimmed
     }
 
     // Check only the pT requirement on the probe muon (pT > 35)
-    if (probeMuP4.Pt() <= 35.) {
+    if (probeMuP4.Pt() <= 35. || !slimmedMuons->at(probeIndex).CutBasedIdMedium|| fabs(probeMu->eta()) > 2.1 || fabs(probeMu->muonBestTrack()->dxy((&slimmedPV->at(0))->position())) >= 0.2 || fabs(probeMu->muonBestTrack()->dz((&slimmedPV->at(0))->position())) >= 0.5) {
       if (verbose) {
         cout << "Probe muon failed the requirements." << endl;
       }
@@ -351,6 +356,7 @@ for (std::vector<reco::Muon>::size_type firstMuIndex = 0; firstMuIndex < slimmed
 
     // Verify if the probe muon fired HLT_IsoMu24
     hasProbeMuFiredTrigger = slimmedMuons->at(probeIndex).triggered("HLT_IsoMu24_v*");
+    hasTagMuFiredTrigger   = slimmedMuons->at(tagIndex).triggered("HLT_IsoMu24_v*");
 
     // Save the variables of the current pair
     bestMuMuPt   = currentMuMuPt;
@@ -381,7 +387,11 @@ if (!isBestMuMuFound) {
 _nEvents_ZmumuFound++;
 
 if (hasProbeMuFiredTrigger){
-  return;
+  _hasProbeMuFiredTrigger = hasProbeMuFiredTrigger;
+}
+
+if (hasTagMuFiredTrigger){
+  _hasTagMuFiredTrigger = hasTagMuFiredTrigger;
 }
 
 if (isBestMuMuFound && verbose) {
@@ -448,6 +458,8 @@ void HPhiGammaIsoEfficiencyAnalysis::create_trees()
 
   mytree->Branch("nPV",&nPV);
   mytree->Branch("isIsoMuTrigger",&isIsoMuTrigger);
+  mytree->Branch("hasProbeMuFiredTrigger",&_hasProbeMuFiredTrigger);
+  mytree->Branch("hasTagMuFiredTrigger",&_hasTagMuFiredTrigger);
 
   //Save run number info when running on data
   if(runningOnData_){

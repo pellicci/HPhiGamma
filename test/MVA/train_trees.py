@@ -31,13 +31,14 @@ dataloader = ROOT.TMVA.DataLoader()
 
 #Pay attention to the order, it must be the same in the function_smuggler.py
 dataloader.AddVariable("_firstTrkIsoCh","F")
-dataloader.AddVariable("_coupleIso0","F")
+#dataloader.AddVariable("_coupleIso0","F")
 #dataloader.AddVariable("_bestCouplePt/_HpT","F")
 #dataloader.AddVariable("_photonEt/_HpT","F")
 dataloader.AddVariable("_bestCouplePt/mesonGammaMass","F")
 dataloader.AddVariable("_photonEt/mesonGammaMass","F")
 #dataloader.AddVariable("_photonEta","F")
-#dataloader.AddVariable("_bestCoupleEta","F")
+dataloader.AddVariable("_bestCoupleEta","F")
+#dataloader.AddVariable("_HpT/mesonGammaMass","F")
 #dataloader.AddVariable("_JetNeutralEmEnergy","F")
 #dataloader.AddVariable("_JetChargedHadEnergy","F")
 #dataloader.AddVariable("_JetNeutralHadEnergy","F")
@@ -74,7 +75,8 @@ dataloader.PrepareTrainingAndTestTree(mycutSig, mycutBkg, ":".join(["!V","nTrain
 #dataloader.PrepareTrainingAndTestTree(mycutBkg, ":".join(["!V","nTrain_Background=0:nTest_Background=0"]))
 
 #method_btd1   = factory.BookMethod(dataloader, ROOT.TMVA.Types.kBDT, "BDT1", ":".join(["H","!V","NTrees=800", "MinNodeSize=2.5%","MaxDepth=3","BoostType=AdaBoost","AdaBoostBeta=0.25","nCuts=20","NegWeightTreatment=IgnoreNegWeightsInTraining"]))
-method_btd    = factory.BookMethod(dataloader, ROOT.TMVA.Types.kBDT, "BDT", ":".join(["H","!V","NTrees=800", "MinNodeSize=2.5%","MaxDepth=3","BoostType=AdaBoost","AdaBoostBeta=0.25","nCuts=20","NegWeightTreatment=IgnoreNegWeightsInTraining","SeparationType=GiniIndex","UseBaggedBoost:BaggedSampleFraction=0.5","H=True","VerbosityLevel=Verbose"]))
+#method_btd    = factory.BookMethod(dataloader, ROOT.TMVA.Types.kBDT, "BDT", ":".join(["H","!V","NTrees=800", "MinNodeSize=2.5%","MaxDepth=3","BoostType=AdaBoost","AdaBoostBeta=0.25","nCuts=20","NegWeightTreatment=IgnoreNegWeightsInTraining","SeparationType=GiniIndex","UseBaggedBoost:BaggedSampleFraction=0.5","H=True","VerbosityLevel=Verbose"]))
+method_btd    = factory.BookMethod(dataloader, ROOT.TMVA.Types.kBDT, "BDT", ":".join(["H","!V","NTrees=600:MinNodeSize=2.5%:BoostType=Grad:Shrinkage=0.10:MaxDepth=3:SeparationType=GiniIndex:nCuts=20:UseRandomisedTrees:UseNvars=4:UseBaggedBoost:BaggedSampleFraction=0.5"]))
 #method_bdt2    = factory.BookMethod(dataloader, ROOT.TMVA.Types.kBDT, "BDT2", ":".join(["H","!V","NTrees=800", "MinNodeSize=2.5%","MaxDepth=3","BoostType=AdaBoost","AdaBoostBeta=0.25","nCuts=20","NegWeightTreatment=IgnoreNegWeightsInTraining"]))
 #method_Fisher  = factory.BookMethod(dataloader, ROOT.TMVA.Types.kFisher, "BoostedFisher","H:!V:Boost_Num=20:Boost_Transform=log:Boost_Type=AdaBoost:Boost_AdaBoostBeta=0.25:!Boost_DetailedMonitoring" )
 #method_MLP     = factory.BookMethod(dataloader, ROOT.TMVA.Types.kMLP, "MLP", "H:!V:NeuronType=tanh:VarTransform=N:NCycles=600:HiddenLayers=N+5:TestRate=5:!UseRegulator" );

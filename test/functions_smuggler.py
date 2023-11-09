@@ -14,10 +14,11 @@ import time
 #------- Arrays and reader for the BDT -------#
 
 trk1isoCh_array            = array('f', [0.])
-pairIso_array              = array('f', [0.])
+#pairIso_array              = array('f', [0.])
 mesonPt_array              = array('f', [0.])
 photonEt_array             = array('f', [0.])
 #photonEta_array            = array('f', [0.])
+mesonEta_array             = array('f', [0.])
 #nJet_array                 = array('f', [0.])
 #JetNeutralEmEnergy_array   = array('f', [0.])
 #JetChargedHadEnergy_array  = array('f', [0.])
@@ -59,9 +60,10 @@ class Simplified_Workflow_Handler:
         ###################################################################################
 
         reader.AddVariable("_firstTrkIsoCh",trk1isoCh_array)
-        reader.AddVariable("_coupleIso0",pairIso_array)
+        #reader.AddVariable("_coupleIso0",pairIso_array)
         reader.AddVariable("_bestCouplePt/mesonGammaMass",mesonPt_array)
         reader.AddVariable("_photonEt/mesonGammaMass",photonEt_array)
+        reader.AddVariable("_bestCoupleEta",mesonEta_array)
         #reader.AddVariable("_photonEt/_HpT",photonEt_array)
         #reader.AddVariable("_bestCouplePt/_HpT",mesonPt_array)
         #reader.AddVariable("_photonEt/_HpT",photonEt_array)
@@ -78,12 +80,13 @@ class Simplified_Workflow_Handler:
 
     #Get BDT output function ###########################################################################################################
 
-    def get_BDT_output(self,trk1isoCh,pairIso,mesonPt,photonEt,mesonGammaMass):#,JetNeutralEmEn,JetChargedHadEn,JetNeutralHadEn):  HiggsPt
+    def get_BDT_output(self,trk1isoCh,mesonPt,photonEt,mesonEta,mesonGammaMass):#,JetNeutralEmEn,JetChargedHadEn,JetNeutralHadEn):  HiggsPt  pairIso
 
         trk1isoCh_array[0] = trk1isoCh
-        pairIso_array[0]   = pairIso
+        #pairIso_array[0]   = pairIso
         mesonPt_array[0]   = mesonPt/mesonGammaMass
         photonEt_array[0]  = photonEt/mesonGammaMass
+        mesonEta_array[0]  = mesonEta
         #JetNeutralEmEnergy_array[0]  = JetNeutralEmEn
         #JetChargedHadEnergy_array[0] = JetChargedHadEn
         #JetNeutralHadEnergy_array[0] = JetNeutralHadEn

@@ -89,7 +89,7 @@ fInputSidebandsPDF.cd()
 workspaceSidebands   = fInputSidebandsPDF.Get("workspace_STAT_"+CHANNEL+"_GFcat_"+CATEGORY+"_2018")
 bkgPDF_chebychev     = workspaceSidebands.pdf("chebychev_GFcat_"+CATEGORY+"_bkg") #BKG PDF from the workspace
 bkgPDF_bernstein     = workspaceSidebands.pdf("bernstein_GFcat_"+CATEGORY+"_bkg") #BKG PDF from the workspace
-bkgPDF_chebychev4    = workspaceSidebands.pdf("chebychev4_GFcat_"+CATEGORY+"_bkg") #BKG PDF from the workspace
+#bkgPDF_chebychev4    = workspaceSidebands.pdf("chebychev4_GFcat_"+CATEGORY+"_bkg") #BKG PDF from the workspace
 bkgPDF_exponential   = workspaceSidebands.pdf("exponential_GFcat_"+CATEGORY+"_bkg") #BKG PDF from the workspace
 
 print "############################### WORKSPACE BKG ##############################################################"
@@ -98,7 +98,7 @@ print "#########################################################################
 print ""
 
 #Define the POI -------------------------------------------------------------------------------------
-B_R_ = ROOT.RooRealVar("B_R_","branching_ratio",0.05,-0.1,0.1) #parameter of interest
+B_R_ = ROOT.RooRealVar("B_R_","branching_ratio",0.05,-.1,.1) #parameter of interest
 #B_R_ = ROOT.RooRealVar("B_R_","branching_ratio",0.) #parameter of interest
 
 #Number of events in m_KKg
@@ -110,9 +110,9 @@ totalSigEvents_ggH = h_Events_ggH.GetBinContent(1)
 sigEfficiency_ggH  = float(NsigPassed_ggH/totalSigEvents_ggH)
 
 Ndata = mytreeData.GetEntriesFast()
-
+#Ndata = 1000
 #N bkg estimation
-Nbkg = ROOT.RooRealVar("Nbkg", "N of bkg events",Ndata, 0.5*Ndata, 2*Ndata)
+Nbkg = ROOT.RooRealVar("Nbkg", "N of bkg events",Ndata, 0.5*Ndata, 3*Ndata)
 
 #Define PDFs for the fit --------------------------------------------------------------------------------------------------
 cross_sig_ggH = ROOT.RooRealVar("cross_sig","The signal cross section",48.85)#46.87pb (gluon fusion)
@@ -129,20 +129,20 @@ print "arg list N size = ",argListN.getSize()
 argListPDFs_chebychev   = ROOT.RooArgList(signalPDF_ggH,bkgPDF_chebychev)
 argListPDFs_bernstein   = ROOT.RooArgList(signalPDF_ggH,bkgPDF_bernstein)
 argListPDFs_exponential = ROOT.RooArgList(signalPDF_ggH,bkgPDF_exponential)
-argListPDFs_chebychev4  = ROOT.RooArgList(signalPDF_ggH,bkgPDF_chebychev4)
+#argListPDFs_chebychev4  = ROOT.RooArgList(signalPDF_ggH,bkgPDF_chebychev4)
 
 print "arg lists created!"
 totPDF_chebychev   = ROOT.RooAddPdf("totPDF_chebychev","Cheby",argListPDFs_chebychev,argListN)
 totPDF_bernstein   = ROOT.RooAddPdf("totPDF_bernstein","Bern",argListPDFs_bernstein,argListN)
 totPDF_exponential = ROOT.RooAddPdf("totPDF_exponential","Exp",argListPDFs_exponential,argListN)
-totPDF_chebychev4  = ROOT.RooAddPdf("totPDF_chebychev4","Cheby5",argListPDFs_chebychev4,argListN)
+#totPDF_chebychev4  = ROOT.RooAddPdf("totPDF_chebychev4","Cheby5",argListPDFs_chebychev4,argListN)
 
 print "PDFs added!"
 
 #Generate dataset for blind analysis -----------------------------------------------------------------------------------
 datasetGenerated_chebychev   = totPDF_chebychev.generate(ROOT.RooArgSet(mass),Ndata)
 datasetGenerated_bernstein   = totPDF_bernstein.generate(ROOT.RooArgSet(mass),Ndata)
-datasetGenerated_chebychev4  = totPDF_chebychev4.generate(ROOT.RooArgSet(mass),Ndata)
+#datasetGenerated_chebychev4  = totPDF_chebychev4.generate(ROOT.RooArgSet(mass),Ndata)
 datasetGenerated_exponential = totPDF_exponential.generate(ROOT.RooArgSet(mass),Ndata)
 
 print "Dataset generated!"
@@ -159,38 +159,40 @@ print ""
 multicanvas = ROOT.TCanvas()
 multicanvas.cd()
 
-genPDF = totPDF_chebychev
-fitPDF = totPDF_exponential
+genPDF = totPDF_bernstein
+fitPDF = totPDF_chebychev
 
-mcstudy = ROOT.RooMCStudy(genPDF, ROOT.RooArgSet(mass), ROOT.RooFit.Silence(),ROOT.RooFit.FitModel(fitPDF), ROOT.RooFit.Extended(), ROOT.RooFit.FitOptions(ROOT.RooFit.Save(1), ROOT.RooFit.PrintEvalErrors(0)))
-mcstudy.generateAndFit(5000)
+for fitPDF in [totPDF_chebychev]:
+    for genPDF in [totPDF_bernstein,totPDF_exponential]:  #ROOT.RooFit.Silence()
+        mcstudy = ROOT.RooMCStudy(genPDF, ROOT.RooArgSet(mass),ROOT.RooFit.FitModel(fitPDF), ROOT.RooFit.Extended(1), ROOT.RooFit.FitOptions(ROOT.RooFit.Save(1), ROOT.RooFit.PrintEvalErrors(0)))
+        mcstudy.generateAndFit(500)
 
-#set the frame
+        #set the frame
 
-leg2 = ROOT.TLegend(0.12,0.75,0.44,0.97) #left positioning
-leg2.SetHeader(" ")
-leg2.SetNColumns(1)
-leg2.SetFillColorAlpha(0,0.)
-leg2.SetBorderSize(0)
-leg2.SetLineColor(1)
-leg2.SetLineStyle(1)
-leg2.SetLineWidth(1)
-leg2.SetFillStyle(1001)
-leg2.AddEntry(0,"gen pdf: "+genPDF.GetTitle(),"")
-leg2.AddEntry(0,"fit pdf: "+fitPDF.GetTitle(),"")
+        leg2 = ROOT.TLegend(0.12,0.75,0.44,0.97) #left positioning
+        leg2.SetHeader(" ")
+        leg2.SetNColumns(1)
+        leg2.SetFillColorAlpha(0,0.)
+        leg2.SetBorderSize(0)
+        leg2.SetLineColor(1)
+        leg2.SetLineStyle(1)
+        leg2.SetLineWidth(1)
+        leg2.SetFillStyle(1001)
+        leg2.AddEntry(0,"gen pdf: "+genPDF.GetTitle(),"")
+        leg2.AddEntry(0,"fit pdf: "+fitPDF.GetTitle(),"")
 
-BRpull_frame = mcstudy.plotPull(B_R_, ROOT.RooFit.Bins(56), ROOT.RooFit.FitGauss(1))
-BRpull_frame.SetTitle("")
-BRpull_frame.SetTitleOffset(1.5,"y")
-BRpull_frame.SetXTitle("Gen: "+genPDF.GetTitle()+" Vs Fit: "+fitPDF.GetTitle())
-BRpull_frame.SetMaximum(1.1*BRpull_frame.GetMaximum())
+        BRpull_frame = mcstudy.plotPull(B_R_, ROOT.RooFit.Bins(100), ROOT.RooFit.FitGauss(1))
+        BRpull_frame.SetTitle("")
+        BRpull_frame.SetTitleOffset(1.5,"y")
+        BRpull_frame.SetXTitle("Gen: "+genPDF.GetTitle()+" Vs Fit: "+fitPDF.GetTitle())
+        BRpull_frame.SetMaximum(1.3*BRpull_frame.GetMaximum())
 
-BRpull_frame.Draw()
-leg2.Draw()
+        BRpull_frame.Draw()
+        leg2.Draw()
 
 
-multicanvas.Draw()
+        multicanvas.Draw()
 
-multicanvas.SaveAs("/eos/user/g/gumoret/www/latest_production/massanalysis_latest_production/BRpull_"+genPDF.GetTitle()+"Vs"+fitPDF.GetTitle()+"_"+CATEGORY+".png")
-multicanvas.SaveAs("/eos/user/g/gumoret/www/latest_production/massanalysis_latest_production/BRpull_"+genPDF.GetTitle()+"Vs"+fitPDF.GetTitle()+"_"+CATEGORY+".pdf")
+        multicanvas.SaveAs("/eos/user/g/gumoret/www/latest_production/massanalysis_latest_production/BRpull_"+genPDF.GetTitle()+"Vs"+fitPDF.GetTitle()+"_"+CATEGORY+".png")
+        multicanvas.SaveAs("/eos/user/g/gumoret/www/latest_production/massanalysis_latest_production/BRpull_"+genPDF.GetTitle()+"Vs"+fitPDF.GetTitle()+"_"+CATEGORY+".pdf")
 

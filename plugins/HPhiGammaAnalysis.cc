@@ -83,7 +83,6 @@
 #include "DataFormats/TrackReco/interface/Track.h"
 #include "DataFormats/TrackReco/interface/TrackFwd.h"
 
-
 typedef math::XYZTLorentzVector LorentzVector;
 
 using namespace std;  
@@ -114,6 +113,7 @@ effectiveAreas_ph_( (iConfig.getParameter<edm::FileInPath>("effAreasConfigFile_p
   LHEEventProduct_                    = consumes<LHEEventProduct>(edm::InputTag("externalLHEProducer"));
   triggerObjectsToken_                = consumes<std::vector<pat::TriggerObjectStandAlone> > (edm::InputTag("slimmedPatTrigger","","PAT")); //triggObj
   //packedGenParticlesToken_            = consumes<std::vector<pat::GenParticle>>(edm::InputTag("packedGenParticles", "", "PAT"));
+  
 
   h_Events         = fs->make<TH1F>("h_Events", "Event counting in different steps", 8, 0., 8.);
   h_TriggerFilters = fs->make<TH1F>("h_TriggerFilters", "Trigger filters counting in different steps", 11, 0., 11.);
@@ -219,7 +219,6 @@ void HPhiGammaAnalysis::analyze(const edm::Event& iEvent, const edm::EventSetup&
   iEvent.getByToken(triggerObjectsToken_, triggerObjects); //triggObj
   
   std::vector<pat::TriggerObjectStandAlone> unpackedTrigObjs; //triggObj
-
 
   //edm::Handle<reco::JetCorrector> jetCorr;
   //iEvent.getByToken(jetCorrectorToken_, jetCorr);
@@ -614,6 +613,7 @@ for(auto el = slimmedElectrons->begin(); el != slimmedElectrons->end(); ++el){
     if(fabs(photon->eta()) > 2.1) continue; //eta cut corresponding to the trigger's one
     if(corr_et < 38.) continue;
     if(photon->photonID("mvaPhoID-RunIIFall17-v2-wp80") == 0) continue; //WP80
+    //if(photon->photonID("cutBasedPhotonID-Fall17-94X-V2-medium") == 0) continue; //WP80 FIXMEEEEEEE
 
     float abseta = fabs(photon->superCluster()->eta());
     float eA = effectiveAreas_ph_.getEffectiveArea(abseta);
@@ -646,6 +646,8 @@ for(auto el = slimmedElectrons->begin(); el != slimmedElectrons->end(); ++el){
     ph_eta    = photon->eta();
     ph_etaSC  = photon->superCluster()->eta();
     ph_phi    = photon->phi();
+    ph_HoverE       = photon->hadronicOverEm();
+    ph_hadTowOverEm = photon->hadTowOverEm();
 
     photonRegressionError = photon->getCorrectedEnergyError(reco::Photon::P4type::regression2);
     if(debug) cout << "Regression2 Energy Error: " << photonRegressionError << endl;
@@ -1134,7 +1136,7 @@ JetCorrectionUncertainty *jecUnc = new JetCorrectionUncertainty(JetCorPar);
           float isoCoupleCh = couple_p4.pt()/(couple_sum_pT_05_ch + couple_p4.pt());
           if(isoCoupleCh < 0.9) {
             cout<<"No isolation cut passed."<<endl;
-            //continue; //FIXMEEEEEEE
+            continue; //FIXMEEEEEEE
           }
 
 
@@ -1824,7 +1826,7 @@ cout<<"ph_en_scaleUP = "<<ph_en_scaleUP<<endl;
 cout<<"ph_en_scaleDW = "<<ph_en_scaleDW<<endl;
   }
  }
-
+   is_hltL1sBigORMu18erTauXXer2p1 = false;
    is_hltEG35R9Id90HE10IsoMEcalIsoFilter  = false;
    is_hltEG35R9Id90HE10IsoMHcalIsoFilter  = false;
    is_hltEG35R9Id90HE10IsoMTrackIsoFilter = false;
@@ -1880,6 +1882,10 @@ cout<<"ph_en_scaleDW = "<<ph_en_scaleDW<<endl;
       //now just check if it passes the filters
 
       //HLT_Photon35_TwoProngs35 filters -----------------------------------------------------      
+      if(trigObj->hasFilterLabel("hltL1sBigORMu18erTauXXer2p1")) {
+        is_hltL1sBigORMu18erTauXXer2p1 = true;
+        if(trig_verbose) cout<<"1) hltL1sBigORMu18erTauXXer2p1 passed!"<<endl;
+      }
       if(trigObj->hasFilterLabel("hltL1sBigORLooseIsoEGXXerIsoTauYYerdRMin0p3")) {
         is_hltL1sBigORLooseIsoEGXXerIsoTauYYerdRMin0p3 = true;
         if(trig_verbose) cout<<"1) hltL1sBigORLooseIsoEGXXerIsoTauYYerdRMin0p3 passed!"<<endl;
@@ -1953,6 +1959,7 @@ cout<<"ph_en_scaleDW = "<<ph_en_scaleDW<<endl;
     cout<<"n event filter 7 : "<<_NeventsFilter7<<endl;
     cout<<"n event filter 8 : "<<_NeventsFilter8<<endl;
     cout<<"n event filter 9 : "<<_NeventsFilter9<<endl;
+    cout<<"n event filter 10: "<<_NeventsFilter10<<endl;
 
   //cout<<endl<<"Event n = "<<event_number<<endl;
   mytree->Fill();
@@ -2005,6 +2012,9 @@ void HPhiGammaAnalysis::create_trees()
   mytree->Branch("photon_eta",&ph_eta);
   mytree->Branch("photon_etaSC",&ph_etaSC);
   mytree->Branch("photon_phi",&ph_phi);
+  mytree->Branch("photon_HoverE",&ph_HoverE);
+  mytree->Branch("photon_hadTowOverEm",&ph_hadTowOverEm);
+
   //mytree->Branch("photon_iso_ChargedHadron",&ph_iso_ChargedHadron);
   //mytree->Branch("photon_iso_NeutralHadron",&ph_iso_NeutralHadron);
   //mytree->Branch("photon_iso_Photon",&ph_iso_Photon);
@@ -2183,6 +2193,7 @@ h_TriggerFilters->Fill(6.5,_NeventsFilter6 * scale_factor);
 h_TriggerFilters->Fill(7.5,_NeventsFilter7 * scale_factor);
 h_TriggerFilters->Fill(8.5,_NeventsFilter8 * scale_factor);
 h_TriggerFilters->Fill(9.5,_NeventsFilter9 * scale_factor);
+h_TriggerFilters->Fill(10.5,_NeventsFilter10 * scale_factor);
 h_TriggerFilters->GetXaxis()->SetBinLabel(1,"offline selection");
 h_TriggerFilters->GetXaxis()->SetBinLabel(2,"hltL1sBigORLooseIsoEGXXerIsoTauYYerdRMin0p3");
 h_TriggerFilters->GetXaxis()->SetBinLabel(3,"hltEGL1EGAndTauFilter");
